@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface LinkItem { id: string; type: string; title: string; url: string; displayOrder: number; activeFrom: string|null; activeTo: string|null; thumbnailUrl: string|null; }
-interface ProfileTheme { style: "gradient"|"glassmorphism"|"minimal"; primaryColor: string; fontFamily: string; }
+interface ProfileTheme { style: string; primaryColor: string; fontFamily: string; linksLayout?: "list"|"grid"; profileLayout?: "classic"|"hero"; }
 interface ProfileData { id: string; publicId: string; displayName: string; bio: string|null; avatarUrl: string|null; theme: ProfileTheme; passwordProtected: boolean; sensitiveContent: boolean; isActive: boolean; isSuspended: boolean; links: LinkItem[]; }
 
 const LMETA: Record<string,{icon:string;color:string}> = {
@@ -18,6 +18,14 @@ const COLORS = ["#03A9F4","#8A2BE2","#ec4899","#f59e0b","#10b981","#ef4444","#63
 const FONTS  = ["Inter","Poppins","Roboto","Montserrat","Playfair Display"];
 type Tab = "home"|"analytics"|"share"|"design"|"settings";
 
+const PRESET_THEMES = [
+  { id:"default", name:"Default", desc:"Clean and minimal design", colors:["#ffffff","#f3f4f6","#e5e7eb","#374151"], premium:false },
+  { id:"dark", name:"Dark Mode", desc:"Sleek dark interface", colors:["#111827","#1f2937","#3b82f6","#f9fafb"], premium:false },
+  { id:"nature", name:"Nature", desc:"Earthy tones and natural feel", colors:["#d1fae5","#6ee7b7","#10b981","#064e3b"], premium:false },
+  { id:"ocean", name:"Ocean", desc:"Calming blue tones", colors:["#eff6ff","#bfdbfe","#3b82f6","#1e3a8a"], premium:false },
+  { id:"sunset", name:"Sunset", desc:"Warm sunset colors", colors:["#fff7ed","#fed7aa","#f97316","#7c2d12"], premium:true },
+  { id:"neon", name:"Neon", desc:"Vibrant neon colors", colors:["#0f0f0f","#1a1a2e","#7c3aed","#a78bfa"], premium:true },
+];
 function EditProfilePanel({profile,saving,onSave,onClose}:{profile:ProfileData;saving:boolean;onSave:(p:Record<string,unknown>)=>void;onClose:()=>void}){
   const [name,setName]=useState(profile.displayName);
   const [bio,setBio]=useState(profile.bio??"");
@@ -32,6 +40,7 @@ function EditProfilePanel({profile,saving,onSave,onClose}:{profile:ProfileData;s
     </div>
   );
 }
+
 function AddLinkForm({saving,onSubmit,onCancel}:{saving:boolean;onSubmit:(d:{type:string;title:string;url:string})=>void;onCancel:()=>void}){
   const [type,setType]=useState("URL");
   const [title,setTitle]=useState("");
@@ -112,8 +121,8 @@ function HomeTab({profile,saving,onPatch,onAddLink,onEditLink,onDeleteLink,onMov
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{backgroundColor:m.color+"20"}}><i className={m.icon+" text-sm"} style={{color:m.color}}/></div>
                 <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate">{link.title}</p><p className="text-xs text-white/30 truncate">{link.url}</p></div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100">
-                  <button onClick={()=>onMove(i,"up")} disabled={i===0} className="p-1 text-white/40 hover:text-white disabled:opacity-20">up</button>
-                  <button onClick={()=>onMove(i,"down")} disabled={i===profile.links.length-1} className="p-1 text-white/40 hover:text-white disabled:opacity-20">dn</button>
+                  <button onClick={()=>onMove(i,"up")} disabled={i===0} className="p-1 text-white/40 hover:text-white disabled:opacity-20">↑</button>
+                  <button onClick={()=>onMove(i,"down")} disabled={i===profile.links.length-1} className="p-1 text-white/40 hover:text-white disabled:opacity-20">↓</button>
                   <button onClick={()=>onEditLink(link)} className="p-1 text-white/40 hover:text-white"><i className="ri-pencil-line text-sm"/></button>
                   <button onClick={()=>onDeleteLink(link.id)} className="p-1 text-white/40 hover:text-red-400"><i className="ri-delete-bin-line text-sm"/></button>
                 </div>
@@ -176,23 +185,6 @@ function ShareTab({profile,onCopy,copied}:{profile:ProfileData;onCopy:()=>void;c
   );
 }
 
-function DesignTab({profile,saving,onSave}:{profile:ProfileData;saving:boolean;onSave:(t:ProfileTheme)=>void}){
-  const [style,setStyle]=useState(profile.theme.style);
-  const [color,setColor]=useState(profile.theme.primaryColor);
-  const [font,setFont]=useState(profile.theme.fontFamily);
-  return(
-    <div className="space-y-4 max-w-lg">
-      <h2 className="font-bold text-lg">Design</h2>
-      <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-5 space-y-5">
-        <div><label className="text-xs text-white/40 block mb-2">Style</label><div className="flex gap-2">{(["gradient","glassmorphism","minimal"] as const).map(s=>(<button key={s} onClick={()=>setStyle(s)} className={"flex-1 py-2 rounded-lg text-sm capitalize border transition-colors "+(style===s?"border-white/40 bg-white/10 text-white":"border-white/10 text-white/40 hover:border-white/20")}>{s}</button>))}</div></div>
-        <div><label className="text-xs text-white/40 block mb-2">Accent Color</label><div className="flex items-center gap-2 flex-wrap">{COLORS.map(c=>(<button key={c} onClick={()=>setColor(c)} className={"w-7 h-7 rounded-full border-2 transition-all "+(color===c?"border-white scale-110":"border-transparent hover:scale-105")} style={{backgroundColor:c}}/>))}<input type="color" value={color} onChange={e=>setColor(e.target.value)} className="w-7 h-7 rounded-full cursor-pointer bg-transparent border border-white/20"/></div></div>
-        <div><label className="text-xs text-white/40 block mb-1">Font</label><select value={font} onChange={e=>setFont(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">{FONTS.map(f=>(<option key={f} value={f}>{f}</option>))}</select></div>
-        <button onClick={()=>onSave({style,primaryColor:color,fontFamily:font})} disabled={saving} className="bg-white text-black text-sm font-semibold px-4 py-2 rounded-lg hover:bg-white/90 disabled:opacity-50">{saving?"Saving...":"Save Theme"}</button>
-      </div>
-    </div>
-  );
-}
-
 function SettingsTab({profile}:{profile:ProfileData}){
   return(
     <div className="space-y-4 max-w-lg">
@@ -205,6 +197,121 @@ function SettingsTab({profile}:{profile:ProfileData}){
             <i className="ri-arrow-right-s-line text-white/20 group-hover:text-white/50"/>
           </Link>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function DesignTab({profile,saving,onSave}:{profile:ProfileData;saving:boolean;onSave:(t:ProfileTheme)=>void}){
+  const [style,setStyle]=useState(profile.theme.style||"default");
+  const [linksLayout,setLinksLayout]=useState<"list"|"grid">((profile.theme.linksLayout)||"list");
+  const [profileLayout,setProfileLayout]=useState<"classic"|"hero">((profile.theme.profileLayout)||"classic");
+  const [subTab,setSubTab]=useState("themes");
+  const [refreshKey,setRefreshKey]=useState(0);
+
+  function apply(s:string,ll:"list"|"grid",pl:"classic"|"hero"){
+    setStyle(s);setLinksLayout(ll);setProfileLayout(pl);
+    onSave({style:s as any,primaryColor:profile.theme.primaryColor,fontFamily:profile.theme.fontFamily,linksLayout:ll,profileLayout:pl});
+    setTimeout(()=>setRefreshKey(k=>k+1),500);
+  }
+
+  return(
+    <div className="flex h-[calc(100vh-60px)] min-h-[600px] w-full overflow-hidden">
+      {/* Left sub-nav */}
+      <div className="w-44 flex-shrink-0 space-y-1 pr-2 pt-1">
+        {[{id:"themes",icon:"ri-brush-line",label:"Themes"},{id:"frames",icon:"ri-focus-2-line",label:"Frames"},{id:"icons",icon:"ri-function-line",label:"Icons"}].map(n=>(
+          <button key={n.id} onClick={()=>setSubTab(n.id)} className={"w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors "+(subTab===n.id?"bg-white/10 text-white":"text-white/40 hover:bg-white/5 hover:text-white/80")}>
+            <i className={n.icon}/>{n.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Main scrollable content */}
+      <div className="flex-1 overflow-y-auto px-6 space-y-6 pb-20">
+        {/* Pro banner */}
+        <div className="flex items-center justify-between bg-gradient-to-r from-yellow-900/40 to-yellow-600/10 border border-yellow-500/20 rounded-2xl px-5 py-3.5">
+          <div className="flex items-center gap-3"><i className="ri-vip-crown-fill text-yellow-500 text-lg"/><span className="text-yellow-500/90 font-semibold text-sm">Upgrade to Pro Plus to access all premium themes</span></div>
+          <button className="bg-yellow-600/20 text-yellow-500 hover:bg-yellow-600/30 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors">Upgrade Now</button>
+        </div>
+
+        {/* Links Layout */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <h3 className="text-white font-bold text-sm">Links Layout</h3>
+            <span className="text-[10px] font-bold bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded-md flex items-center gap-1"><i className="ri-vip-crown-fill"/> Pro</span>
+          </div>
+          <p className="text-xs text-white/40 -mt-1">Choose how your links are displayed on your profile page</p>
+          <div className="flex gap-3">
+            <button onClick={()=>apply(style,"list",profileLayout)} className={"flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-semibold transition-colors "+(linksLayout==="list"?"bg-white text-black border-white":"bg-[#1a1a1a] text-white/60 border-white/10 hover:border-white/20")}><i className="ri-list-check"/> List</button>
+            <button onClick={()=>apply(style,"grid",profileLayout)} className={"flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-semibold transition-colors "+(linksLayout==="grid"?"bg-white text-black border-white":"bg-[#1a1a1a] text-white/60 border-white/10 hover:border-white/20")}><i className="ri-grid-fill"/> Grid</button>
+          </div>
+        </div>
+
+        {/* Profile Layout */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <h3 className="text-white font-bold text-sm">Profile Layout</h3>
+            <span className="text-[10px] font-bold bg-yellow-500/20 text-yellow-500 px-2 py-0.5 rounded-md flex items-center gap-1"><i className="ri-vip-crown-fill"/> Pro+</span>
+          </div>
+          <p className="text-xs text-white/40 -mt-1">Display a larger cover image with gradient overlay</p>
+          <div className="flex gap-3">
+            <button onClick={()=>apply(style,linksLayout,"classic")} className={"flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-semibold transition-colors "+(profileLayout==="classic"?"bg-white/20 text-white border-white/30":"bg-[#1a1a1a] text-white/40 border-white/10 hover:border-white/20")}><i className="ri-user-line"/> Classic</button>
+            <button onClick={()=>apply(style,linksLayout,"hero")} className={"flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-semibold transition-colors "+(profileLayout==="hero"?"bg-white/20 text-white border-white/30":"bg-[#1a1a1a] text-white/40 border-white/10 hover:border-white/20")}><i className="ri-image-line"/> Hero</button>
+          </div>
+        </div>
+
+        {/* Themes grid */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-white font-bold text-sm">Themes</h3>
+            <div className="flex bg-[#1a1a1a] rounded-lg p-1 border border-white/5">
+              <button className="px-3 py-1 bg-white/10 text-white text-xs font-semibold rounded-md">All</button>
+              <button className="px-3 py-1 text-white/40 text-xs font-semibold hover:text-white transition-colors">Free</button>
+              <button className="px-3 py-1 text-white/40 text-xs font-semibold hover:text-white transition-colors">Premium</button>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            {PRESET_THEMES.map(t=>(
+              <div key={t.id} onClick={()=>apply(t.id,linksLayout,profileLayout)} className={"cursor-pointer bg-[#141414] border rounded-2xl p-4 transition-all "+(style===t.id?"border-white ring-2 ring-white/20":"border-white/10 hover:border-white/30")}>
+                <div className="flex items-start justify-between mb-3">
+                  <div><h4 className="text-sm font-bold text-white">{t.name}</h4><p className="text-[10px] text-white/40 mt-0.5">{t.desc}</p></div>
+                  {t.premium&&<span className="text-[9px] font-bold bg-yellow-500/20 text-yellow-500 px-1.5 py-0.5 rounded flex items-center gap-1"><i className="ri-vip-crown-fill"/> Premium</span>}
+                </div>
+                <div className="w-full h-28 rounded-xl border border-white/5 flex flex-col items-center justify-center gap-2" style={{backgroundColor:t.colors[0]}}>
+                  <div className="w-8 h-8 rounded-full" style={{backgroundColor:t.colors[1]}}/>
+                  <div className="w-16 h-2 rounded-full" style={{backgroundColor:t.colors[2]}}/>
+                  <div className="w-12 h-2 rounded-full" style={{backgroundColor:t.colors[3]}}/>
+                </div>
+                <div className="flex justify-center gap-1.5 mt-3">
+                  {t.colors.map((col,i)=><div key={i} className="w-4 h-4 rounded-full border border-black/10" style={{backgroundColor:col}}/>)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Right phone preview */}
+      <div className="w-[260px] flex-shrink-0 flex justify-center items-start pt-2 sticky top-0">
+        <div className="w-[240px] h-[500px] border-[8px] border-white/10 rounded-[3rem] overflow-hidden relative shadow-2xl bg-[#111]">
+          <div className="absolute top-0 inset-x-0 flex justify-center z-50 pt-1">
+            <div className="w-24 h-5 bg-black rounded-b-2xl"/>
+          </div>
+          <div className="w-[375px] h-[812px] origin-top-left" style={{transform:"scale(0.597)"}}>
+            <iframe
+              key={refreshKey}
+              src={"/profile/"+profile.publicId+"?preview=true&style="+style+"&linksLayout="+linksLayout+"&profileLayout="+profileLayout}
+              className="w-full h-full border-none pointer-events-none"
+              title="Profile Preview"
+            />
+          </div>
+          {saving&&(
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+              <i className="ri-loader-4-line text-white text-3xl animate-spin mb-2"/>
+              <p className="text-white text-xs font-semibold">Updating...</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -309,7 +416,7 @@ export default function DashboardPage() {
           <button onClick={async()=>{await createClient().auth.signOut();router.push("/login");}} className="text-white/30 hover:text-white"><i className="ri-logout-box-line text-sm"/></button>
         </div>
       </aside>
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-hidden">
         {!profile?(
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
             <i className="ri-nfc-line text-5xl text-white/10"/>
@@ -317,16 +424,20 @@ export default function DashboardPage() {
             <Link href="/admin/tags" className="px-5 py-2.5 rounded-full bg-[#03A9F4] text-white text-sm font-semibold hover:bg-[#03A9F4]/80">Generate a Tag</Link>
           </div>
         ):(
-          <div className="max-w-5xl mx-auto px-6 py-6">
-            <div className="flex items-center justify-between bg-[#03A9F4]/10 border border-[#03A9F4]/20 rounded-xl px-4 py-2.5 mb-5">
-              <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"/><span className="text-white/50 text-xs">You are live</span><span className="text-[#03A9F4] text-xs font-mono">/profile/{profile.publicId}</span></div>
-              <button onClick={copyLink} className="text-xs text-white/40 hover:text-white flex items-center gap-1"><i className={copied?"ri-check-line text-green-400":"ri-file-copy-line"}/>{copied?"Copied!":"Copy"}</button>
-            </div>
-            {tab==="home"&&<HomeTab profile={profile} saving={saving} onPatch={patchProfile} onAddLink={()=>setAddOpen(true)} onEditLink={setEditLink} onDeleteLink={deleteLink} onMove={moveLink} editOpen={editOpen} setEditOpen={setEditOpen} addOpen={addOpen} setAddOpen={setAddOpen} editLink={editLink} setEditLink={setEditLink} onUpdateLink={updateLink} onAddLinkSubmit={addLink}/>}
-            {tab==="analytics"&&<AnalyticsTab profile={profile} token={token} uid={uid}/>}
-            {tab==="share"&&<ShareTab profile={profile} onCopy={copyLink} copied={copied}/>}
+          <div className={"h-full "+(tab==="design"?"overflow-hidden px-6 py-6":"overflow-y-auto")}>
+            {tab!=="design"&&(
+              <div className="max-w-5xl mx-auto px-6 py-6">
+                <div className="flex items-center justify-between bg-[#03A9F4]/10 border border-[#03A9F4]/20 rounded-xl px-4 py-2.5 mb-5">
+                  <div className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"/><span className="text-white/50 text-xs">You are live</span><span className="text-[#03A9F4] text-xs font-mono">/profile/{profile.publicId}</span></div>
+                  <button onClick={copyLink} className="text-xs text-white/40 hover:text-white flex items-center gap-1"><i className={copied?"ri-check-line text-green-400":"ri-file-copy-line"}/>{copied?"Copied!":"Copy"}</button>
+                </div>
+                {tab==="home"&&<HomeTab profile={profile} saving={saving} onPatch={patchProfile} onAddLink={()=>setAddOpen(true)} onEditLink={setEditLink} onDeleteLink={deleteLink} onMove={moveLink} editOpen={editOpen} setEditOpen={setEditOpen} addOpen={addOpen} setAddOpen={setAddOpen} editLink={editLink} setEditLink={setEditLink} onUpdateLink={updateLink} onAddLinkSubmit={addLink}/>}
+                {tab==="analytics"&&<AnalyticsTab profile={profile} token={token} uid={uid}/>}
+                {tab==="share"&&<ShareTab profile={profile} onCopy={copyLink} copied={copied}/>}
+                {tab==="settings"&&<SettingsTab profile={profile}/>}
+              </div>
+            )}
             {tab==="design"&&<DesignTab profile={profile} saving={saving} onSave={(t)=>patchProfile({theme:t})}/>}
-            {tab==="settings"&&<SettingsTab profile={profile}/>}
           </div>
         )}
       </main>

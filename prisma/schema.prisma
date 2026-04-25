@@ -137,6 +137,8 @@ model AnalyticsEvent {
   referralSource ReferralSource
   geoCountry     String?
   geoSubdivision String?
+  os             String?
+  browser        String?
   createdAt      DateTime       @default(now())
 
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)

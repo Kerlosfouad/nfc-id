@@ -358,3 +358,19 @@ a {
 .animate-float-left  { animation: float-left  3s ease-in-out infinite; }
 .animate-float-right { animation: float-right 3.4s ease-in-out infinite; }
 .animate-float-top   { animation: float-top   2.8s ease-in-out infinite; }
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

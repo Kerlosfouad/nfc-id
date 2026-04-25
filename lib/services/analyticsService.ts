@@ -9,6 +9,7 @@
 
 import { createHash } from 'crypto';
 import { db } from '@/lib/db';
+import { UAParser } from 'ua-parser-js';
 import {
   get as cacheGet,
   set as cacheSet,
@@ -35,8 +36,13 @@ export interface AnalyticsEventInput {
 export interface AnalyticsSummary {
   totalViews: number;
   uniqueVisitors: number;
-  linkClicks: { linkId: string; clicks: number }[];
-  ctrPerLink: { linkId: string; ctr: number }[];
+  totalLinkClicks: number;
+  linkClickRate: number;
+  contactSaves: number;
+  activityTimeline: { date: string; views: number; clicks: number }[];
+  linkClickDistribution: { title: string; clicks: number; fill: string }[];
+  recentScans: { date: string; country: string; os: string; browser: string }[];
+  linkClickDetails: { title: string; clicks: number }[];
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -48,7 +54,6 @@ export function hashIp(rawIp: string): string {
 
 /**
  * Parse device type from User-Agent string (Req 6.3).
- * No external library — simple substring checks.
  */
 export function parseDeviceType(userAgent: string): 'mobile' | 'tablet' | 'desktop' {
   const ua = userAgent.toLowerCase();
@@ -61,14 +66,14 @@ export function parseDeviceType(userAgent: string): 'mobile' | 'tablet' | 'deskt
 
 /**
  * Record an analytics event.
- * Hashes the raw IP, parses device type, resolves geo from pre-supplied
- * Vercel edge headers (no heavy geo-IP library), then inserts the row.
- *
- * Requirements: 3.8, 6.2, 6.3, 6.4
  */
 export async function recordEvent(input: AnalyticsEventInput): Promise<void> {
   const ipHash = hashIp(input.rawIp);
   const deviceType = parseDeviceType(input.userAgent);
+
+  const parser = new UAParser(input.userAgent);
+  const os = parser.getOS().name ?? 'Unknown';
+  const browser = parser.getBrowser().name ?? 'Unknown';
 
   await db.analyticsEvent.create({
     data: {
@@ -79,18 +84,16 @@ export async function recordEvent(input: AnalyticsEventInput): Promise<void> {
       ipHash,
       deviceType,
       referralSource: input.referralSource,
-      geoCountry: input.geoCountry ?? null,
-      geoSubdivision: input.geoSubdivision ?? null,
+      geoCountry: input.geoCountry ?? 'Unknown',
+      geoSubdivision: input.geoSubdivision ?? 'Unknown',
+      os,
+      browser,
     },
   });
 }
 
 /**
  * Return an aggregated analytics summary for a profile.
- * Result is cached in Redis for ANALYTICS_TTL seconds (60s) to satisfy
- * the max-60s-staleness requirement (Req 6.5).
- *
- * Requirements: 6.1, 6.5
  */
 export async function getProfileSummary(profileId: string): Promise<AnalyticsSummary> {
   const cacheKey = analyticsSummaryCacheKey(profileId);
@@ -98,43 +101,104 @@ export async function getProfileSummary(profileId: string): Promise<AnalyticsSum
   const cached = await cacheGet<AnalyticsSummary>(cacheKey);
   if (cached) return cached;
 
-  // Total views
   const totalViews = await db.analyticsEvent.count({
     where: { profileId, eventType: 'VIEW' },
   });
 
-  // Unique visitors (distinct ipHash across all events)
   const uniqueResult = await db.analyticsEvent.groupBy({
     by: ['ipHash'],
     where: { profileId },
   });
   const uniqueVisitors = uniqueResult.length;
 
-  // Click counts per link
   const clickGroups = await db.analyticsEvent.groupBy({
     by: ['linkId'],
     where: { profileId, eventType: 'CLICK', linkId: { not: null } },
     _count: { linkId: true },
   });
 
-  const linkClicks = clickGroups
-    .filter((g: { linkId: string | null; _count: { linkId: number } }) => g.linkId !== null)
-    .map((g: { linkId: string | null; _count: { linkId: number } }) => ({
-      linkId: g.linkId as string,
-      clicks: g._count.linkId,
-    }));
+  const profileLinks = await db.link.findMany({ where: { profileId } });
 
-  // CTR per link = clicks / totalViews (guard against division by zero)
-  const ctrPerLink = linkClicks.map(({ linkId, clicks }: { linkId: string; clicks: number }) => ({
-    linkId,
-    ctr: totalViews > 0 ? clicks / totalViews : 0,
+  let totalLinkClicks = 0;
+  let contactSaves = 0;
+  const linkClickDetails: { title: string; clicks: number }[] = [];
+  const linkClickDistribution: { title: string; clicks: number; fill: string }[] = [];
+  
+  const COLORS = ['#03A9F4', '#8A2BE2', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#6366f1'];
+
+  for (const group of clickGroups) {
+    if (!group.linkId) continue;
+    const clicks = group._count.linkId;
+    totalLinkClicks += clicks;
+    const link = profileLinks.find(l => l.id === group.linkId);
+    if (!link) continue;
+    
+    if (link.type === 'VCF') {
+      contactSaves += clicks;
+    }
+    linkClickDetails.push({ title: link.title, clicks });
+    linkClickDistribution.push({ 
+      title: link.title, 
+      clicks, 
+      fill: COLORS[linkClickDistribution.length % COLORS.length] 
+    });
+  }
+
+  const linkClickRate = totalViews > 0 ? Math.round((totalLinkClicks / totalViews) * 100) : 0;
+
+  const recentEvents = await db.analyticsEvent.findMany({
+    where: { profileId, eventType: 'VIEW' },
+    orderBy: { createdAt: 'desc' },
+    take: 10,
+  });
+  
+  const recentScans = recentEvents.map(e => ({
+    date: e.createdAt.toISOString().split('T')[0],
+    country: e.geoCountry || 'Unknown',
+    os: e.os || 'Unknown',
+    browser: e.browser || 'Unknown'
+  }));
+
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+  sevenDaysAgo.setHours(0,0,0,0);
+  
+  const recentWeekEvents = await db.analyticsEvent.findMany({
+    where: { profileId, createdAt: { gte: sevenDaysAgo } },
+    select: { eventType: true, createdAt: true }
+  });
+
+  const timelineMap: Record<string, { views: number; clicks: number }> = {};
+  for(let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    timelineMap[d.toISOString().split('T')[0]] = { views: 0, clicks: 0 };
+  }
+
+  recentWeekEvents.forEach(e => {
+    const dateKey = e.createdAt.toISOString().split('T')[0];
+    if (timelineMap[dateKey]) {
+      if (e.eventType === 'VIEW') timelineMap[dateKey].views++;
+      else if (e.eventType === 'CLICK') timelineMap[dateKey].clicks++;
+    }
+  });
+
+  const activityTimeline = Object.entries(timelineMap).map(([date, data]) => ({
+    date: date.substring(5), // mm-dd
+    views: data.views,
+    clicks: data.clicks
   }));
 
   const summary: AnalyticsSummary = {
     totalViews,
     uniqueVisitors,
-    linkClicks,
-    ctrPerLink,
+    totalLinkClicks,
+    linkClickRate,
+    contactSaves,
+    activityTimeline,
+    linkClickDistribution,
+    recentScans,
+    linkClickDetails
   };
 
   await cacheSet(cacheKey, summary, ANALYTICS_TTL);

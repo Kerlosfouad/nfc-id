@@ -28,24 +28,23 @@ const LINK_COLORS: Record<string, string> = {
 function getThemeClasses(theme: ProfileTheme) {
   switch (theme.style) {
     case 'gradient':
-      return {
-        wrapper: 'bg-gradient-to-br from-[#0b0a0a] via-[#0f0f1a] to-[#0b0a0a]',
-        card: 'bg-white/5 border border-white/10 backdrop-blur-sm',
-        linkCard: 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20',
-      };
+      return { wrapper: 'bg-gradient-to-br from-[#0b0a0a] via-[#0f0f1a] to-[#0b0a0a]', card: 'bg-white/5 border border-white/10 backdrop-blur-sm', linkCard: 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20', text: 'text-white' };
     case 'glassmorphism':
-      return {
-        wrapper: 'bg-[#0b0a0a]',
-        card: 'bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]',
-        linkCard: 'bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-white/20',
-      };
+      return { wrapper: 'bg-[#0b0a0a]', card: 'bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]', linkCard: 'bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-white/20', text: 'text-white' };
+    case 'dark':
+      return { wrapper: 'bg-gray-900', card: 'bg-gray-800 border border-gray-700', linkCard: 'bg-gray-800 border border-gray-700 hover:bg-gray-700', text: 'text-white' };
+    case 'nature':
+      return { wrapper: 'bg-green-50', card: 'bg-white border border-green-200 shadow-sm', linkCard: 'bg-white border border-green-200 hover:bg-green-100', text: 'text-green-900' };
+    case 'ocean':
+      return { wrapper: 'bg-cyan-50', card: 'bg-white border border-cyan-200 shadow-sm', linkCard: 'bg-white border border-cyan-200 hover:bg-cyan-100', text: 'text-cyan-900' };
+    case 'sunset':
+      return { wrapper: 'bg-orange-50', card: 'bg-white border border-orange-200 shadow-sm', linkCard: 'bg-white border border-orange-200 hover:bg-orange-100', text: 'text-orange-900' };
+    case 'neon':
+      return { wrapper: 'bg-black', card: 'bg-gray-900 border border-pink-500/30 shadow-[0_0_15px_rgba(236,72,153,0.2)]', linkCard: 'bg-gray-900 border border-pink-500/50 hover:bg-gray-800 hover:shadow-[0_0_15px_rgba(236,72,153,0.4)]', text: 'text-pink-100' };
+    case 'default':
     case 'minimal':
     default:
-      return {
-        wrapper: 'bg-[#0b0a0a]',
-        card: 'bg-[#0f0f0f] border border-[#1e1e1e]',
-        linkCard: 'bg-[#1a1a1a] border border-[#2a2a2a] hover:border-[#3a3a3a] hover:bg-[#222]',
-      };
+      return { wrapper: 'bg-gray-50', card: 'bg-white border border-gray-200 shadow-sm', linkCard: 'bg-white border border-gray-200 hover:bg-gray-100 hover:border-gray-300', text: 'text-gray-900' };
   }
 }
 
@@ -67,33 +66,38 @@ interface LinkItemProps {
   linkCardClass: string;
 }
 
-function LinkItem({ link, primaryColor, linkCardClass }: LinkItemProps) {
+function LinkItem({ link, primaryColor, linkCardClass, layout, textColor }: LinkItemProps & { layout?: 'list' | 'grid', textColor: string }) {
   const icon = LINK_ICONS[link.type] ?? 'ri-link';
   const color = LINK_COLORS[link.type] ?? primaryColor;
 
+  if (layout === 'grid') {
+    return (
+      <a href={link.url} target="_blank" rel="noopener noreferrer" className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl transition-all duration-200 active:scale-[0.98] group ${linkCardClass}`}>
+        {link.thumbnailUrl ? (
+          <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0"><img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" /></div>
+        ) : (
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: `${color}20`, border: `1px solid ${color}30` }}>
+            <i className={`${icon} text-2xl`} style={{ color }} />
+          </div>
+        )}
+        <span className={`font-semibold text-[11px] text-center w-full truncate ${textColor}`}>{link.title}</span>
+      </a>
+    );
+  }
+
   return (
-    <a
-      href={link.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-200 active:scale-[0.98] group ${linkCardClass}`}
-    >
+    <a href={link.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-200 active:scale-[0.98] group ${linkCardClass}`}>
       {link.thumbnailUrl ? (
         <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={link.thumbnailUrl} alt="" width={40} height={40} className="w-full h-full object-cover" />
+          <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
         </div>
       ) : (
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
-          style={{ backgroundColor: `${color}20`, border: `1px solid ${color}30` }}
-        >
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110" style={{ backgroundColor: `${color}20`, border: `1px solid ${color}30` }}>
           <i className={`${icon} text-lg`} style={{ color }} />
         </div>
       )}
-
-      <span className="text-white font-medium text-sm flex-1 truncate">{link.title}</span>
-      <i className="ri-arrow-right-up-line text-[#555] text-sm flex-shrink-0 group-hover:text-white/60 transition-colors" />
+      <span className={`font-medium text-sm flex-1 truncate ${textColor}`}>{link.title}</span>
+      <i className={`ri-arrow-right-up-line text-sm flex-shrink-0 opacity-50 group-hover:opacity-100 transition-opacity ${textColor}`} />
     </a>
   );
 }
@@ -105,61 +109,57 @@ interface ProfileViewProps {
 }
 
 export default function ProfileView({ profile, links, showLeadForm = false }: ProfileViewProps) {
-  const { wrapper, card, linkCard } = getThemeClasses(profile.theme);
-  const { primaryColor, fontFamily } = profile.theme;
+  const { wrapper, card, linkCard, text } = getThemeClasses(profile.theme);
+  const { primaryColor, fontFamily, linksLayout = 'list', profileLayout = 'classic' } = profile.theme;
 
   return (
-    <main
-      className={`${wrapper} min-h-screen flex flex-col items-center py-12 px-4`}
-      style={{ fontFamily: `${fontFamily}, Inter, sans-serif` }}
-    >
-      {/* Ambient glow */}
-      <div
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full blur-[120px] opacity-10 pointer-events-none"
-        style={{ backgroundColor: primaryColor }}
-      />
+    <main className={`${wrapper} min-h-screen flex flex-col items-center py-12 px-4 relative overflow-hidden`} style={{ fontFamily: `${fontFamily}, Inter, sans-serif` }}>
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full blur-[120px] opacity-20 pointer-events-none" style={{ backgroundColor: primaryColor }} />
 
       <div className="relative z-10 w-full max-w-[480px] flex flex-col gap-4">
-        {/* Profile card */}
-        <div className={`${card} rounded-3xl p-8 text-center`}>
-          {profile.avatarUrl ? (
+        {profileLayout === 'hero' ? (
+           <div className={`${card} rounded-[2rem] overflow-hidden`}>
+             <div className="w-full h-32 relative" style={{ background: `linear-gradient(to bottom right, ${primaryColor}40, ${primaryColor}80)` }}>
+               <div className="absolute -bottom-10 left-6">
+                 {profile.avatarUrl ? (
+                   <img src={profile.avatarUrl} alt={profile.displayName} className="w-20 h-20 rounded-full object-cover border-4" style={{ borderColor: 'var(--card-bg, #fff)' }} />
+                 ) : (
+                   <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold border-4" style={{ backgroundColor: `${primaryColor}20`, color: primaryColor, borderColor: 'var(--card-bg, #fff)' }}>{profile.displayName.charAt(0).toUpperCase()}</div>
+                 )}
+               </div>
+             </div>
+             <div className="pt-14 px-6 pb-6">
+               <h1 className={`text-2xl font-bold mb-2 ${text}`}>{profile.displayName}</h1>
+               {profile.bio && <p className={`${text} opacity-70 text-sm leading-relaxed mb-4`}>{profile.bio}</p>}
+               <ShareButton displayName={profile.displayName} />
+             </div>
+           </div>
+        ) : (
+          <div className={`${card} rounded-3xl p-8 text-center`}>
             <div className="flex justify-center mb-4">
-              <div className="w-24 h-24 rounded-full overflow-hidden border-2 ring-4 ring-white/5" style={{ borderColor: `${primaryColor}40` }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={profile.avatarUrl} alt={profile.displayName} width={96} height={96} className="w-full h-full object-cover" />
-              </div>
+              {profile.avatarUrl ? (
+                <div className="w-24 h-24 rounded-full overflow-hidden border-2 ring-4 ring-black/5" style={{ borderColor: `${primaryColor}40` }}>
+                  <img src={profile.avatarUrl} alt={profile.displayName} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold ring-4 ring-black/5" style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}>{profile.displayName.charAt(0).toUpperCase()}</div>
+              )}
             </div>
-          ) : (
-            <div className="flex justify-center mb-4">
-              <div
-                className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold ring-4 ring-white/5"
-                style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
-              >
-                {profile.displayName.charAt(0).toUpperCase()}
-              </div>
-            </div>
-          )}
+            <h1 className={`${text} text-2xl font-bold mb-2`}>{profile.displayName}</h1>
+            {profile.bio && <p className={`${text} opacity-70 text-sm leading-relaxed`}>{profile.bio}</p>}
+            <ShareButton displayName={profile.displayName} />
+          </div>
+        )}
 
-          <h1 className="text-white text-2xl font-bold mb-2">{profile.displayName}</h1>
-
-          {profile.bio && (
-            <p className="text-[#888] text-sm leading-relaxed">{profile.bio}</p>
-          )}
-
-          {/* Share button */}
-          <ShareButton displayName={profile.displayName} />
-        </div>
-
-        {/* Links */}
         {links.length > 0 ? (
-          <div className="flex flex-col gap-3">
+          <div className={linksLayout === 'grid' ? "grid grid-cols-2 sm:grid-cols-3 gap-3" : "flex flex-col gap-3"}>
             {links.map((link) => (
-              <LinkItem key={link.id} link={link} primaryColor={primaryColor} linkCardClass={linkCard} />
+              <LinkItem key={link.id} link={link} primaryColor={primaryColor} linkCardClass={linkCard} layout={linksLayout} textColor={text} />
             ))}
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-[#333] text-sm">No links yet.</p>
+            <p className={`${text} opacity-50 text-sm`}>No links yet.</p>
           </div>
         )}
 

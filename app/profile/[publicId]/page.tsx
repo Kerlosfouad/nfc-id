@@ -56,12 +56,20 @@ async function recordProfileView(profileId: string, publicId: string): Promise<v
 
 interface ProfilePageProps {
   params: Promise<{ publicId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function ProfilePage({ params }: ProfilePageProps) {
+export default async function ProfilePage({ params, searchParams }: ProfilePageProps) {
   const { publicId } = await params;
+  const query = await searchParams;
 
   const profile = await getProfileWithLinks(publicId);
+
+  if (profile && query.preview === 'true') {
+    if (typeof query.style === 'string') profile.theme.style = query.style as any;
+    if (typeof query.linksLayout === 'string') profile.theme.linksLayout = query.linksLayout as any;
+    if (typeof query.profileLayout === 'string') profile.theme.profileLayout = query.profileLayout as any;
+  }
 
   // Profile not found or suspended → show suspension notice
   if (!profile || profile.isSuspended) {
