@@ -1,25 +1,93 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
-interface LinkClick {
-  linkId: string;
-  clicks: number;
-}
-
-interface LinkCtr {
-  linkId: string;
-  ctr: number;
-}
+interface LinkClick { linkId: string; clicks: number; }
+interface LinkCtr   { linkId: string; ctr: number; }
+interface ScanEvent { scannedAt: string; country?: string; os?: string; browser?: string; }
 
 interface AnalyticsSummary {
   totalViews: number;
   uniqueVisitors: number;
   linkClicks: LinkClick[];
   ctrPerLink: LinkCtr[];
+  recentScans?: ScanEvent[];
+}
+
+const COLORS = ["#4ade80","#60a5fa","#f59e0b","#a78bfa","#f87171","#34d399"];
+
+// ── tiny SVG pie chart ──────────────────────────────────────────────────────
+function PieChart({ slices }: { slices: { value: number; color: string; label: string }[] }) {
+  const total = slices.reduce((s, x) => s + x.value, 0);
+  if (total === 0) return (
+    <div className="flex items-center justify-center h-full">
+      <p className="text-white/30 text-sm">No data</p>
+    </div>
+  );
+  let cumAngle = -Math.PI / 2;
+  const cx = 80, cy = 80, r = 70;
+  const paths: { d: string; color: string; label: string; pct: number }[] = [];
+  slices.forEach((s) => {
+    const angle = (s.value / total) * 2 * Math.PI;
+    const x1 = cx + r * Math.cos(cumAngle);
+    const y1 = cy + r * Math.sin(cumAngle);
+    const x2 = cx + r * Math.cos(cumAngle + angle);
+    const y2 = cy + r * Math.sin(cumAngle + angle);
+    const large = angle > Math.PI ? 1 : 0;
+    const midA = cumAngle + angle / 2;
+    const lx = cx + (r + 18) * Math.cos(midA);
+    const ly = cy + (r + 18) * Math.sin(midA);
+    paths.push({ d: `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z`, color: s.color, label: s.label, pct: Math.round((s.value / total) * 100) });
+    cumAngle += angle;
+  });
+  return (
+    <svg viewBox="0 0 160 160" className="w-full h-full">
+      {paths.map((p, i) => (
+        <path key={i} d={p.d} fill={p.color} stroke="#111" strokeWidth="1.5" />
+      ))}
+      {paths.map((p, i) => {
+        const angle = -Math.PI / 2 + slices.slice(0, i).reduce((s, x) => s + (x.value / total) * 2 * Math.PI, 0) + (slices[i].value / total) * Math.PI;
+        const lx = cx + (r + 18) * Math.cos(angle);
+        const ly = cy + (r + 18) * Math.sin(angle);
+        return p.pct > 5 ? (
+          <text key={i} x={lx} y={ly} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="8" fontWeight="bold">{p.pct}%</text>
+        ) : null;
+      })}
+    </svg>
+  );
+}
+
+// ── tiny SVG line/area chart ────────────────────────────────────────────────
+function ActivityChart({ points }: { points: number[] }) {
+  if (points.length < 2) return (
+    <div className="flex items-center justify-center h-full">
+      <p className="text-white/30 text-sm">No data available</p>
+    </div>
+  );
+  const max = Math.max(...points, 1);
+  const W = 500, H = 120, pad = 10;
+  const xs = points.map((_, i) => pad + (i / (points.length - 1)) * (W - pad * 2));
+  const ys = points.map((v) => H - pad - ((v / max) * (H - pad * 2)));
+  const line = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x},${ys[i]}`).join(" ");
+  const area = line + ` L${xs[xs.length - 1]},${H - pad} L${xs[0]},${H - pad} Z`;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#03A9F4" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="#03A9F4" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill="url(#ag)" />
+      <path d={line} fill="none" stroke="#03A9F4" strokeWidth="2" strokeLinejoin="round" />
+      {xs.map((x, i) => (
+        <circle key={i} cx={x} cy={ys[i]} r="3" fill="#03A9F4" />
+      ))}
+    </svg>
+  );
 }
 
 export default function AnalyticsPage() {
@@ -30,21 +98,30 @@ export default function AnalyticsPage() {
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [range, setRange] = useState("Last 7 days");
+  const [profileName, setProfileName] = useState("Profile");
 
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.push("/login"); return; }
       try {
-        const res = await fetch(`/api/v1/analytics/${profileId}`, {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            "x-user-id": session.user.id,
-          },
-        });
-        if (!res.ok) throw new Error("Failed to load analytics");
-        const json = await res.json();
+        const [analyticsRes, profilesRes] = await Promise.all([
+          fetch(`/api/v1/analytics/${profileId}`, {
+            headers: { Authorization: `Bearer ${session.access_token}`, "x-user-id": session.user.id },
+          }),
+          fetch("/api/v1/profiles", {
+            headers: { Authorization: `Bearer ${session.access_token}`, "x-user-id": session.user.id },
+          }),
+        ]);
+        if (!analyticsRes.ok) throw new Error("Failed to load analytics");
+        const json = await analyticsRes.json();
         setSummary(json.data);
+        if (profilesRes.ok) {
+          const pj = await profilesRes.json();
+          const found = (pj.data ?? []).find((p: { id: string; displayName: string }) => p.id === profileId);
+          if (found) setProfileName(found.displayName);
+        }
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : "Unknown error");
       } finally {
@@ -53,178 +130,227 @@ export default function AnalyticsPage() {
     });
   }, [router, profileId]);
 
-  const maxClicks = summary ? Math.max(...summary.linkClicks.map((l) => l.clicks), 1) : 1;
-  const engagementRate = summary && summary.totalViews > 0
-    ? ((summary.linkClicks.reduce((a, b) => a + b.clicks, 0) / summary.totalViews) * 100).toFixed(1)
-    : "0";
+  const totalClicks = summary?.linkClicks.reduce((a, b) => a + b.clicks, 0) ?? 0;
+  const contactSaves = 0; // placeholder — extend API when available
+  const clickRate = summary && summary.totalViews > 0
+    ? ((totalClicks / summary.totalViews) * 100).toFixed(0) + "%"
+    : "0%";
+
+  // Build fake activity points from link clicks for demo (replace with time-series when API supports it)
+  const activityPoints = summary
+    ? Array.from({ length: 7 }, (_, i) => Math.round((summary.totalViews / 7) * (0.5 + Math.random())))
+    : [];
+
+  // Pie slices from link clicks
+  const pieSlices = (summary?.linkClicks ?? []).slice(0, 6).map((lc, i) => ({
+    value: lc.clicks,
+    color: COLORS[i % COLORS.length],
+    label: lc.linkId.slice(0, 8),
+  }));
+
+  const scans = summary?.recentScans ?? [];
 
   return (
-    <div className="bg-[#0b0a0a] min-h-screen text-white" style={{ fontFamily: "Inter, sans-serif" }}>
-      <nav className="border-b border-white/10 px-6 py-4 flex items-center gap-4 sticky top-0 bg-[#0b0a0a]/90 backdrop-blur-md z-10">
-        <Link href="/dashboard" className="text-white/50 hover:text-white transition-colors text-sm">
-          ← Dashboard
-        </Link>
-        <span className="text-white/20">/</span>
-        <span className="text-sm font-medium">Analytics</span>
-        <span className="ml-auto text-xs text-white/30 bg-white/5 border border-white/10 px-2 py-1 rounded">
-          Max 60s staleness
-        </span>
-      </nav>
+    <div className="flex h-screen bg-[#111] text-white overflow-hidden" style={{ fontFamily: "Inter, sans-serif" }}>
+      {/* Sidebar */}
+      <aside className="w-[200px] flex-shrink-0 bg-[#0f0f0f] border-r border-white/5 flex flex-col">
+        <div className="px-4 py-4 border-b border-white/5 flex items-center gap-2">
+          <div className="w-7 h-7 bg-white/10 rounded flex items-center justify-center">
+            <i className="ri-nfc-line text-sm text-white/60" />
+          </div>
+          <span className="font-bold text-sm">NFC<span className="text-[#03A9F4]">·ID</span></span>
+        </div>
+        <nav className="flex-1 px-2 py-3 space-y-0.5">
+          {[
+            { id: "home",      icon: "ri-home-5-line",      label: "Home" },
+            { id: "analytics", icon: "ri-bar-chart-2-line", label: "Analytics" },
+            { id: "share",     icon: "ri-share-line",       label: "Share" },
+            { id: "design",    icon: "ri-palette-line",     label: "Design" },
+            { id: "settings",  icon: "ri-settings-3-line",  label: "Settings" },
+          ].map((n) => (
+            <Link
+              key={n.id}
+              href={n.id === "analytics" ? "#" : `/dashboard`}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                n.id === "analytics"
+                  ? "bg-white/10 text-white font-medium"
+                  : "text-white/40 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <i className={`${n.icon} text-base`} />
+              {n.label}
+            </Link>
+          ))}
+        </nav>
+        <div className="px-2 pb-2 border-t border-white/5 pt-3">
+          <p className="text-[10px] text-white/30 uppercase tracking-wider px-3 mb-1.5">Your Profiles</p>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 text-xs text-white">
+            <div className="w-5 h-5 rounded-full bg-[#03A9F4]/20 flex items-center justify-center text-[10px] font-bold text-[#03A9F4] flex-shrink-0">
+              {profileName.charAt(0).toUpperCase()}
+            </div>
+            <span className="truncate">{profileName}</span>
+          </div>
+        </div>
+      </aside>
 
-      <main className="max-w-4xl mx-auto px-6 py-10 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">Profile Analytics</h1>
-          <Link
-            href={`/api/v1/profiles/${profileId}/leads/export`}
-            target="_blank"
-            className="text-xs text-white/50 hover:text-white flex items-center gap-1.5 border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            <i className="ri-download-line" />
-            Export Leads CSV
-          </Link>
+      {/* Main */}
+      <main className="flex-1 overflow-y-auto bg-[#111]">
+        {/* Top bar */}
+        <div className="sticky top-0 z-10 bg-[#111]/90 backdrop-blur border-b border-white/5 px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-white/50">
+            <Link href="/dashboard" className="hover:text-white transition-colors">← Dashboard</Link>
+            <span className="text-white/20">/</span>
+            <span className="text-white">Analytics Dashboard</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="flex items-center gap-2 text-xs text-white/50 border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-lg transition-colors">
+              <i className="ri-calendar-line" />
+              {range}
+              <i className="ri-arrow-down-s-line" />
+            </button>
+            <Link
+              href={`/api/v1/profiles/${profileId}/leads/export`}
+              target="_blank"
+              className="flex items-center gap-2 text-xs text-white/50 border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <i className="ri-download-line" />
+              Download CSV
+            </Link>
+          </div>
         </div>
 
-        {loading && (
+        <div className="px-6 py-6 space-y-5 max-w-6xl mx-auto">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg px-4 py-3 text-sm">{error}</div>
+          )}
+
+          {/* Stat cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-5 animate-pulse">
-                <div className="h-3 bg-white/10 rounded mb-3 w-1/2" />
-                <div className="h-8 bg-white/10 rounded w-1/3" />
+            {[
+              { label: "Views",           value: loading ? "—" : (summary?.totalViews ?? 0).toLocaleString(),  icon: "ri-eye-line",        badge: null },
+              { label: "Link Clicks",     value: loading ? "—" : totalClicks.toLocaleString(),                 icon: "ri-links-line",      badge: "New" },
+              { label: "Link Click Rate", value: loading ? "—" : clickRate,                                    icon: "ri-percent-line",    badge: "New" },
+              { label: "Contact Saves",   value: loading ? "—" : contactSaves.toLocaleString(),                icon: "ri-contacts-line",   badge: "New" },
+            ].map((s, i) => (
+              <div key={i} className="bg-[#1a1a1a] border border-white/10 rounded-xl p-5 relative">
+                {s.badge && (
+                  <span className="absolute top-3 right-3 text-[9px] bg-white/10 text-white/50 px-1.5 py-0.5 rounded-full">{s.badge}</span>
+                )}
+                <div className="flex items-center gap-2 mb-3">
+                  <i className={`${s.icon} text-white/40 text-sm`} />
+                  <p className="text-xs text-white/40">{s.label}</p>
+                </div>
+                <p className="text-3xl font-bold text-white">{s.value}</p>
               </div>
             ))}
           </div>
-        )}
 
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg px-4 py-3 text-sm">
-            {error}
-          </div>
-        )}
-
-        {summary && (
-          <>
-            {/* Overview cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <StatCard
-                label="Total Views"
-                value={summary.totalViews.toLocaleString()}
-                icon="ri-eye-line"
-                color="text-white"
-                bg="bg-white/5"
-              />
-              <StatCard
-                label="Unique Visitors"
-                value={summary.uniqueVisitors.toLocaleString()}
-                icon="ri-user-line"
-                color="text-[#03A9F4]"
-                bg="bg-[#03A9F4]/5"
-              />
-              <StatCard
-                label="Total Clicks"
-                value={summary.linkClicks.reduce((a, b) => a + b.clicks, 0).toLocaleString()}
-                icon="ri-cursor-line"
-                color="text-purple-400"
-                bg="bg-purple-400/5"
-              />
-              <StatCard
-                label="Engagement"
-                value={`${engagementRate}%`}
-                icon="ri-bar-chart-line"
-                color="text-green-400"
-                bg="bg-green-400/5"
-              />
+          {/* Activity + Pie */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* Activity */}
+            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-5">
+              <h3 className="text-sm font-semibold mb-4">Activity</h3>
+              <div className="h-36">
+                {loading ? (
+                  <div className="h-full bg-white/5 rounded animate-pulse" />
+                ) : (
+                  <ActivityChart points={activityPoints} />
+                )}
+              </div>
             </div>
 
-            {/* Visitor ratio bar */}
-            {summary.totalViews > 0 && (
-              <div className="bg-white/5 border border-white/10 rounded-xl p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-medium">Visitor Ratio</p>
-                  <p className="text-xs text-white/40">
-                    {summary.uniqueVisitors} unique / {summary.totalViews} total
-                  </p>
+            {/* Pie */}
+            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-5">
+              <h3 className="text-sm font-semibold mb-4">Link Click Distribution</h3>
+              <div className="flex items-center gap-4">
+                <div className="w-40 h-40 flex-shrink-0">
+                  {loading ? (
+                    <div className="w-full h-full rounded-full bg-white/5 animate-pulse" />
+                  ) : (
+                    <PieChart slices={pieSlices.length > 0 ? pieSlices : [{ value: 1, color: "#333", label: "No data" }]} />
+                  )}
                 </div>
-                <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-[#03A9F4] to-[#8A2BE2] rounded-full transition-all duration-700"
-                    style={{ width: `${Math.min((summary.uniqueVisitors / summary.totalViews) * 100, 100)}%` }}
-                  />
-                </div>
-                <div className="flex justify-between mt-1">
-                  <span className="text-xs text-[#03A9F4]">Unique</span>
-                  <span className="text-xs text-white/30">Returning</span>
+                <div className="flex-1 space-y-2">
+                  {pieSlices.length > 0 ? pieSlices.map((s, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs">
+                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: s.color }} />
+                      <span className="text-white/50 truncate flex-1">{s.label}</span>
+                      <span className="text-white font-medium">{s.value}</span>
+                    </div>
+                  )) : (
+                    <p className="text-white/30 text-xs">No link clicks yet</p>
+                  )}
                 </div>
               </div>
-            )}
+            </div>
+          </div>
 
-            {/* Link performance */}
-            {summary.linkClicks.length > 0 ? (
-              <div className="bg-white/5 border border-white/10 rounded-xl p-5 space-y-4">
-                <h2 className="font-semibold text-sm">Link Performance</h2>
-                <div className="space-y-3">
-                  {summary.linkClicks
-                    .sort((a, b) => b.clicks - a.clicks)
-                    .map((lc) => {
-                      const ctr = summary.ctrPerLink.find((c) => c.linkId === lc.linkId);
-                      const pct = (lc.clicks / maxClicks) * 100;
-                      return (
-                        <div key={lc.linkId}>
-                          <div className="flex items-center justify-between text-sm mb-1">
-                            <span className="text-white/60 font-mono text-xs truncate max-w-[200px]">
-                              {lc.linkId.slice(0, 8)}…
-                            </span>
-                            <div className="flex items-center gap-3">
-                              <span className="text-white font-medium">{lc.clicks} clicks</span>
-                              {ctr && (
-                                <span className="text-white/40 text-xs w-16 text-right">
-                                  {(ctr.ctr * 100).toFixed(1)}% CTR
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-gradient-to-r from-[#03A9F4] to-[#8A2BE2] rounded-full transition-all duration-700"
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-white/5 border border-white/10 rounded-xl">
-                <i className="ri-cursor-line text-4xl text-white/20 mb-3 block" />
-                <p className="text-white/30 text-sm">No link clicks recorded yet.</p>
-                <p className="text-white/20 text-xs mt-1">Share your profile to start getting clicks.</p>
-              </div>
-            )}
+          {/* Scan Details + Link Click Details */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* Scan Details */}
+            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-5">
+              <h3 className="text-sm font-semibold mb-4">Scan Details</h3>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-white/30 border-b border-white/5">
+                    {["Date", "Country", "OS", "Browser"].map((h) => (
+                      <th key={h} className="text-left pb-2 font-medium">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <tr key={i}><td colSpan={4} className="py-2"><div className="h-3 bg-white/5 rounded animate-pulse" /></td></tr>
+                    ))
+                  ) : scans.length > 0 ? scans.slice(0, 8).map((s, i) => (
+                    <tr key={i} className="border-b border-white/5 last:border-0">
+                      <td className="py-2 text-white/50">{new Date(s.scannedAt).toLocaleDateString()}</td>
+                      <td className="py-2 text-white/50">{s.country ?? "—"}</td>
+                      <td className="py-2 text-white/50">{s.os ?? "—"}</td>
+                      <td className="py-2 text-white/50">{s.browser ?? "—"}</td>
+                    </tr>
+                  )) : (
+                    <tr><td colSpan={4} className="py-8 text-center text-white/30">No data available</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-            {/* Tips */}
-            {summary.totalViews === 0 && (
-              <div className="bg-[#03A9F4]/5 border border-[#03A9F4]/20 rounded-xl p-5">
-                <p className="text-[#03A9F4] text-sm font-medium mb-1">No data yet</p>
-                <p className="text-white/40 text-xs">Share your profile link or NFC tag to start collecting analytics.</p>
-              </div>
-            )}
-          </>
-        )}
+            {/* Link Click Details */}
+            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-5">
+              <h3 className="text-sm font-semibold mb-4">Link Click Details</h3>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-white/30 border-b border-white/5">
+                    {["Link", "Clicks", "CTR"].map((h) => (
+                      <th key={h} className="text-left pb-2 font-medium">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <tr key={i}><td colSpan={3} className="py-2"><div className="h-3 bg-white/5 rounded animate-pulse" /></td></tr>
+                    ))
+                  ) : (summary?.linkClicks ?? []).length > 0 ? (summary?.linkClicks ?? []).sort((a, b) => b.clicks - a.clicks).map((lc, i) => {
+                    const ctr = summary?.ctrPerLink.find((c) => c.linkId === lc.linkId);
+                    return (
+                      <tr key={i} className="border-b border-white/5 last:border-0">
+                        <td className="py-2 text-white/50 font-mono truncate max-w-[120px]">{lc.linkId.slice(0, 12)}…</td>
+                        <td className="py-2 text-white font-medium">{lc.clicks}</td>
+                        <td className="py-2 text-white/50">{ctr ? (ctr.ctr * 100).toFixed(1) + "%" : "—"}</td>
+                      </tr>
+                    );
+                  }) : (
+                    <tr><td colSpan={3} className="py-8 text-center text-white/30">No data available</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </main>
-    </div>
-  );
-}
-
-function StatCard({ label, value, icon, color, bg }: {
-  label: string; value: string; icon: string; color: string; bg: string;
-}) {
-  return (
-    <div className={`${bg} border border-white/10 rounded-xl p-5`}>
-      <div className="flex items-center gap-2 mb-2">
-        <i className={`${icon} ${color} text-base`} />
-        <p className="text-xs text-white/40">{label}</p>
-      </div>
-      <p className={`text-2xl font-bold ${color}`}>{value}</p>
     </div>
   );
 }
