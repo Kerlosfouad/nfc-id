@@ -1,0 +1,95 @@
+import Image from "next/image";
+
+const stats = [
+  { icon: "ri-user-2-line", value: "50K+", label: "Active Users", desc: "Creators & professionals" },
+  { icon: "ri-qr-scan-2-line", value: "2M+", label: "Monthly Scans", desc: "Successful connections" },
+  { icon: "ri-global-line", value: "30+", label: "Countries", desc: "Global reach & growing" },
+  { icon: "ri-sim-card-2-line", value: "NFC", label: "Technology", desc: "Fast & secure tap" },
+];
+
+const comparison = [
+  { feature: "Link in Bio", us: true, them: true },
+  { feature: "Physical NFC Card", us: true, them: false },
+  { feature: "QR Code", us: true, them: true },
+  { feature: "Analytics", us: true, them: true },
+  { feature: "Lead Capture", us: true, them: false },
+  { feature: "Link Scheduling", us: true, them: false },
+  { feature: "PIN Protection", us: true, them: false },
+  { feature: "Custom Themes", us: true, them: true },
+];
+
+export default function AboutSection() {
+  return (
+    <section id="about" className="py-24 px-4">
+      <div className="container mx-auto">
+        {/* Section header */}
+        <div className="flex items-center gap-3 mb-2">
+          <span className="w-8 h-[2px] bg-[#03A9F4] rounded-full" />
+          <span className="text-[#03A9F4] text-xs font-semibold uppercase tracking-widest">Who We Are</span>
+        </div>
+        <h2 className="text-white text-5xl font-bold uppercase mb-1">About Us</h2>
+        <p className="text-[#555] text-base mb-10">Everything you need to know</p>
+
+        <div className="flex flex-col md:flex-row gap-8 items-start">
+          {/* Stats grid */}
+          <div className="md:w-1/2 grid grid-cols-2 gap-3">
+            {stats.map((s, i) => (
+              <div
+                key={i}
+                className="group relative bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-5 border border-[#222] hover:border-[#03A9F4]/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-[#03A9F4]/0 group-hover:bg-[#03A9F4]/5 transition-all duration-300 rounded-2xl" />
+                <div className="relative z-10">
+                  <div className="w-11 h-11 rounded-xl bg-[#1f1f23] group-hover:bg-[#03A9F4]/20 border border-[#2c2c2c] group-hover:border-[#03A9F4]/30 flex items-center justify-center mb-3 transition-all duration-300">
+                    <i className={`${s.icon} text-[#03A9F4] text-xl`} />
+                  </div>
+                  <div className="text-[#03A9F4] text-2xl font-bold mb-0.5">{s.value}</div>
+                  <div className="text-white text-sm font-semibold">{s.label}</div>
+                  <div className="text-[#555] text-xs mt-0.5">{s.desc}</div>
+                </div>
+              </div>
+            ))}
+
+            {/* Comparison table */}
+            <div className="col-span-2 bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-5 border border-[#222]">
+              <p className="text-white text-sm font-semibold mb-3">NFC ID vs. Linktree</p>
+              <div className="space-y-2">
+                {comparison.map((c, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs">
+                    <span className="text-[#666]">{c.feature}</span>
+                    <div className="flex items-center gap-6">
+                      <span className={c.us ? "text-green-400" : "text-red-400/50"}>
+                        <i className={c.us ? "ri-check-line" : "ri-close-line"} />
+                        <span className="ml-1 text-[#444]">NFC ID</span>
+                      </span>
+                      <span className={c.them ? "text-green-400/50" : "text-red-400/30"}>
+                        <i className={c.them ? "ri-check-line" : "ri-close-line"} />
+                        <span className="ml-1 text-[#333]">Linktree</span>
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Image */}
+          <div className="md:w-1/2 flex justify-center items-center relative">
+            <div className="absolute w-48 h-48 bg-[#03A9F4]/10 rounded-full blur-3xl" />
+            <Image
+              src="/img/keychain-with-phone.webp"
+              alt="Keychain with phone"
+              width={280}
+              height={420}
+              className="relative z-10 drop-shadow-2xl"
+              style={{
+                WebkitBoxReflect:
+                  "below 8px linear-gradient(transparent 60%, rgba(0,0,0,0.2) 80%, transparent 100%)",
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TagState {
+  MANUFACTURED
+  SOLD
+  CLAIMED
+  ACTIVE
+  SUSPENDED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum LinkType {
+  URL
+  VCF
+  WHATSAPP
+  YOUTUBE
+  SPOTIFY
+  TIKTOK
+}
+
+enum EventType {
+  VIEW
+  CLICK
+}
+
+enum DeviceType {
+  mobile
+  tablet
+  desktop
+}
+
+enum ReferralSource {
+  NFC
+  DIRECT
+  SOCIAL
+}
+
+enum TicketStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tags          Tag[]
+  profiles      Profile[]
+  auditLogs     TagAuditLog[]
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  publicId  String   @unique
+  state     TagState @default(MANUFACTURED)
+  ownerId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner     User?        @relation(fields: [ownerId], references: [id])
+  auditLogs TagAuditLog[]
+}
+
+model Profile {
+  id               String   @id @default(uuid())
+  publicId         String   @unique
+  ownerId          String
+  displayName      String
+  bio              String?
+  avatarUrl        String?
+  theme            Json
+  passwordProtected Boolean @default(false)
+  pinHash          String?
+  sensitiveContent Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  isSuspended      Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  owner               User                  @relation(fields: [ownerId], references: [id])
+  links               Link[]
+  leadFormSubmissions LeadFormSubmission[]
+  analyticsEvents     AnalyticsEvent[]
+  moderationTickets   ModerationTicket[]
+}
+
+model Link {
+  id           String    @id @default(uuid())
+  profileId    String
+  type         LinkType
+  title        String
+  url          String
+  thumbnailUrl String?
+  displayOrder Int
+  activeFrom   DateTime?
+  activeTo     DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  profile         Profile          @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  analyticsEvents AnalyticsEvent[]
+}
+
+model LeadFormSubmission {
+  id           String   @id @default(uuid())
+  profileId    String
+  email        String
+  sourceIpHash String
+  publicId     String
+  submittedAt  DateTime @default(now())
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model AnalyticsEvent {
+  id             String         @id @default(uuid())
+  profileId      String
+  publicId       String
+  eventType      EventType
+  linkId         String?
+  ipHash         String
+  deviceType     DeviceType
+  referralSource ReferralSource
+  geoCountry     String?
+  geoSubdivision String?
+  createdAt      DateTime       @default(now())
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  link    Link?   @relation(fields: [linkId], references: [id], onDelete: SetNull)
+}
+
+model TagAuditLog {
+  id            String   @id @default(uuid())
+  tagId         String
+  previousState TagState
+  newState      TagState
+  adminId       String
+  createdAt     DateTime @default(now())
+
+  tag   Tag  @relation(fields: [tagId], references: [id])
+  admin User @relation(fields: [adminId], references: [id])
+}
+
+model ModerationTicket {
+  id             String       @id @default(uuid())
+  profileId      String
+  reporterIpHash String
+  reason         String
+  status         TicketStatus @default(OPEN)
+  createdAt      DateTime     @default(now())
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
