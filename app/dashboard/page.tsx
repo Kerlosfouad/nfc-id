@@ -343,13 +343,13 @@ export default function DashboardPage() {
       if(!session){router.push("/login");return;}
       setToken(session.access_token);setUid(session.user.id);setEmail(session.user.email??"");
       fetch("/api/v1/profiles",{headers:{Authorization:"Bearer "+session.access_token,"x-user-id":session.user.id}})
-        .then(r=>r.json()).then(j=>setProfiles(j.data??[])).catch(()=>{}).finally(()=>setLoading(false));
+        .then(r=>r.json()).then(j=>setProfiles((j.data??[]).map((p:ProfileData)=>({...p,links:p.links??[]})))).catch(()=>{}).finally(()=>setLoading(false));
     }).catch(()=>router.push("/login"));
   },[router]);
 
   async function patchProfile(patch:Record<string,unknown>){
     if(!profile)return;setSaving(true);
-    try{const r=await fetch("/api/v1/profiles/"+profile.id,{method:"PATCH",headers:hdrs(),body:JSON.stringify(patch)});const j=await r.json();if(!r.ok)throw new Error(j.error?.message??"Failed");setProfiles(prev=>prev.map(p=>p.id===profile.id?j.data:p));showToast("Saved");}
+    try{const r=await fetch("/api/v1/profiles/"+profile.id,{method:"PATCH",headers:hdrs(),body:JSON.stringify(patch)});const j=await r.json();if(!r.ok)throw new Error(j.error?.message??"Failed");setProfiles(prev=>prev.map(p=>p.id===profile.id?{...j.data,links:j.data.links??p.links??[]}:p));showToast("Saved");}
     catch(e:unknown){showToast(e instanceof Error?e.message:"Error",false);}finally{setSaving(false);}
   }
   async function addLink(data:{type:string;title:string;url:string}){

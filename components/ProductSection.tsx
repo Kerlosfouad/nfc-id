@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useRef, useEffect } from "react";
 
-function Badge({ icon, title, desc }) {
+function Badge({ icon, title, desc }: { icon: string; title: string; desc: string }) {
   return (
     <div className="flex items-center gap-3 bg-[#0a0e16]/90 border border-[#03A9F4]/25 rounded-2xl px-4 py-3 shadow-[0_0_20px_rgba(3,169,244,0.1)] backdrop-blur-md whitespace-nowrap">
       <div className="w-8 h-8 rounded-xl bg-[#03A9F4]/15 border border-[#03A9F4]/30 flex items-center justify-center flex-shrink-0">
@@ -17,10 +17,10 @@ function Badge({ icon, title, desc }) {
 }
 
 export default function ProductSection() {
-  const sectionRef = useRef(null);
+  const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const paths = sectionRef.current?.querySelectorAll(".connector-path");
+    const paths = sectionRef.current?.querySelectorAll<SVGPathElement>(".connector-path");
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
