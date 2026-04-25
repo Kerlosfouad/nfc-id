@@ -12,9 +12,13 @@ interface ScanEvent { scannedAt: string; country?: string; os?: string; browser?
 interface AnalyticsSummary {
   totalViews: number;
   uniqueVisitors: number;
-  linkClicks: LinkClick[];
-  ctrPerLink: LinkCtr[];
-  recentScans?: ScanEvent[];
+  totalLinkClicks: number;
+  linkClickRate: number;
+  contactSaves: number;
+  activityTimeline: { date: string; views: number; clicks: number }[];
+  linkClickDistribution: { title: string; clicks: number; fill: string }[];
+  recentScans: { date: string; country: string; os: string; browser: string }[];
+  linkClickDetails: { title: string; clicks: number }[];
 }
 
 const COLORS = ["#4ade80","#60a5fa","#f59e0b","#a78bfa","#f87171","#34d399"];
@@ -130,30 +134,29 @@ export default function AnalyticsPage() {
     });
   }, [router, profileId]);
 
-  const totalClicks = summary?.linkClicks.reduce((a, b) => a + b.clicks, 0) ?? 0;
-  const contactSaves = 0; // placeholder — extend API when available
-  const clickRate = summary && summary.totalViews > 0
-    ? ((totalClicks / summary.totalViews) * 100).toFixed(0) + "%"
-    : "0%";
+  const totalClicks = summary?.totalLinkClicks ?? 0;
+  const contactSaves = summary?.contactSaves ?? 0;
+  const clickRate = summary ? summary.linkClickRate + "%" : "0%";
 
-  // Build fake activity points from link clicks for demo (replace with time-series when API supports it)
-  const activityPoints = summary
-    ? Array.from({ length: 7 }, (_, i) => Math.round((summary.totalViews / 7) * (0.5 + Math.random())))
+  const activityPoints = summary?.activityTimeline
+    ? summary.activityTimeline.map((t) => t.views)
     : [];
 
-  // Pie slices from link clicks
-  const pieSlices = (summary?.linkClicks ?? []).slice(0, 6).map((lc, i) => ({
-    value: lc.clicks,
-    color: COLORS[i % COLORS.length],
-    label: lc.linkId.slice(0, 8),
-  }));
+  const pieSlices = summary?.linkClickDistribution
+    ? summary.linkClickDistribution.map((d) => ({
+        value: d.clicks,
+        color: d.fill,
+        label: d.title,
+      }))
+    : [];
 
   const scans = summary?.recentScans ?? [];
+  const linkClickDetails = summary?.linkClickDetails ?? [];
 
   return (
     <div className="flex h-screen bg-[#111] text-white overflow-hidden" style={{ fontFamily: "Inter, sans-serif" }}>
       {/* Sidebar */}
-      <aside className="w-[200px] flex-shrink-0 bg-[#0f0f0f] border-r border-white/5 flex flex-col">
+      <aside className="hidden md:flex w-[200px] flex-shrink-0 bg-[#0f0f0f] border-r border-white/5 flex-col">
         <div className="px-4 py-4 border-b border-white/5 flex items-center gap-2">
           <div className="w-7 h-7 bg-white/10 rounded flex items-center justify-center">
             <i className="ri-nfc-line text-sm text-white/60" />
@@ -196,11 +199,14 @@ export default function AnalyticsPage() {
       {/* Main */}
       <main className="flex-1 overflow-y-auto bg-[#111]">
         {/* Top bar */}
-        <div className="sticky top-0 z-10 bg-[#111]/90 backdrop-blur border-b border-white/5 px-6 py-3 flex items-center justify-between">
+        <div className="sticky top-0 z-10 bg-[#111]/90 backdrop-blur border-b border-white/5 px-4 md:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-white/50">
-            <Link href="/dashboard" className="hover:text-white transition-colors">← Dashboard</Link>
-            <span className="text-white/20">/</span>
-            <span className="text-white">Analytics Dashboard</span>
+            <Link href="/dashboard" className="hover:text-white transition-colors">
+              <i className="ri-arrow-left-line md:hidden mr-1"></i>
+              <span className="hidden md:inline">← Dashboard</span>
+            </Link>
+            <span className="hidden md:inline text-white/20">/</span>
+            <span className="text-white font-medium md:font-normal">Analytics Dashboard</span>
           </div>
           <div className="flex items-center gap-3">
             <button className="flex items-center gap-2 text-xs text-white/50 border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-lg transition-colors">
@@ -262,15 +268,15 @@ export default function AnalyticsPage() {
             {/* Pie */}
             <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-5">
               <h3 className="text-sm font-semibold mb-4">Link Click Distribution</h3>
-              <div className="flex items-center gap-4">
-                <div className="w-40 h-40 flex-shrink-0">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0">
                   {loading ? (
                     <div className="w-full h-full rounded-full bg-white/5 animate-pulse" />
                   ) : (
                     <PieChart slices={pieSlices.length > 0 ? pieSlices : [{ value: 1, color: "#333", label: "No data" }]} />
                   )}
                 </div>
-                <div className="flex-1 space-y-2">
+                <div className="flex-1 space-y-2 w-full">
                   {pieSlices.length > 0 ? pieSlices.map((s, i) => (
                     <div key={i} className="flex items-center gap-2 text-xs">
                       <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: s.color }} />
@@ -290,7 +296,8 @@ export default function AnalyticsPage() {
             {/* Scan Details */}
             <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-5">
               <h3 className="text-sm font-semibold mb-4">Scan Details</h3>
-              <table className="w-full text-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs min-w-[300px]">
                 <thead>
                   <tr className="text-white/30 border-b border-white/5">
                     {["Date", "Country", "OS", "Browser"].map((h) => (
@@ -305,7 +312,7 @@ export default function AnalyticsPage() {
                     ))
                   ) : scans.length > 0 ? scans.slice(0, 8).map((s, i) => (
                     <tr key={i} className="border-b border-white/5 last:border-0">
-                      <td className="py-2 text-white/50">{new Date(s.scannedAt).toLocaleDateString()}</td>
+                      <td className="py-2 text-white/50">{new Date(s.date).toLocaleDateString()}</td>
                       <td className="py-2 text-white/50">{s.country ?? "—"}</td>
                       <td className="py-2 text-white/50">{s.os ?? "—"}</td>
                       <td className="py-2 text-white/50">{s.browser ?? "—"}</td>
@@ -315,12 +322,14 @@ export default function AnalyticsPage() {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
 
             {/* Link Click Details */}
             <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-5">
               <h3 className="text-sm font-semibold mb-4">Link Click Details</h3>
-              <table className="w-full text-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs min-w-[300px]">
                 <thead>
                   <tr className="text-white/30 border-b border-white/5">
                     {["Link", "Clicks", "CTR"].map((h) => (
@@ -333,13 +342,13 @@ export default function AnalyticsPage() {
                     Array.from({ length: 3 }).map((_, i) => (
                       <tr key={i}><td colSpan={3} className="py-2"><div className="h-3 bg-white/5 rounded animate-pulse" /></td></tr>
                     ))
-                  ) : (summary?.linkClicks ?? []).length > 0 ? (summary?.linkClicks ?? []).sort((a, b) => b.clicks - a.clicks).map((lc, i) => {
-                    const ctr = summary?.ctrPerLink.find((c) => c.linkId === lc.linkId);
+                  ) : linkClickDetails.length > 0 ? linkClickDetails.sort((a, b) => b.clicks - a.clicks).map((lc, i) => {
+                    const ctr = summary && summary.totalViews > 0 ? ((lc.clicks / summary.totalViews) * 100).toFixed(1) + "%" : "0%";
                     return (
                       <tr key={i} className="border-b border-white/5 last:border-0">
-                        <td className="py-2 text-white/50 font-mono truncate max-w-[120px]">{lc.linkId.slice(0, 12)}…</td>
+                        <td className="py-2 text-white/50 truncate max-w-[120px]">{lc.title}</td>
                         <td className="py-2 text-white font-medium">{lc.clicks}</td>
-                        <td className="py-2 text-white/50">{ctr ? (ctr.ctr * 100).toFixed(1) + "%" : "—"}</td>
+                        <td className="py-2 text-white/50">{ctr}</td>
                       </tr>
                     );
                   }) : (
@@ -347,6 +356,7 @@ export default function AnalyticsPage() {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         </div>

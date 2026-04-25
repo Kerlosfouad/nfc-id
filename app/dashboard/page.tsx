@@ -151,11 +151,11 @@ function HomeTab({profile,saving,onPatch,onAddLink,onEditLink,onDeleteLink,onMov
 }
 
 function AnalyticsTab({profile,token,uid}:{profile:ProfileData;token:string;uid:string}){
-  const [data,setData]=useState<{totalViews:number;uniqueVisitors:number;linkClicks:{linkId:string;clicks:number}[]}|null>(null);
+  const [data,setData]=useState<{totalViews:number;uniqueVisitors:number;totalLinkClicks:number}|null>(null);
   useEffect(()=>{
     fetch("/api/v1/analytics/"+profile.id,{headers:{Authorization:"Bearer "+token,"x-user-id":uid}}).then(r=>r.json()).then(j=>setData(j.data)).catch(()=>{});
   },[profile.id,token,uid]);
-  const totalClicks=data?.linkClicks.reduce((a,b)=>a+b.clicks,0)??0;
+  const totalClicks=data?.totalLinkClicks??0;
   return(
     <div className="space-y-4">
       <h2 className="font-bold text-lg">Analytics</h2>
