@@ -13,12 +13,13 @@ const PatchBodySchema = z.object({
   state: z.enum(['MANUFACTURED', 'SOLD', 'CLAIMED', 'ACTIVE', 'SUSPENDED']),
 });
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ publicId: string }> }
-) {
+export async function PATCH(request: NextRequest) {
   const authResult = await requireAdmin(request);
   if (authResult instanceof NextResponse) return authResult;
+
+  // Extract publicId from URL
+  const segments = request.nextUrl.pathname.split('/');
+  const publicId = segments[segments.indexOf('tags') + 1];
 
   let body: unknown;
   try { body = await request.json(); }
@@ -33,7 +34,6 @@ export async function PATCH(
     return NextResponse.json({ data: null, error: { code: 'VALIDATION_ERROR', message: 'Invalid body', fields } }, { status: 400 });
   }
 
-  const { publicId } = await params;
   const newState = parsed.data.state as TagState;
 
   try {
