@@ -18,12 +18,12 @@ import {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const authResult = await requireAdmin(request);
   if (authResult instanceof NextResponse) return authResult;
 
-  const profileId = params.id;
+  const { id: profileId } = await params;
 
   // Execute use case
   try {
