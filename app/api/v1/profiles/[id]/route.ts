@@ -38,11 +38,12 @@ const UpdateProfileSchema = z.object({
   avatarUrl: z.string().url().nullable().optional(),
   theme: z
     .object({
-      style: z.enum(['gradient', 'glassmorphism', 'minimal', 'default', 'dark', 'nature', 'ocean', 'sunset', 'neon']),
+      style: z.enum(['gradient', 'glassmorphism', 'minimal', 'default', 'dark', 'nature', 'ocean', 'sunset', 'neon', 'purple-haze', 'retro', 'midnight', 'rose-gold', 'forest']),
       primaryColor: z.string().min(1),
       fontFamily: z.string().min(1),
       linksLayout: z.enum(['list', 'grid']).optional(),
       profileLayout: z.enum(['classic', 'hero']).optional(),
+      coverUrl: z.string().url().nullable().optional(),
     })
     .optional(),
   passwordProtected: z.boolean().optional(),

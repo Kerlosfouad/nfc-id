@@ -32,13 +32,13 @@ export default function Navbar() {
   return (
     <header className="flex justify-center items-center w-full px-5 py-5 fixed top-0 z-50">
       <nav
-        className={`w-[90%] h-[58px] flex justify-center items-center rounded-[20px] border transition-all duration-300 ${
+        className={`flex justify-center items-center rounded-[20px] border transition-all duration-300 ${
           scrolled
             ? "bg-black/60 backdrop-blur-xl border-[#03A9F4]/20 shadow-[0_0_30px_rgba(3,169,244,0.08)]"
             : "bg-white/[0.03] backdrop-blur-md border-[#2c2c2c]"
         }`}
       >
-        <div className="flex items-center justify-between w-full px-5">
+        <div className="flex items-center gap-8 px-5 py-3">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <Image src="/img/logo.png" alt="NFC ID" width={36} height={36} className="group-hover:drop-shadow-[0_0_8px_#03A9F4] transition-all duration-300" />

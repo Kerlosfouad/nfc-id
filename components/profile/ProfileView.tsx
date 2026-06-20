@@ -1,9 +1,10 @@
 /**
- * ProfileView — Linktree-style profile renderer
+ * ProfileView — Modern full-bleed profile renderer
  * Requirements: 3.2, 3.7
  */
 "use client";
 
+import { useState } from 'react';
 import type { Profile, Link, ProfileTheme } from '@/lib/domain/types';
 import LeadForm from './LeadForm';
 
@@ -14,6 +15,15 @@ const LINK_ICONS: Record<string, string> = {
   YOUTUBE: 'ri-youtube-line',
   SPOTIFY: 'ri-spotify-line',
   TIKTOK: 'ri-tiktok-line',
+  FACEBOOK: 'ri-facebook-fill',
+  INSTAGRAM: 'ri-instagram-line',
+  TWITTER: 'ri-twitter-x-line',
+  LINKEDIN: 'ri-linkedin-fill',
+  GITHUB: 'ri-github-fill',
+  EMAIL: 'ri-mail-line',
+  PHONE: 'ri-phone-line',
+  TELEGRAM: 'ri-telegram-line',
+  SNAPCHAT: 'ri-snapchat-line',
 };
 
 const LINK_COLORS: Record<string, string> = {
@@ -23,84 +33,169 @@ const LINK_COLORS: Record<string, string> = {
   YOUTUBE: '#FF0000',
   SPOTIFY: '#1DB954',
   TIKTOK: '#010101',
+  FACEBOOK: '#1877F2',
+  INSTAGRAM: '#E4405F',
+  TWITTER: '#1DA1F2',
+  LINKEDIN: '#0A66C2',
+  GITHUB: '#ffffff',
+  EMAIL: '#F59E0B',
+  PHONE: '#10B981',
+  TELEGRAM: '#26A5E4',
+  SNAPCHAT: '#FFFC00',
 };
 
-function getThemeClasses(theme: ProfileTheme) {
+/* ── Theme helpers ──────────────────────────────────────────── */
+
+function getThemeVars(theme: ProfileTheme) {
+  const pc = theme.primaryColor || '#03A9F4';
+
   switch (theme.style) {
     case 'gradient':
-      return { wrapper: 'bg-gradient-to-br from-[#0b0a0a] via-[#0f0f1a] to-[#0b0a0a]', card: 'bg-white/5 border border-white/10 backdrop-blur-sm', linkCard: 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20', text: 'text-white' };
     case 'glassmorphism':
-      return { wrapper: 'bg-[#0b0a0a]', card: 'bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]', linkCard: 'bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-white/20', text: 'text-white' };
     case 'dark':
-      return { wrapper: 'bg-gray-900', card: 'bg-gray-800 border border-gray-700', linkCard: 'bg-gray-800 border border-gray-700 hover:bg-gray-700', text: 'text-white' };
-    case 'nature':
-      return { wrapper: 'bg-green-50', card: 'bg-white border border-green-200 shadow-sm', linkCard: 'bg-white border border-green-200 hover:bg-green-100', text: 'text-green-900' };
-    case 'ocean':
-      return { wrapper: 'bg-cyan-50', card: 'bg-white border border-cyan-200 shadow-sm', linkCard: 'bg-white border border-cyan-200 hover:bg-cyan-100', text: 'text-cyan-900' };
-    case 'sunset':
-      return { wrapper: 'bg-orange-50', card: 'bg-white border border-orange-200 shadow-sm', linkCard: 'bg-white border border-orange-200 hover:bg-orange-100', text: 'text-orange-900' };
     case 'neon':
-      return { wrapper: 'bg-black', card: 'bg-gray-900 border border-pink-500/30 shadow-[0_0_15px_rgba(236,72,153,0.2)]', linkCard: 'bg-gray-900 border border-pink-500/50 hover:bg-gray-800 hover:shadow-[0_0_15px_rgba(236,72,153,0.4)]', text: 'text-pink-100' };
-    case 'default':
+    case 'purple-haze':
+    case 'midnight':
+    case 'forest':
+      return { bg: '#0a0a0a', linkBg: `${pc}18`, linkBorder: `${pc}30`, textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.5)', isDark: true };
+    case 'nature':
+      return { bg: '#f0fdf4', linkBg: '#dcfce7', linkBorder: '#bbf7d0', textPrimary: '#14532d', textSecondary: '#4d7c5e', isDark: false };
+    case 'ocean':
+      return { bg: '#ecfeff', linkBg: '#cffafe', linkBorder: '#a5f3fc', textPrimary: '#164e63', textSecondary: '#4d8997', isDark: false };
+    case 'sunset':
+      return { bg: '#fff7ed', linkBg: '#ffedd5', linkBorder: '#fed7aa', textPrimary: '#7c2d12', textSecondary: '#a4603b', isDark: false };
+    case 'retro':
+      return { bg: '#fffbeb', linkBg: '#fef3c7', linkBorder: '#fde68a', textPrimary: '#78350f', textSecondary: '#a47a3b', isDark: false };
+    case 'rose-gold':
+      return { bg: '#fff1f2', linkBg: '#ffe4e6', linkBorder: '#fecdd3', textPrimary: '#9f1239', textSecondary: '#c44d6a', isDark: false };
     case 'minimal':
+      return { bg: '#fafafa', linkBg: '#f4f4f5', linkBorder: '#e4e4e7', textPrimary: '#18181b', textSecondary: '#71717a', isDark: false };
     default:
-      return { wrapper: 'bg-gray-50', card: 'bg-white border border-gray-200 shadow-sm', linkCard: 'bg-white border border-gray-200 hover:bg-gray-100 hover:border-gray-300', text: 'text-gray-900' };
+      return { bg: '#0a0a0a', linkBg: `${pc}18`, linkBorder: `${pc}30`, textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.5)', isDark: true };
   }
 }
 
-function ShareButton({ displayName }: { displayName: string }) {
+/* ── Save Contact (VCF download) ──────────────────────────── */
+
+function SaveButton({ profile, primaryColor, isDark }: { profile: Profile; primaryColor: string; isDark: boolean }) {
   return (
     <button
-      onClick={() => navigator.share?.({ url: window.location.href, title: displayName })}
-      className="mt-4 inline-flex items-center gap-1.5 text-xs text-white/30 hover:text-white/60 transition-colors"
+      onClick={() => {
+        // Generate a basic vCard and trigger download
+        const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${profile.displayName}\n${profile.bio ? `NOTE:${profile.bio}\n` : ''}END:VCARD`;
+        const blob = new Blob([vcard], { type: 'text/vcard' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `${profile.displayName}.vcf`; a.click();
+        URL.revokeObjectURL(url);
+      }}
+      className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95"
+      style={{
+        backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+        color: isDark ? '#fff' : '#1a1a1a',
+        backdropFilter: 'blur(10px)',
+      }}
     >
-      <i className="ri-share-line" />
-      Share
+      <i className="ri-contacts-line text-base" />
+      Save
     </button>
   );
 }
 
-interface LinkItemProps {
-  link: Link;
-  primaryColor: string;
-  linkCardClass: string;
+function ShareIconButton({ displayName, isDark }: { displayName: string; isDark: boolean }) {
+  return (
+    <button
+      onClick={() => navigator.share?.({ url: window.location.href, title: displayName })}
+      className="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-90"
+      style={{
+        backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+        color: isDark ? '#fff' : '#1a1a1a',
+      }}
+    >
+      <i className="ri-share-forward-line text-lg" />
+    </button>
+  );
 }
 
-function LinkItem({ link, primaryColor, linkCardClass, layout, textColor }: LinkItemProps & { layout?: 'list' | 'grid', textColor: string }) {
+/* ── Link Item ────────────────────────────────────────────── */
+
+function LinkItem({ link, primaryColor, themeVars, layout }: {
+  link: Link;
+  primaryColor: string;
+  themeVars: ReturnType<typeof getThemeVars>;
+  layout: 'list' | 'grid';
+}) {
   const icon = LINK_ICONS[link.type] ?? 'ri-link';
   const color = LINK_COLORS[link.type] ?? primaryColor;
 
   if (layout === 'grid') {
     return (
-      <a href={link.url} target="_blank" rel="noopener noreferrer" className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl transition-all duration-200 active:scale-[0.98] group ${linkCardClass}`}>
+      <a
+        href={link.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex flex-col items-center justify-center gap-2.5 p-4 rounded-2xl transition-all duration-200 active:scale-[0.97] group"
+        style={{
+          backgroundColor: themeVars.linkBg,
+          border: `1px solid ${themeVars.linkBorder}`,
+        }}
+      >
         {link.thumbnailUrl ? (
-          <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0"><img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" /></div>
+          <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0">
+            <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+          </div>
         ) : (
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: `${color}20`, border: `1px solid ${color}30` }}>
+          <div
+            className="w-12 h-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
+            style={{ backgroundColor: `${color}25` }}
+          >
             <i className={`${icon} text-2xl`} style={{ color }} />
           </div>
         )}
-        <span className={`font-semibold text-[11px] text-center w-full truncate ${textColor}`}>{link.title}</span>
+        <span className="font-semibold text-xs text-center w-full truncate" style={{ color: themeVars.textPrimary }}>
+          {link.title}
+        </span>
       </a>
     );
   }
 
   return (
-    <a href={link.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-200 active:scale-[0.98] group ${linkCardClass}`}>
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-200 active:scale-[0.98] group"
+      style={{
+        backgroundColor: themeVars.linkBg,
+        border: `1px solid ${themeVars.linkBorder}`,
+      }}
+    >
       {link.thumbnailUrl ? (
-        <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0">
+        <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0">
           <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
         </div>
       ) : (
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110" style={{ backgroundColor: `${color}20`, border: `1px solid ${color}30` }}>
-          <i className={`${icon} text-lg`} style={{ color }} />
+        <div
+          className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
+          style={{ backgroundColor: `${color}25` }}
+        >
+          <i className={`${icon} text-xl`} style={{ color }} />
         </div>
       )}
-      <span className={`font-medium text-sm flex-1 truncate ${textColor}`}>{link.title}</span>
-      <i className={`ri-arrow-right-up-line text-sm flex-shrink-0 opacity-50 group-hover:opacity-100 transition-opacity ${textColor}`} />
+      <span className="font-semibold text-[15px] flex-1 truncate" style={{ color: themeVars.textPrimary }}>
+        {link.title}
+      </span>
+      <div
+        className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
+        style={{ backgroundColor: themeVars.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }}
+      >
+        <i className="ri-more-fill text-base" style={{ color: themeVars.textSecondary }} />
+      </div>
     </a>
   );
 }
+
+/* ── Main ProfileView ─────────────────────────────────────── */
 
 interface ProfileViewProps {
   profile: Profile;
@@ -109,57 +204,127 @@ interface ProfileViewProps {
 }
 
 export default function ProfileView({ profile, links, showLeadForm = false }: ProfileViewProps) {
-  const { wrapper, card, linkCard, text } = getThemeClasses(profile.theme);
   const { primaryColor, fontFamily, linksLayout = 'list', profileLayout = 'classic' } = profile.theme;
+  const themeVars = getThemeVars(profile.theme);
+
+  const cvLink = links.find(l => l.title === 'CV / Resume');
+  const visibleLinks = links.filter(l => l.title !== 'CV / Resume');
 
   return (
-    <main className={`${wrapper} min-h-screen flex flex-col items-center py-12 px-4 relative overflow-hidden`} style={{ fontFamily: `${fontFamily}, Inter, sans-serif` }}>
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full blur-[120px] opacity-20 pointer-events-none" style={{ backgroundColor: primaryColor }} />
-
-      <div className="relative z-10 w-full max-w-[480px] flex flex-col gap-4">
-        {profileLayout === 'hero' ? (
-           <div className={`${card} rounded-[2rem] overflow-hidden`}>
-             <div className="w-full h-32 relative" style={{ background: `linear-gradient(to bottom right, ${primaryColor}40, ${primaryColor}80)` }}>
-               <div className="absolute -bottom-10 left-6">
-                 {profile.avatarUrl ? (
-                   <img src={profile.avatarUrl} alt={profile.displayName} className="w-20 h-20 rounded-full object-cover border-4" style={{ borderColor: 'var(--card-bg, #fff)' }} />
-                 ) : (
-                   <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold border-4" style={{ backgroundColor: `${primaryColor}20`, color: primaryColor, borderColor: 'var(--card-bg, #fff)' }}>{profile.displayName.charAt(0).toUpperCase()}</div>
-                 )}
-               </div>
-             </div>
-             <div className="pt-14 px-6 pb-6">
-               <h1 className={`text-2xl font-bold mb-2 ${text}`}>{profile.displayName}</h1>
-               {profile.bio && <p className={`${text} opacity-70 text-sm leading-relaxed mb-4`}>{profile.bio}</p>}
-               <ShareButton displayName={profile.displayName} />
-             </div>
-           </div>
+    <main
+      className="min-h-screen flex flex-col"
+      style={{
+        backgroundColor: themeVars.bg,
+        fontFamily: `${fontFamily}, Inter, sans-serif`,
+        color: themeVars.textPrimary,
+      }}
+    >
+      {/* ── Cover Image ───────────────────────── */}
+      <div className="relative w-full" style={{ minHeight: profileLayout === 'hero' ? '45vh' : '38vh' }}>
+        {profile.theme.coverUrl ? (
+          <img
+            src={profile.theme.coverUrl}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+          />
         ) : (
-          <div className={`${card} rounded-3xl p-8 text-center`}>
-            <div className="flex justify-center mb-4">
-              {profile.avatarUrl ? (
-                <div className="w-24 h-24 rounded-full overflow-hidden border-2 ring-4 ring-black/5" style={{ borderColor: `${primaryColor}40` }}>
-                  <img src={profile.avatarUrl} alt={profile.displayName} className="w-full h-full object-cover" />
-                </div>
-              ) : (
-                <div className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold ring-4 ring-black/5" style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}>{profile.displayName.charAt(0).toUpperCase()}</div>
-              )}
-            </div>
-            <h1 className={`${text} text-2xl font-bold mb-2`}>{profile.displayName}</h1>
-            {profile.bio && <p className={`${text} opacity-70 text-sm leading-relaxed`}>{profile.bio}</p>}
-            <ShareButton displayName={profile.displayName} />
-          </div>
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(135deg, ${primaryColor}60, ${primaryColor}20, ${themeVars.bg})`,
+            }}
+          />
         )}
+        {/* Bottom gradient fade */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-32"
+          style={{
+            background: `linear-gradient(to top, ${themeVars.bg}, transparent)`,
+          }}
+        />
+      </div>
 
-        {links.length > 0 ? (
+      {/* ── Profile Info ──────────────────────── */}
+      <div className="relative w-full max-w-lg mx-auto px-5 -mt-14 z-10">
+        {/* Avatar + Name + Actions row */}
+        <div className="flex items-end justify-between mb-1">
+          <div className="flex items-end gap-4">
+            {/* Avatar with ring */}
+            <div className="relative flex-shrink-0">
+              <div
+                className="w-[100px] h-[100px] rounded-full p-[3px]"
+                style={{
+                  background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
+                  boxShadow: `0 0 20px ${primaryColor}40`,
+                }}
+              >
+                <div className="w-full h-full rounded-full overflow-hidden" style={{ border: `3px solid ${themeVars.bg}` }}>
+                  {profile.avatarUrl ? (
+                    <img src={profile.avatarUrl} alt={profile.displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <div
+                      className="w-full h-full flex items-center justify-center text-3xl font-bold"
+                      style={{ backgroundColor: `${primaryColor}30`, color: primaryColor }}
+                    >
+                      {profile.displayName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Save & Share buttons */}
+          <div className="flex items-center gap-2 mb-2">
+            <SaveButton profile={profile} primaryColor={primaryColor} isDark={themeVars.isDark} />
+            {cvLink && (
+              <a
+                href={cvLink.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95"
+                style={{
+                  backgroundColor: themeVars.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+                  color: themeVars.isDark ? '#fff' : '#1a1a1a',
+                  backdropFilter: 'blur(10px)',
+                }}
+              >
+                <i className="ri-file-user-line text-base" />
+                CV
+              </a>
+            )}
+            <ShareIconButton displayName={profile.displayName} isDark={themeVars.isDark} />
+          </div>
+        </div>
+
+        {/* Name & Bio */}
+        <div className="mt-2 mb-6">
+          <h1 className="text-xl font-bold leading-tight" style={{ color: themeVars.textPrimary }}>
+            {profile.displayName}
+          </h1>
+          {profile.bio && (
+            <p className="text-sm mt-1 leading-relaxed" style={{ color: themeVars.textSecondary }}>
+              {profile.bio}
+            </p>
+          )}
+        </div>
+
+        {/* ── Links ─────────────────────────────── */}
+        {visibleLinks.length > 0 ? (
           <div className={linksLayout === 'grid' ? "grid grid-cols-2 sm:grid-cols-3 gap-3" : "flex flex-col gap-3"}>
-            {links.map((link) => (
-              <LinkItem key={link.id} link={link} primaryColor={primaryColor} linkCardClass={linkCard} layout={linksLayout} textColor={text} />
+            {visibleLinks.map((link) => (
+              <LinkItem
+                key={link.id}
+                link={link}
+                primaryColor={primaryColor}
+                themeVars={themeVars}
+                layout={linksLayout}
+              />
             ))}
           </div>
         ) : (
-          <div className="text-center py-8">
-            <p className={`${text} opacity-50 text-sm`}>No links yet.</p>
+          <div className="text-center py-10">
+            <p className="text-sm" style={{ color: themeVars.textSecondary }}>No links yet.</p>
           </div>
         )}
 
@@ -168,11 +333,21 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
           <LeadForm profileId={profile.id} publicId={profile.publicId} />
         )}
 
-        {/* Footer branding */}
-        <div className="text-center pt-4 pb-2">
-          <a href="/" className="text-[#333] text-xs hover:text-[#555] transition-colors inline-flex items-center gap-1">
-            <i className="ri-nfc-line" style={{ color: primaryColor }} />
-            <span>Powered by <span style={{ color: primaryColor }}>NFC ID</span></span>
+        {/* ── Footer Branding ──────────────────── */}
+        <div className="flex flex-col items-center gap-3 pt-12 pb-8">
+          <a href="/" className="flex flex-col items-center gap-2 group transition-opacity hover:opacity-80">
+            <img src="/img/logo.png" alt="NFC ID" className="w-10 h-10 rounded-xl" />
+            <span className="text-xs font-semibold tracking-wide" style={{ color: themeVars.textSecondary }}>
+              NFC · ID
+            </span>
+          </a>
+          <a
+            href="/"
+            className="inline-flex items-center gap-1.5 text-xs font-medium transition-colors hover:opacity-80"
+            style={{ color: themeVars.textSecondary }}
+          >
+            Create Your Profile For Free
+            <i className="ri-arrow-right-up-line text-sm" />
           </a>
         </div>
       </div>

@@ -35,7 +35,7 @@ function notFound(resource = 'Resource') {
 const UpdateLinkSchema = z.object({
   type: z.enum(['URL', 'VCF', 'WHATSAPP', 'YOUTUBE', 'SPOTIFY', 'TIKTOK']).optional(),
   title: z.string().min(1).max(200).optional(),
-  url: z.string().url().optional(),
+  url: z.string().min(1).max(2000).optional(),
   thumbnailUrl: z.string().url().nullable().optional(),
   displayOrder: z.number().int().nonnegative().optional(),
   activeFrom: z.coerce.date().nullable().optional(),

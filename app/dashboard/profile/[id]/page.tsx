@@ -110,6 +110,8 @@ export default function ProfileBuilderPage() {
 
   async function saveProfile(patch: Partial<ProfileData>) {
     if (!profile) return;
+    const previous = profile;
+    setProfile({ ...profile, ...patch });
     setSaving(true);
     try {
       const res = await fetch(`/api/v1/profiles/${profileId}`, {
@@ -125,6 +127,7 @@ export default function ProfileBuilderPage() {
       setProfile(json.data);
       showToast("Saved", "success");
     } catch (e: unknown) {
+      setProfile(previous);
       showToast(e instanceof Error ? e.message : "Save failed", "error");
     } finally {
       setSaving(false);
