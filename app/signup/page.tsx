@@ -1,13 +1,12 @@
 "use client";
+import { Suspense } from "react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export const dynamic = 'force-dynamic';
-
-export default function SignupPage() {
+function SignupContent() {
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [email, setEmail] = useState("");
@@ -197,5 +196,13 @@ export default function SignupPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="bg-[#0b0a0a] min-h-screen" />}>
+      <SignupContent />
+    </Suspense>
   );
 }

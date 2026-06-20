@@ -6,7 +6,7 @@ import { createServerClient } from "@supabase/ssr";
  * Refreshes the Supabase session on every request (handles token rotation).
  * Requirements: 7.1, 7.4, 7.6
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
