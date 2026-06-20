@@ -32,7 +32,7 @@ const PatchBodySchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ publicId: string }> },
+  context: { params: Promise<{ publicId: string }> },
 ): Promise<NextResponse> {
   // 1. Require admin
   const authResult = await requireAdmin(request);
@@ -64,7 +64,7 @@ export async function PATCH(
     );
   }
 
-  const { publicId } = await params;
+  const { publicId } = await context.params;
   const newState = parsed.data.state as TagState;
 
   // 3. Execute use case
