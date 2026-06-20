@@ -6,6 +6,8 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import type { LinkType } from "@/lib/domain/types";
 
+export const dynamic = 'force-dynamic';
+
 interface ProfileTheme {
   style: "gradient" | "glassmorphism" | "minimal";
   primaryColor: string;

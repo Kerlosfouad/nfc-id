@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 interface AdminStats {
   totalTags: number;
   activeTags: number;

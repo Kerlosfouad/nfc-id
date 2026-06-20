@@ -1,1 +1,1 @@
-﻿export { default } from "./page_clean";
+export { default } from "./page_clean";

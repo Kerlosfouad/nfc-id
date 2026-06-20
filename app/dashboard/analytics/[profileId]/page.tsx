@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 interface LinkClick { linkId: string; clicks: number; }
 interface LinkCtr   { linkId: string; ctr: number; }
 interface ScanEvent { scannedAt: string; country?: string; os?: string; browser?: string; }

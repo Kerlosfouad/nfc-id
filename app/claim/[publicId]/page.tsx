@@ -1,6 +1,6 @@
 "use client";
 
-/**
+export const dynamic = 'force-dynamic';
  * Claim onboarding page — /claim/[publicId]
  *
  * Shows a login/signup prompt when the user is unauthenticated, preserving
