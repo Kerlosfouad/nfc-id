@@ -14,6 +14,7 @@ import PinGate from '@/components/profile/PinGate';
 import ContentWarning from '@/components/profile/ContentWarning';
 import ProfileView from '@/components/profile/ProfileView';
 import { recordEvent } from '@/lib/services/analyticsService';
+import type { ProfileTheme } from '@/lib/domain/types';
 
 // ── Analytics ─────────────────────────────────────────────────────────────────
 
@@ -66,9 +67,9 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
   const profile = await getProfileWithLinks(publicId);
 
   if (profile && query.preview === 'true') {
-    if (typeof query.style === 'string') profile.theme.style = query.style as any;
-    if (typeof query.linksLayout === 'string') profile.theme.linksLayout = query.linksLayout as any;
-    if (typeof query.profileLayout === 'string') profile.theme.profileLayout = query.profileLayout as any;
+    if (typeof query.style === 'string') profile.theme.style = query.style as ProfileTheme['style'];
+    if (typeof query.linksLayout === 'string') profile.theme.linksLayout = query.linksLayout as ProfileTheme['linksLayout'];
+    if (typeof query.profileLayout === 'string') profile.theme.profileLayout = query.profileLayout as ProfileTheme['profileLayout'];
   }
 
   // Profile not found or suspended → show suspension notice

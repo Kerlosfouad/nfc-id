@@ -1,6 +1,6 @@
 "use client";
 import { Suspense } from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -20,21 +20,26 @@ function LoginContent() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") ?? "/dashboard";
-  const supabase = createClient();
+  const redirectParam = searchParams.get("redirect");
+  const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/dashboard";
+  const callbackError = searchParams.get("error");
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
+    if (callbackError === "auth_callback_failed") {
+      setError("Sign in could not be completed. Please try again.");
+    }
+
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) router.replace(redirectTo);
     });
-  }, []);
-
+  }, [callbackError, redirectTo, router, supabase]);
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (signInError) { setError(signInError.message); return; }
       const { data: mfaData } = await supabase.auth.mfa.listFactors();
       const totpFactor = mfaData?.totp?.find((f) => f.status === "verified");
@@ -58,12 +63,33 @@ function LoginContent() {
 
   async function handleOAuth(provider: "google" | "apple") {
     setError(null);
-    await supabase.auth.signInWithOAuth({
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}` },
     });
+    if (oauthError) setError(oauthError.message);
   }
 
+  async function handlePasswordReset() {
+    const cleanEmail = email.trim();
+    setError(null);
+
+    if (!cleanEmail) {
+      setError("Enter your email first, then request a password reset.");
+      return;
+    }
+
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+      redirectTo: `${window.location.origin}/auth/callback?redirect=/dashboard`,
+    });
+
+    if (resetError) {
+      setError(resetError.message);
+      return;
+    }
+
+    setError("Password reset email sent. Check your inbox.");
+  }
   if (mfaRequired) {
     return (
       <main className="bg-[#0b0a0a] min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
@@ -89,7 +115,7 @@ function LoginContent() {
               {mfaError && <p className="text-red-400 text-xs">{mfaError}</p>}
               <button type="submit" disabled={mfaLoading || totpCode.length !== 6}
                 className="w-full py-3 rounded-xl bg-[#03A9F4] text-white font-bold text-sm uppercase tracking-wider hover:bg-[#03A9F4]/80 transition-all disabled:opacity-50">
-                {mfaLoading ? "Verifying…" : "Verify"}
+                {mfaLoading ? "Verifying..." : "Verify"}
               </button>
             </form>
           </div>
@@ -126,12 +152,12 @@ function LoginContent() {
             <div className="group">
               <div className="flex justify-between mb-2">
                 <label className="text-[#888] text-xs font-semibold uppercase tracking-wider">Password</label>
-                <a href="#" className="text-[#03A9F4]/70 text-xs hover:text-[#03A9F4] transition-colors">Forgot password?</a>
+                <button type="button" onClick={handlePasswordReset} className="text-[#03A9F4]/70 text-xs hover:text-[#03A9F4] transition-colors">Forgot password?</button>
               </div>
               <div className="relative">
                 <i className="ri-lock-line absolute left-4 top-1/2 -translate-y-1/2 text-[#444] group-focus-within:text-[#03A9F4] transition-colors text-lg" />
                 <input type={showPass ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required
-                  className="w-full bg-[#0a0a0a] border border-[#1e1e1e] focus:border-[#03A9F4]/50 text-white rounded-xl pl-11 pr-11 py-3 outline-none transition-all text-sm" placeholder="••••••••" />
+                  className="w-full bg-[#0a0a0a] border border-[#1e1e1e] focus:border-[#03A9F4]/50 text-white rounded-xl pl-11 pr-11 py-3 outline-none transition-all text-sm" placeholder="********" />
                 <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#444] hover:text-[#888] transition-colors">
                   <i className={showPass ? "ri-eye-off-line text-lg" : "ri-eye-line text-lg"} />
                 </button>
@@ -140,7 +166,7 @@ function LoginContent() {
             {error && <p className="text-red-400 text-xs">{error}</p>}
             <button type="submit" disabled={loading}
               className="w-full py-3 rounded-xl bg-[#03A9F4] text-white font-bold text-sm uppercase tracking-wider hover:bg-[#03A9F4]/80 hover:shadow-[0_0_25px_rgba(3,169,244,0.35)] active:scale-[0.98] transition-all mt-2 disabled:opacity-50">
-              {loading ? "Signing in…" : "Sign In"}
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
           <div className="flex items-center gap-3 my-6">

@@ -45,11 +45,11 @@ export default function HeroSection() {
               Get Your Free Link
             </Link>
             <Link
-              href="/#PRODUCT"
+              href="/shop"
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full border border-white/20 text-white font-semibold uppercase tracking-wider hover:border-white/50 hover:bg-white/5 transition-all duration-300"
             >
-              <i className="ri-nfc-line" />
-              See NFC Cards
+              <i className="ri-shopping-bag-line" />
+              Shop NFC Cards
             </Link>
           </div>
 

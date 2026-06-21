@@ -1,12 +1,5 @@
 import type { Metadata } from "next";
-import { Oswald } from "next/font/google";
 import "./globals.css";
-
-const oswald = Oswald({
-  subsets: ["latin"],
-  weight: ["200", "300", "400", "500", "600", "700"],
-  variable: "--font-oswald",
-});
 
 export const metadata: Metadata = {
   title: "NFC ID",
@@ -27,7 +20,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={oswald.variable}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }

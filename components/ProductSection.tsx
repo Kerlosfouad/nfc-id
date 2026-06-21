@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useRef, useEffect } from "react";
 
 function Badge({ icon, title, desc }: { icon: string; title: string; desc: string }) {
@@ -48,9 +49,12 @@ export default function ProductSection() {
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 text-[#03A9F4] text-xs font-semibold uppercase tracking-widest mb-4">
           Beyond The Basics
         </div>
-        <h1 className="text-white text-5xl font-bold uppercase mb-12">Our Product</h1>
+        <h1 className="text-white text-5xl font-bold uppercase mb-4">Our Product</h1>
+        <p className="text-white/40 text-sm md:text-base max-w-xl mx-auto leading-relaxed mb-12">
+          Smart NFC products built to make every first impression faster, cleaner, and easier to share.
+        </p>
 
-        <div className="relative mx-auto" style={{ width: 560, height: 500, maxWidth: "100%" }}>
+        <div className="relative mx-auto rounded-[32px] border border-white/5 bg-white/[0.015]" style={{ width: 560, height: 500, maxWidth: "100%" }}>
           <svg className="absolute inset-0 w-full h-full z-0 pointer-events-none" viewBox="0 0 560 500" fill="none">
             <defs>
               <filter id="lg" x="-60%" y="-60%" width="220%" height="220%">
@@ -85,10 +89,17 @@ export default function ProductSection() {
         </div>
 
         <div className="mt-6">
-          <button className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-[#03A9F4] text-white font-semibold uppercase tracking-wider hover:bg-[#03A9F4]/80 hover:shadow-[0_0_30px_rgba(3,169,244,0.4)] transition-all duration-300">
+          <Link href="/shop" className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-[#03A9F4] text-white font-semibold uppercase tracking-wider hover:bg-[#03A9F4]/80 hover:shadow-[0_0_30px_rgba(3,169,244,0.4)] transition-all duration-300">
             <i className="ri-shopping-bag-line" />
             Shop Now
-          </button>
+          </Link>
+        </div>
+        <div className="mt-5 flex items-center justify-center gap-3 flex-wrap text-xs text-white/35 uppercase tracking-widest">
+          <span className="inline-flex items-center gap-1.5"><i className="ri-flashlight-line text-[#03A9F4]" /> Instant tap</span>
+          <span className="w-1 h-1 rounded-full bg-white/15" />
+          <span className="inline-flex items-center gap-1.5"><i className="ri-qr-code-line text-[#03A9F4]" /> QR ready</span>
+          <span className="w-1 h-1 rounded-full bg-white/15" />
+          <span className="inline-flex items-center gap-1.5"><i className="ri-shield-check-line text-[#03A9F4]" /> Profile control</span>
         </div>
       </div>
     </section>

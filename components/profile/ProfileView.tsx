@@ -4,7 +4,7 @@
  */
 "use client";
 
-import { useState } from 'react';
+import Link from 'next/link';
 import type { Profile, Link, ProfileTheme } from '@/lib/domain/types';
 import LeadForm from './LeadForm';
 
@@ -77,7 +77,7 @@ function getThemeVars(theme: ProfileTheme) {
 
 /* ── Save Contact (VCF download) ──────────────────────────── */
 
-function SaveButton({ profile, primaryColor, isDark }: { profile: Profile; primaryColor: string; isDark: boolean }) {
+function SaveButton({ profile, isDark }: { profile: Profile; isDark: boolean }) {
   return (
     <button
       onClick={() => {
@@ -276,7 +276,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
 
           {/* Save & Share buttons */}
           <div className="flex items-center gap-2 mb-2">
-            <SaveButton profile={profile} primaryColor={primaryColor} isDark={themeVars.isDark} />
+            <SaveButton profile={profile} isDark={themeVars.isDark} />
             {cvLink && (
               <a
                 href={cvLink.url}
@@ -335,20 +335,20 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
 
         {/* ── Footer Branding ──────────────────── */}
         <div className="flex flex-col items-center gap-3 pt-12 pb-8">
-          <a href="/" className="flex flex-col items-center gap-2 group transition-opacity hover:opacity-80">
+          <Link href="/" className="flex flex-col items-center gap-2 group transition-opacity hover:opacity-80">
             <img src="/img/logo.png" alt="NFC ID" className="w-10 h-10 rounded-xl" />
             <span className="text-xs font-semibold tracking-wide" style={{ color: themeVars.textSecondary }}>
               NFC · ID
             </span>
-          </a>
-          <a
+          </Link>
+          <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-xs font-medium transition-colors hover:opacity-80"
             style={{ color: themeVars.textSecondary }}
           >
             Create Your Profile For Free
             <i className="ri-arrow-right-up-line text-sm" />
-          </a>
+          </Link>
         </div>
       </div>
     </main>

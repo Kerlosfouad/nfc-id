@@ -25,6 +25,7 @@ export default function Navbar() {
   const links = [
     { href: "/#about", label: "ABOUT" },
     { href: "/#PRODUCT", label: "PRODUCT" },
+    { href: "/shop", label: "SHOP" },
     { href: "/#USE", label: "HOW TO USE" },
     { href: "/#Testimonials", label: "TESTIMONIALS" },
   ];
