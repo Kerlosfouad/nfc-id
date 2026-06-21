@@ -10,7 +10,7 @@ const testimonials = [
 
 function TestimonialCard({ t }: { t: typeof testimonials[0] }) {
   return (
-    <div className="bg-[#121212] border border-[#222] rounded-[15px] p-5 w-[350px] mr-5 flex-shrink-0 hover:border-[#444] hover:bg-[#1a1a1a] transition-colors">
+    <div className="bg-[#121212] border border-[#222] rounded-[15px] p-5 w-[min(350px,calc(100vw-40px))] mr-5 flex-shrink-0 hover:border-[#444] hover:bg-[#1a1a1a] transition-colors">
       <div className="flex items-center mb-3">
         <div className="w-11 h-11 bg-[#03A9F4] rounded-full flex items-center justify-center text-white font-bold">
           {t.initial}

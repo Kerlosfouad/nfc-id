@@ -5,13 +5,13 @@ import { useRef, useEffect } from "react";
 
 function Badge({ icon, title, desc }: { icon: string; title: string; desc: string }) {
   return (
-    <div className="flex items-center gap-3 bg-[#0a0e16]/90 border border-[#03A9F4]/25 rounded-2xl px-4 py-3 shadow-[0_0_20px_rgba(3,169,244,0.1)] backdrop-blur-md whitespace-nowrap">
-      <div className="w-8 h-8 rounded-xl bg-[#03A9F4]/15 border border-[#03A9F4]/30 flex items-center justify-center flex-shrink-0">
-        <i className={`${icon} text-[#03A9F4] text-sm`} />
+    <div className="flex items-center gap-2 sm:gap-3 bg-[#0a0e16]/90 border border-[#03A9F4]/25 rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 shadow-[0_0_20px_rgba(3,169,244,0.1)] backdrop-blur-md whitespace-nowrap">
+      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#03A9F4]/15 border border-[#03A9F4]/30 flex items-center justify-center flex-shrink-0">
+        <i className={`${icon} text-[#03A9F4] text-xs sm:text-sm`} />
       </div>
       <div className="text-left">
-        <div className="text-white text-sm font-bold tracking-wide">{title}</div>
-        <div className="text-[#03A9F4]/60 text-xs">{desc}</div>
+        <div className="text-white text-xs sm:text-sm font-bold tracking-wide">{title}</div>
+        <div className="text-[#03A9F4]/60 text-[11px] sm:text-xs">{desc}</div>
       </div>
     </div>
   );
@@ -44,17 +44,17 @@ export default function ProductSection() {
   }, []);
 
   return (
-    <section id="PRODUCT" className="py-24 px-4" ref={sectionRef}>
+    <section id="PRODUCT" className="py-16 sm:py-24 px-5 sm:px-4 overflow-hidden" ref={sectionRef}>
       <div className="container mx-auto text-center">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 text-[#03A9F4] text-xs font-semibold uppercase tracking-widest mb-4">
           Beyond The Basics
         </div>
-        <h1 className="text-white text-5xl font-bold uppercase mb-4">Our Product</h1>
+        <h1 className="text-white text-4xl sm:text-5xl font-bold uppercase mb-4">Our Product</h1>
         <p className="text-white/40 text-sm md:text-base max-w-xl mx-auto leading-relaxed mb-12">
           Smart NFC products built to make every first impression faster, cleaner, and easier to share.
         </p>
 
-        <div className="relative mx-auto rounded-[32px] border border-white/5 bg-white/[0.015]" style={{ width: 560, height: 500, maxWidth: "100%" }}>
+        <div className="relative mx-auto rounded-[28px] sm:rounded-[32px] border border-white/5 bg-white/[0.015] w-full max-w-[560px] min-h-[470px] sm:min-h-[500px]">
           <svg className="absolute inset-0 w-full h-full z-0 pointer-events-none" viewBox="0 0 560 500" fill="none">
             <defs>
               <filter id="lg" x="-60%" y="-60%" width="220%" height="220%">
@@ -73,17 +73,17 @@ export default function ProductSection() {
           <div className="absolute z-10" style={{ left: "50%", top: "50%", transform: "translate(-50%, -50%)" }}>
             <div className="relative">
               <div className="absolute inset-0 bg-[#03A9F4]/12 blur-3xl rounded-full scale-110" />
-              <Image src="/img/id.png" alt="NFC ID Card" width={240} height={320} className="relative z-10 drop-shadow-[0_0_35px_rgba(3,169,244,0.3)]" />
+              <Image src="/img/id.png" alt="NFC ID Card" width={240} height={320} className="relative z-10 w-[190px] sm:w-[240px] h-auto drop-shadow-[0_0_35px_rgba(3,169,244,0.3)]" />
             </div>
           </div>
 
-          <div className="absolute z-20 animate-float-top" style={{ left: "50%", top: 14, transform: "translateX(-50%)" }}>
+          <div className="absolute z-20 animate-float-top left-1/2 top-3 -translate-x-1/2 scale-[0.92] sm:scale-100">
             <Badge icon="ri-information-line" title="INFORMATION" desc="Smart data sharing" />
           </div>
-          <div className="absolute z-20 animate-float-left" style={{ left: 0, top: 355 }}>
+          <div className="absolute z-20 animate-float-left left-1 sm:left-0 bottom-10 sm:bottom-[125px] scale-[0.86] sm:scale-100 origin-left">
             <Badge icon="ri-nfc-line" title="NFC" desc="Fast connection" />
           </div>
-          <div className="absolute z-20 animate-float-right" style={{ right: 0, top: 355 }}>
+          <div className="absolute z-20 animate-float-right right-1 sm:right-0 bottom-10 sm:bottom-[125px] scale-[0.86] sm:scale-100 origin-right">
             <Badge icon="ri-palette-line" title="DESIGN" desc="Sleek and stylish" />
           </div>
         </div>

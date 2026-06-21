@@ -20,23 +20,23 @@ const comparison = [
 
 export default function AboutSection() {
   return (
-    <section id="about" className="py-24 px-4">
+    <section id="about" className="py-20 sm:py-24 px-5 sm:px-4">
       <div className="container mx-auto">
         {/* Section header */}
         <div className="flex items-center gap-3 mb-2">
           <span className="w-8 h-[2px] bg-[#03A9F4] rounded-full" />
           <span className="text-[#03A9F4] text-xs font-semibold uppercase tracking-widest">Who We Are</span>
         </div>
-        <h2 className="text-white text-5xl font-bold uppercase mb-1">About Us</h2>
+        <h2 className="text-white text-4xl sm:text-5xl font-bold uppercase mb-1">About Us</h2>
         <p className="text-[#555] text-base mb-10">Everything you need to know</p>
 
         <div className="flex flex-col md:flex-row gap-8 items-start">
           {/* Stats grid */}
-          <div className="md:w-1/2 grid grid-cols-2 gap-3">
+          <div className="md:w-1/2 grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-2 gap-3">
             {stats.map((s, i) => (
               <div
                 key={i}
-                className="group relative bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-5 border border-[#222] hover:border-[#03A9F4]/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                className="group relative bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-5 sm:p-5 border border-[#222] hover:border-[#03A9F4]/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-[#03A9F4]/0 group-hover:bg-[#03A9F4]/5 transition-all duration-300 rounded-2xl" />
                 <div className="relative z-10">
@@ -51,13 +51,13 @@ export default function AboutSection() {
             ))}
 
             {/* Comparison table */}
-            <div className="col-span-2 bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-5 border border-[#222]">
+            <div className="min-[420px]:col-span-2 bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-5 sm:p-5 border border-[#222]">
               <p className="text-white text-sm font-semibold mb-3">NFC ID vs. Linktree</p>
               <div className="space-y-2">
                 {comparison.map((c, i) => (
-                  <div key={i} className="flex items-center justify-between text-xs">
+                  <div key={i} className="flex items-start sm:items-center justify-between gap-3 text-xs">
                     <span className="text-[#666]">{c.feature}</span>
-                    <div className="flex items-center gap-6">
+                    <div className="flex shrink-0 items-center gap-3 sm:gap-6">
                       <span className={c.us ? "text-green-400" : "text-red-400/50"}>
                         <i className={c.us ? "ri-check-line" : "ri-close-line"} />
                         <span className="ml-1 text-[#444]">NFC ID</span>

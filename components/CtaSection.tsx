@@ -2,9 +2,9 @@ import Link from "next/link";
 
 export default function CtaSection() {
   return (
-    <section className="py-24 px-4">
+    <section className="py-20 sm:py-24 px-5 sm:px-4">
       <div className="container mx-auto">
-        <div className="relative bg-gradient-to-br from-[#0f1a2e] to-[#0b0a0a] border border-[#03A9F4]/20 rounded-3xl p-12 text-center overflow-hidden">
+        <div className="relative bg-gradient-to-br from-[#0f1a2e] to-[#0b0a0a] border border-[#03A9F4]/20 rounded-3xl p-6 sm:p-12 text-center overflow-hidden">
           {/* Glow */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-[#03A9F4]/10 blur-3xl rounded-full pointer-events-none" />
 
@@ -14,7 +14,7 @@ export default function CtaSection() {
               Free to Start
             </div>
 
-            <h2 className="text-white text-4xl md:text-5xl font-bold uppercase mb-4">
+            <h2 className="text-white text-3xl sm:text-4xl md:text-5xl font-bold uppercase mb-4">
               Your Link in Bio,<br />
               <span className="text-[#03A9F4]">Powered by NFC</span>
             </h2>
@@ -23,17 +23,17 @@ export default function CtaSection() {
               Join thousands of creators, professionals, and businesses who use NFC ID to share everything with one tap.
             </p>
 
-            <div className="flex gap-4 justify-center flex-wrap">
+            <div className="flex gap-3 sm:gap-4 justify-center flex-col sm:flex-row">
               <Link
                 href="/signup"
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#03A9F4] text-white font-semibold uppercase tracking-wider hover:bg-[#03A9F4]/80 hover:shadow-[0_0_30px_rgba(3,169,244,0.5)] transition-all duration-300"
+                className="inline-flex items-center gap-2 px-7 sm:px-8 py-4 sm:py-3.5 rounded-full bg-[#03A9F4] text-white font-semibold uppercase tracking-wider hover:bg-[#03A9F4]/80 hover:shadow-[0_0_30px_rgba(3,169,244,0.5)] transition-all duration-300"
               >
                 <i className="ri-rocket-line" />
                 Get Your Free Link
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full border border-white/20 text-white font-semibold uppercase tracking-wider hover:border-white/50 hover:bg-white/5 transition-all duration-300"
+                className="inline-flex items-center gap-2 px-7 sm:px-8 py-4 sm:py-3.5 rounded-full border border-white/20 text-white font-semibold uppercase tracking-wider hover:border-white/50 hover:bg-white/5 transition-all duration-300"
               >
                 Sign In
               </Link>

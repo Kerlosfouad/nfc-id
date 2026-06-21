@@ -10,43 +10,43 @@ const stats = [
 
 export default function HeroSection() {
   return (
-    <section className="relative flex justify-center items-center overflow-hidden" style={{ minHeight: "100vh" }}>
+    <section className="relative flex justify-center items-center overflow-hidden" style={{ minHeight: "100svh" }}>
       <ParticleBackground />
       <div className="absolute inset-0 z-[1] hero-grid opacity-[0.07] pointer-events-none" />
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-[#03A9F4]/6 blur-[140px] pointer-events-none z-[1] animate-pulse-slow" />
       <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] rounded-full bg-[#0066ff]/4 blur-[100px] pointer-events-none z-[1] animate-pulse-slow2" />
       <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#0b0a0a] to-transparent z-[2] pointer-events-none" />
 
-      <div className="container mx-auto relative z-[3] flex justify-center items-center px-4 pt-28">
+      <div className="container mx-auto relative z-[3] flex justify-center items-center px-5 pt-32 sm:pt-28">
         <div className="text-center max-w-4xl mx-auto">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#03A9F4]/30 bg-[#03A9F4]/10 text-[#03A9F4] text-xs font-semibold uppercase tracking-widest mb-6">
+          <div className="inline-flex max-w-full items-center justify-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-[#03A9F4]/30 bg-[#03A9F4]/10 text-[#03A9F4] text-xs font-semibold uppercase tracking-widest mb-6 text-center">
             <span className="w-1.5 h-1.5 rounded-full bg-[#03A9F4] animate-pulse" />
-            Smart NFC · Link in Bio Platform
+            Smart NFC - Link in Bio Platform
           </div>
 
-          <h1 className="font-bold text-white uppercase leading-none mb-4" style={{ fontSize: "clamp(60px, 12vw, 140px)" }}>
+          <h1 className="font-bold text-white uppercase leading-none mb-4" style={{ fontSize: "clamp(64px, 18vw, 140px)" }}>
             NFC <span className="text-[#03a9f4] drop-shadow-[0_0_40px_rgba(3,169,244,0.5)]">ID</span>
           </h1>
 
-          <p className="text-[#aaa] text-lg md:text-xl mb-4 max-w-xl mx-auto leading-relaxed">
+          <p className="text-[#aaa] text-xl md:text-xl mb-4 max-w-xl mx-auto leading-relaxed">
             One link for everything you create, share, and sell.
           </p>
-          <p className="text-white/40 text-sm mb-10 max-w-md mx-auto">
-            Share your links, social profiles, contact info, and more — all from a single NFC tap or QR scan.
+          <p className="text-white/40 text-base sm:text-sm mb-10 max-w-md mx-auto">
+            Share your links, social profiles, contact info, and more - all from a single NFC tap or QR scan.
           </p>
 
-          <div className="flex gap-4 justify-center flex-wrap mb-14">
+          <div className="flex gap-3 sm:gap-4 justify-center flex-col sm:flex-row mb-12 sm:mb-14">
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#03A9F4] text-white font-semibold uppercase tracking-wider hover:bg-[#03A9F4]/80 hover:shadow-[0_0_30px_rgba(3,169,244,0.5)] transition-all duration-300"
+              className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-4 sm:py-3.5 rounded-full bg-[#03A9F4] text-white font-semibold uppercase tracking-wider hover:bg-[#03A9F4]/80 hover:shadow-[0_0_30px_rgba(3,169,244,0.5)] transition-all duration-300"
             >
               <i className="ri-rocket-line" />
               Get Your Free Link
             </Link>
             <Link
               href="/shop"
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full border border-white/20 text-white font-semibold uppercase tracking-wider hover:border-white/50 hover:bg-white/5 transition-all duration-300"
+              className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-4 sm:py-3.5 rounded-full border border-white/20 text-white font-semibold uppercase tracking-wider hover:border-white/50 hover:bg-white/5 transition-all duration-300"
             >
               <i className="ri-shopping-bag-line" />
               Shop NFC Cards
@@ -54,11 +54,11 @@ export default function HeroSection() {
           </div>
 
           {/* Stats */}
-          <div className="flex items-center justify-center gap-8 flex-wrap">
+          <div className="grid grid-cols-3 gap-3 sm:flex sm:items-center sm:justify-center sm:gap-8">
             {stats.map((s, i) => (
               <div key={i} className="text-center">
-                <div className="text-2xl font-bold text-white">{s.value}</div>
-                <div className="text-xs text-white/40 uppercase tracking-wider">{s.label}</div>
+                <div className="text-2xl sm:text-2xl font-bold text-white">{s.value}</div>
+                <div className="text-[11px] sm:text-xs text-white/40 uppercase tracking-wider">{s.label}</div>
               </div>
             ))}
           </div>

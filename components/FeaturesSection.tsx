@@ -41,14 +41,14 @@ const extraFeatures = [
 
 export default function FeaturesSection() {
   return (
-    <section className="py-24 px-4">
+    <section className="py-20 sm:py-24 px-5 sm:px-4">
       <div className="container mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 text-[#03A9F4] text-xs font-semibold uppercase tracking-widest mb-4">
             Everything You Need
           </div>
-          <h2 className="text-white text-5xl font-bold uppercase">Power Features</h2>
+          <h2 className="text-white text-4xl sm:text-5xl font-bold uppercase">Power Features</h2>
           <p className="text-[#555] text-base mt-3 max-w-md mx-auto">
             More than a link-in-bio. A complete phygital identity platform.
           </p>
@@ -59,7 +59,7 @@ export default function FeaturesSection() {
           {features.map((f, i) => (
             <div
               key={i}
-              className={`group relative bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-6 border border-[#222] hover:border-[#333] transition-all duration-400 overflow-hidden ${f.glow}`}
+              className={`group relative bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-5 sm:p-6 border border-[#222] hover:border-[#333] transition-all duration-400 overflow-hidden ${f.glow}`}
             >
               <div className={`absolute top-0 left-0 right-0 h-px bg-gradient-to-r ${f.color}`} />
               <div className="flex items-start justify-between mb-4">
@@ -71,7 +71,7 @@ export default function FeaturesSection() {
                 </span>
               </div>
               <h3 className="text-white text-xl font-bold uppercase mb-2">{f.title}</h3>
-              <p className="text-[#555] text-sm mb-6 leading-relaxed">{f.desc}</p>
+              <p className="text-[#777] text-base sm:text-sm mb-6 leading-relaxed">{f.desc}</p>
               <div className="flex justify-center">
                 <Image src={f.img} alt={f.title} width={200} height={200} className="mx-auto group-hover:scale-105 transition-transform duration-500" />
               </div>
@@ -80,12 +80,12 @@ export default function FeaturesSection() {
         </div>
 
         {/* Extra features grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {extraFeatures.map((f, i) => (
             <div key={i} className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 hover:border-[#03A9F4]/30 hover:bg-[#03A9F4]/5 transition-all duration-200 text-center group">
               <i className={`${f.icon} text-[#03A9F4] text-2xl mb-2 block group-hover:scale-110 transition-transform`} />
-              <p className="text-white text-xs font-semibold mb-1">{f.title}</p>
-              <p className="text-[#444] text-xs leading-tight">{f.desc}</p>
+              <p className="text-white text-sm sm:text-xs font-semibold mb-1">{f.title}</p>
+              <p className="text-[#666] text-sm sm:text-xs leading-tight">{f.desc}</p>
             </div>
           ))}
         </div>
