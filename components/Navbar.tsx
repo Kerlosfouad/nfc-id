@@ -41,11 +41,8 @@ export default function Navbar() {
       >
         <div className="w-full sm:w-auto flex items-center justify-between md:justify-center gap-4 md:gap-8 px-4 sm:px-5 py-3.5 md:py-3 min-h-[64px] md:min-h-0">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
+          <Link href="/" className="flex items-center group" aria-label="NFC ID home">
             <Image src="/img/logo.png" alt="NFC ID" width={44} height={44} className="w-11 h-11 md:w-9 md:h-9 group-hover:drop-shadow-[0_0_8px_#03A9F4] transition-all duration-300" />
-            <span className="text-white font-bold text-xl md:text-lg tracking-wider block">
-              NFC <span className="text-[#03A9F4]">ID</span>
-            </span>
           </Link>
 
           {/* Desktop Links */}

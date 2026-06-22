@@ -20,44 +20,44 @@ const comparison = [
 
 export default function AboutSection() {
   return (
-    <section id="about" className="py-20 sm:py-24 px-5 sm:px-4">
+    <section id="about" className="py-12 sm:py-24 px-4">
       <div className="container mx-auto">
         {/* Section header */}
         <div className="flex items-center gap-3 mb-2">
           <span className="w-8 h-[2px] bg-[#03A9F4] rounded-full" />
           <span className="text-[#03A9F4] text-xs font-semibold uppercase tracking-widest">Who We Are</span>
         </div>
-        <h2 className="text-white text-4xl sm:text-5xl font-bold uppercase mb-1">About Us</h2>
-        <p className="text-[#555] text-base mb-10">Everything you need to know</p>
+        <h2 className="text-white text-3xl sm:text-5xl font-bold uppercase mb-1">About Us</h2>
+        <p className="text-[#555] text-sm sm:text-base mb-6 sm:mb-10">Everything you need to know</p>
 
-        <div className="flex flex-col md:flex-row gap-8 items-start">
+        <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
           {/* Stats grid */}
-          <div className="md:w-1/2 grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-2 gap-3">
+          <div className="md:w-1/2 grid grid-cols-2 gap-3">
             {stats.map((s, i) => (
               <div
                 key={i}
-                className="group relative bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-5 sm:p-5 border border-[#222] hover:border-[#03A9F4]/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                className="group relative min-h-[132px] bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-4 sm:p-5 border border-[#222] hover:border-[#03A9F4]/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-[#03A9F4]/0 group-hover:bg-[#03A9F4]/5 transition-all duration-300 rounded-2xl" />
                 <div className="relative z-10">
-                  <div className="w-11 h-11 rounded-xl bg-[#1f1f23] group-hover:bg-[#03A9F4]/20 border border-[#2c2c2c] group-hover:border-[#03A9F4]/30 flex items-center justify-center mb-3 transition-all duration-300">
-                    <i className={`${s.icon} text-[#03A9F4] text-xl`} />
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#1f1f23] group-hover:bg-[#03A9F4]/20 border border-[#2c2c2c] group-hover:border-[#03A9F4]/30 flex items-center justify-center mb-3 transition-all duration-300">
+                    <i className={`${s.icon} text-[#03A9F4] text-lg sm:text-xl`} />
                   </div>
-                  <div className="text-[#03A9F4] text-2xl font-bold mb-0.5">{s.value}</div>
-                  <div className="text-white text-sm font-semibold">{s.label}</div>
-                  <div className="text-[#555] text-xs mt-0.5">{s.desc}</div>
+                  <div className="text-[#03A9F4] text-xl sm:text-2xl font-bold mb-0.5">{s.value}</div>
+                  <div className="text-white text-xs sm:text-sm font-semibold leading-tight">{s.label}</div>
+                  <div className="text-[#555] text-[10px] sm:text-xs mt-0.5 leading-tight">{s.desc}</div>
                 </div>
               </div>
             ))}
 
             {/* Comparison table */}
-            <div className="min-[420px]:col-span-2 bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-5 sm:p-5 border border-[#222]">
+            <div className="col-span-2 bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-4 sm:p-5 border border-[#222]">
               <p className="text-white text-sm font-semibold mb-3">NFC ID vs. Linktree</p>
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-[176px] overflow-hidden sm:max-h-none">
                 {comparison.map((c, i) => (
-                  <div key={i} className="flex items-start sm:items-center justify-between gap-3 text-xs">
+                  <div key={i} className="flex items-start sm:items-center justify-between gap-3 text-[10px] sm:text-xs">
                     <span className="text-[#666]">{c.feature}</span>
-                    <div className="flex shrink-0 items-center gap-3 sm:gap-6">
+                    <div className="flex shrink-0 items-center gap-2 sm:gap-6">
                       <span className={c.us ? "text-green-400" : "text-red-400/50"}>
                         <i className={c.us ? "ri-check-line" : "ri-close-line"} />
                         <span className="ml-1 text-[#444]">NFC ID</span>
@@ -74,7 +74,7 @@ export default function AboutSection() {
           </div>
 
           {/* Image */}
-          <div className="md:w-1/2 flex justify-center items-center relative">
+          <div className="hidden md:flex md:w-1/2 justify-center items-center relative">
             <div className="absolute w-48 h-48 bg-[#03A9F4]/10 rounded-full blur-3xl" />
             <Image
               src="/img/keychain-with-phone.webp"
