@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { AdminChrome } from "../_components/AdminChrome";
-import { EmptyState, Panel } from "../_components/AdminUi";
+import { AdminLoadingScreen, EmptyState, Panel } from "../_components/AdminUi";
 
 export default function AdminOrdersPage() {
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function AdminOrdersPage() {
     });
   }, [router]);
 
-  if (checking) return <div className="min-h-screen bg-[#0b0a0a] text-white flex items-center justify-center">Loading...</div>;
+  if (checking) return <AdminLoadingScreen />;
 
   return (
     <AdminChrome title="Orders" subtitle="Incoming orders and fulfillment status.">
@@ -49,4 +49,3 @@ export default function AdminOrdersPage() {
     </AdminChrome>
   );
 }
-

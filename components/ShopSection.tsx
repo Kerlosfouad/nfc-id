@@ -45,6 +45,11 @@ export default async function ShopSection() {
                     <i className={product.icon} />
                     {product.badge || product.category}
                   </div>
+                  {product.discountLabel && (
+                    <div className="absolute top-4 right-4 rounded-full bg-[#03A9F4] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
+                      {product.discountLabel}
+                    </div>
+                  )}
                 </div>
 
                 <div className="relative p-5 sm:p-6">

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { AdminChrome } from "../_components/AdminChrome";
-import { EmptyState, Panel } from "../_components/AdminUi";
+import { AdminLoadingScreen, EmptyState, Panel } from "../_components/AdminUi";
 
 interface GeoRow {
   country: string;
@@ -41,7 +41,7 @@ export default function AdminGeoPage() {
     });
   }, [router]);
 
-  if (checking) return <div className="min-h-screen bg-[#0b0a0a] text-white flex items-center justify-center">Loading...</div>;
+  if (checking) return <AdminLoadingScreen />;
 
   return (
     <AdminChrome title="Geo Map" subtitle="Scan distribution by country from analytics events.">
@@ -70,4 +70,3 @@ export default function AdminGeoPage() {
     </AdminChrome>
   );
 }
-

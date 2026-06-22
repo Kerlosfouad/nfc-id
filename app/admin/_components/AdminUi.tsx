@@ -37,3 +37,18 @@ export function EmptyState({ icon, title, body }: { icon: string; title: string;
   );
 }
 
+export function AdminLoadingScreen() {
+  return (
+    <div className="min-h-screen bg-[#0b0a0a] text-white p-4 sm:p-6">
+      <div className="mx-auto max-w-5xl space-y-4">
+        <div className="h-16 rounded-2xl border border-white/10 bg-white/[0.03] animate-pulse" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="h-32 rounded-2xl border border-white/10 bg-white/[0.03] animate-pulse" />
+          ))}
+        </div>
+        <div className="h-80 rounded-2xl border border-white/10 bg-white/[0.03] animate-pulse" />
+      </div>
+    </div>
+  );
+}

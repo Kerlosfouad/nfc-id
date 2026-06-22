@@ -10,6 +10,7 @@ export interface CatalogProduct {
   badge: string;
   icon: string;
   category: string;
+  discountLabel: string | null;
   isActive: boolean;
   displayOrder: number;
   createdAt: Date;
@@ -24,6 +25,7 @@ export interface ProductInput {
   badge: string;
   icon: string;
   category: string;
+  discountLabel: string | null;
   isActive: boolean;
   displayOrder: number;
 }
@@ -42,12 +44,21 @@ export async function ensureProductCatalogTable() {
       badge TEXT NOT NULL DEFAULT '',
       icon TEXT NOT NULL DEFAULT 'ri-shopping-bag-3-line',
       category TEXT NOT NULL DEFAULT 'General',
+      discount_label TEXT,
       is_active BOOLEAN NOT NULL DEFAULT true,
       display_order INTEGER NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+  await db.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS admin_product_categories (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await db.$executeRawUnsafe(`ALTER TABLE admin_products ADD COLUMN IF NOT EXISTS discount_label TEXT`);
   ensured = true;
 }
 
@@ -60,6 +71,7 @@ function mapProduct(row: {
   badge: string;
   icon: string;
   category: string;
+  discount_label: string | null;
   is_active: boolean;
   display_order: number;
   created_at: Date;
@@ -74,6 +86,7 @@ function mapProduct(row: {
     badge: row.badge,
     icon: row.icon,
     category: row.category,
+    discountLabel: row.discount_label,
     isActive: row.is_active,
     displayOrder: row.display_order,
     createdAt: row.created_at,
@@ -99,14 +112,15 @@ export async function listProducts({ activeOnly = false } = {}) {
 
 export async function createProduct(input: ProductInput) {
   await ensureProductCatalogTable();
+  await ensureCategory(input.category);
   const id = randomUUID();
   const rows = await db.$queryRaw<Array<Parameters<typeof mapProduct>[0]>>`
     INSERT INTO admin_products (
-      id, name, description, price_label, image_url, badge, icon, category, is_active, display_order
+      id, name, description, price_label, image_url, badge, icon, category, discount_label, is_active, display_order
     )
     VALUES (
       ${id}, ${input.name}, ${input.description}, ${input.priceLabel}, ${input.imageUrl},
-      ${input.badge}, ${input.icon}, ${input.category}, ${input.isActive}, ${input.displayOrder}
+      ${input.badge}, ${input.icon}, ${input.category}, ${input.discountLabel}, ${input.isActive}, ${input.displayOrder}
     )
     RETURNING *
   `;
@@ -115,6 +129,7 @@ export async function createProduct(input: ProductInput) {
 
 export async function updateProduct(id: string, input: ProductInput) {
   await ensureProductCatalogTable();
+  await ensureCategory(input.category);
   const rows = await db.$queryRaw<Array<Parameters<typeof mapProduct>[0]>>`
     UPDATE admin_products
     SET
@@ -125,6 +140,7 @@ export async function updateProduct(id: string, input: ProductInput) {
       badge = ${input.badge},
       icon = ${input.icon},
       category = ${input.category},
+      discount_label = ${input.discountLabel},
       is_active = ${input.isActive},
       display_order = ${input.displayOrder},
       updated_at = NOW()
@@ -139,3 +155,25 @@ export async function deleteProduct(id: string) {
   await db.$executeRaw`DELETE FROM admin_products WHERE id = ${id}`;
 }
 
+export async function listCategories() {
+  await ensureProductCatalogTable();
+  const rows = await db.$queryRaw<Array<{ name: string; product_count: bigint }>>`
+    SELECT c.name, COUNT(p.id) AS product_count
+    FROM admin_product_categories c
+    LEFT JOIN admin_products p ON p.category = c.name
+    GROUP BY c.name
+    ORDER BY c.name ASC
+  `;
+  return rows.map((row) => ({ name: row.name, productCount: Number(row.product_count) }));
+}
+
+export async function ensureCategory(name: string) {
+  await ensureProductCatalogTable();
+  const cleanName = name.trim() || 'General';
+  await db.$executeRaw`
+    INSERT INTO admin_product_categories (id, name)
+    VALUES (${randomUUID()}, ${cleanName})
+    ON CONFLICT (name) DO NOTHING
+  `;
+  return cleanName;
+}

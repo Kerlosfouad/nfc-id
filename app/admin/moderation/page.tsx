@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { AdminLoadingScreen } from "../_components/AdminUi";
 
 export const dynamic = 'force-dynamic';
 
@@ -165,13 +166,7 @@ export default function AdminModerationPage() {
 
   // ── Render ──────────────────────────────────────────────────────────────
 
-  if (checking) {
-    return (
-      <div className="bg-[#0b0a0a] min-h-screen text-white flex items-center justify-center">
-        <span className="text-white/40">Verifying access…</span>
-      </div>
-    );
-  }
+  if (checking) { return <AdminLoadingScreen />; }
 
   return (
     <div className="bg-[#0b0a0a] min-h-screen text-white" style={{ fontFamily: "Inter, sans-serif" }}>
@@ -230,7 +225,7 @@ export default function AdminModerationPage() {
             disabled={loading}
             className="bg-white text-black text-sm font-medium px-4 py-2 rounded-lg hover:bg-white/90 transition-colors disabled:opacity-50"
           >
-            {loading ? "Loading…" : "Refresh"}
+            Refresh
           </button>
         </div>
 
@@ -319,3 +314,5 @@ export default function AdminModerationPage() {
     </div>
   );
 }
+
+

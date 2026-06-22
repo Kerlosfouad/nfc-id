@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { AdminChrome } from "../_components/AdminChrome";
-import { EmptyState, Panel } from "../_components/AdminUi";
+import { AdminLoadingScreen, EmptyState, Panel } from "../_components/AdminUi";
 
 type TagState = "MANUFACTURED" | "SOLD" | "CLAIMED" | "ACTIVE" | "SUSPENDED";
 
@@ -128,7 +128,7 @@ export default function AdminTagsPage() {
   }
 
   if (checking) {
-    return <div className="min-h-screen bg-[#0b0a0a] text-white flex items-center justify-center">Verifying access...</div>;
+    return <AdminLoadingScreen />;
   }
 
   return (
@@ -210,4 +210,3 @@ export default function AdminTagsPage() {
     </AdminChrome>
   );
 }
-

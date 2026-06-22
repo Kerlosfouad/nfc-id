@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { AdminChrome } from "./_components/AdminChrome";
-import { MetricCard, Panel } from "./_components/AdminUi";
+import { AdminLoadingScreen, MetricCard, Panel } from "./_components/AdminUi";
 
 interface AdminStats {
   totalTags: number;
@@ -56,11 +56,7 @@ export default function AdminPage() {
   }, [router]);
 
   if (checking) {
-    return (
-      <div className="min-h-screen bg-[#0b0a0a] text-white flex items-center justify-center">
-        <span className="text-white/40">Verifying owner access...</span>
-      </div>
-    );
+    return <AdminLoadingScreen />;
   }
 
   const activation = percent((stats?.activeTags ?? 0) + (stats?.claimedTags ?? 0), stats?.totalTags ?? 0);
@@ -124,4 +120,3 @@ export default function AdminPage() {
     </AdminChrome>
   );
 }
-

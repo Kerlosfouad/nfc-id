@@ -11,6 +11,7 @@ const ProductSchema = z.object({
   badge: z.string().optional().default(''),
   icon: z.string().optional().default('ri-shopping-bag-3-line'),
   category: z.string().optional().default('General'),
+  discountLabel: z.string().nullable().optional().default(null),
   isActive: z.boolean().optional().default(true),
   displayOrder: z.number().int().optional().default(0),
 });

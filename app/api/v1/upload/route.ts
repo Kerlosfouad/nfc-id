@@ -29,8 +29,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 });
   }
 
-  const ext = file.name.split('.').pop() ?? 'pdf';
-  const path = `cvs/${userId}_${Date.now()}.${ext}`;
+  const uploadType = String(form.get('type') ?? 'cv');
+  const ext = file.name.split('.').pop() ?? (uploadType === 'product' ? 'png' : 'pdf');
+  const folder = uploadType === 'product' ? 'products' : 'cvs';
+  const path = `${folder}/${userId}_${Date.now()}.${ext}`;
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const { error } = await supabase.storage
