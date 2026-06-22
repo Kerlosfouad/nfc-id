@@ -5,7 +5,7 @@
 "use client";
 
 import Link from 'next/link';
-import type { Profile, Link, ProfileTheme } from '@/lib/domain/types';
+import type { Profile, Link as ProfileLink, ProfileTheme } from '@/lib/domain/types';
 import LeadForm from './LeadForm';
 
 const LINK_ICONS: Record<string, string> = {
@@ -120,7 +120,7 @@ function ShareIconButton({ displayName, isDark }: { displayName: string; isDark:
 /* ── Link Item ────────────────────────────────────────────── */
 
 function LinkItem({ link, primaryColor, themeVars, layout }: {
-  link: Link;
+  link: ProfileLink;
   primaryColor: string;
   themeVars: ReturnType<typeof getThemeVars>;
   layout: 'list' | 'grid';
@@ -199,7 +199,7 @@ function LinkItem({ link, primaryColor, themeVars, layout }: {
 
 interface ProfileViewProps {
   profile: Profile;
-  links: Link[];
+  links: ProfileLink[];
   showLeadForm?: boolean;
 }
 
