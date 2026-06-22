@@ -52,6 +52,7 @@ export default function AdminProductsPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState("");
 
   const authHeaders = useCallback((json = true) => ({
     ...(json ? { "Content-Type": "application/json" } : {}),
@@ -108,6 +109,7 @@ export default function AdminProductsPage() {
       isActive: product.isActive,
       displayOrder: product.displayOrder,
     });
+    setUploadedFileName("");
   }
 
   function resetForm() {
@@ -115,6 +117,7 @@ export default function AdminProductsPage() {
     setDraft(blankProduct);
     setNewCategory("");
     setError(null);
+    setUploadedFileName("");
   }
 
   async function createCategory() {
@@ -147,10 +150,12 @@ export default function AdminProductsPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Image upload failed");
       setDraft((current) => ({ ...current, imageUrl: json.url }));
+      setUploadedFileName(file.name);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Image upload failed");
     } finally {
       setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
     }
   }
 
@@ -231,11 +236,19 @@ export default function AdminProductsPage() {
             <div className="rounded-xl border border-white/10 bg-white/5 p-3">
               <div className="flex items-center gap-3">
                 <div className="h-20 w-20 overflow-hidden rounded-xl bg-black/30">
-                  {draft.imageUrl ? <img src={draft.imageUrl} alt="" className="h-full w-full object-contain p-2" /> : null}
+                  {draft.imageUrl ? (
+                    <img src={draft.imageUrl} alt="" className="h-full w-full object-contain p-2" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-white/20">
+                      <i className="ri-image-add-line text-2xl" />
+                    </div>
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">Product image</p>
-                  <p className="mt-1 truncate text-xs text-white/35">{draft.imageUrl || "No image uploaded"}</p>
+                  <p className="mt-1 max-w-full truncate text-xs text-white/35" title={uploadedFileName || (draft.imageUrl ? "Image uploaded" : "No image uploaded")}>
+                    {uploading ? "Uploading image..." : uploadedFileName || (draft.imageUrl ? "Image uploaded" : "No image uploaded")}
+                  </p>
                   <button onClick={() => fileRef.current?.click()} disabled={uploading} className="mt-3 rounded-lg bg-white/10 px-3 py-2 text-xs hover:bg-white/20 disabled:opacity-40">
                     {uploading ? "Uploading..." : "Upload Image"}
                   </button>
