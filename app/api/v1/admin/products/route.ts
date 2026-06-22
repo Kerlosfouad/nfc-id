@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/middleware/adminCheck';
 import { z } from 'zod';
 import { createProduct, listProducts } from '@/lib/services/productCatalog';
@@ -37,5 +38,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const product = await createProduct(parsed.data);
+  revalidatePath('/shop');
+  revalidatePath('/');
   return NextResponse.json({ data: product, error: null }, { status: 201 });
 }

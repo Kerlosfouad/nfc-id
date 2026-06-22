@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requireAdmin } from '@/lib/middleware/adminCheck';
 import { deleteProduct, updateProduct } from '@/lib/services/productCatalog';
@@ -40,6 +41,8 @@ export async function PATCH(
     );
   }
 
+  revalidatePath('/shop');
+  revalidatePath('/');
   return NextResponse.json({ data: product, error: null });
 }
 
@@ -52,5 +55,7 @@ export async function DELETE(
 
   const { id } = await params;
   await deleteProduct(id);
+  revalidatePath('/shop');
+  revalidatePath('/');
   return NextResponse.json({ data: { deleted: true }, error: null });
 }

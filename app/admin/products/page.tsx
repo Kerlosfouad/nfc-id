@@ -25,6 +25,8 @@ interface CategoryRow {
   productCount: number;
 }
 
+type Toast = { message: string; type: "success" | "error" };
+
 const blankProduct: Omit<ProductRow, "id"> = {
   name: "",
   description: "",
@@ -53,6 +55,8 @@ export default function AdminProductsPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState("");
+  const [toast, setToast] = useState<Toast | null>(null);
+  const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const authHeaders = useCallback((json = true) => ({
     ...(json ? { "Content-Type": "application/json" } : {}),
@@ -80,6 +84,12 @@ export default function AdminProductsPage() {
       setCategories(rows.length ? rows : [{ name: "General", productCount: 0 }]);
     }
   }, [router]);
+
+  function showToast(message: string, type: Toast["type"] = "success") {
+    setToast({ message, type });
+    if (toastRef.current) clearTimeout(toastRef.current);
+    toastRef.current = setTimeout(() => setToast(null), 3500);
+  }
 
   useEffect(() => {
     const supabase = createClient();
@@ -132,12 +142,24 @@ export default function AdminProductsPage() {
       await loadData(authToken, userId);
       setDraft((current) => ({ ...current, category: name }));
       setNewCategory("");
+      showToast("Section added");
+    } else {
+      showToast("Section could not be added", "error");
     }
   }
 
   async function uploadProductImage(file: File) {
+    if (!file.type.startsWith("image/")) {
+      showToast("Please upload an image file", "error");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("Image must be smaller than 5MB", "error");
+      return;
+    }
     setUploading(true);
     setError(null);
+    setUploadedFileName(file.name);
     try {
       const form = new FormData();
       form.append("file", file);
@@ -150,9 +172,11 @@ export default function AdminProductsPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Image upload failed");
       setDraft((current) => ({ ...current, imageUrl: json.url }));
-      setUploadedFileName(file.name);
+      showToast("Image uploaded");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Image upload failed");
+      const message = e instanceof Error ? e.message : "Image upload failed";
+      setError(message);
+      showToast(message, "error");
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -174,10 +198,18 @@ export default function AdminProductsPage() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error?.message ?? "Product save failed");
+      const savedProduct = json.data as ProductRow;
+      setProducts((current) => {
+        if (editingId) return current.map((product) => (product.id === savedProduct.id ? savedProduct : product));
+        return [savedProduct, ...current];
+      });
       await loadData(authToken, userId);
       resetForm();
+      showToast(editingId ? "Product updated in shop" : "Product added to shop");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Product save failed");
+      const message = e instanceof Error ? e.message : "Product save failed";
+      setError(message);
+      showToast(message, "error");
     } finally {
       setSaving(false);
     }
@@ -185,14 +217,35 @@ export default function AdminProductsPage() {
 
   async function deleteProduct(id: string) {
     if (!confirm("Delete this product from the shop?")) return;
-    await fetch(`/api/v1/admin/products/${id}`, { method: "DELETE", headers: authHeaders() });
+    const res = await fetch(`/api/v1/admin/products/${id}`, { method: "DELETE", headers: authHeaders() });
+    if (!res.ok) {
+      showToast("Product could not be deleted", "error");
+      return;
+    }
     setProducts((current) => current.filter((product) => product.id !== id));
+    showToast("Product deleted");
   }
 
   if (checking) return <AdminLoadingScreen />;
 
   return (
     <AdminChrome title="Products" subtitle="Add products, create sections, upload images, and control the public shop.">
+      {toast && (
+        <div className="fixed left-1/2 top-5 z-[100] w-[calc(100%-2rem)] max-w-md -translate-x-1/2">
+          <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xl backdrop-blur-xl ${
+            toast.type === "success"
+              ? "border-green-400/30 bg-green-500/15 text-green-200"
+              : "border-red-400/30 bg-red-500/15 text-red-200"
+          }`}>
+            <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl ${
+              toast.type === "success" ? "bg-green-400/15 text-green-300" : "bg-red-400/15 text-red-300"
+            }`}>
+              <i className={toast.type === "success" ? "ri-check-line" : "ri-error-warning-line"} />
+            </span>
+            <span>{toast.message}</span>
+          </div>
+        </div>
+      )}
       <div className="grid gap-5 xl:grid-cols-[420px_1fr]">
         <Panel title={editingId ? "Edit Product" : "Upload Product"}>
           <div className="space-y-3">
@@ -233,28 +286,49 @@ export default function AdminProductsPage() {
               <input value={draft.discountLabel ?? ""} onChange={(e) => setDraft({ ...draft, discountLabel: e.target.value || null })} placeholder="20% OFF or leave empty" className="custom-input" />
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-              <div className="flex items-center gap-3">
-                <div className="h-20 w-20 overflow-hidden rounded-xl bg-black/30">
+            <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.07] to-white/[0.025] p-3">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold">Product image</p>
+                  <p className="mt-0.5 text-xs text-white/35">PNG, JPG, or WEBP up to 5MB</p>
+                </div>
+                {draft.imageUrl && (
+                  <span className="rounded-full bg-green-400/10 px-2.5 py-1 text-[11px] font-semibold text-green-300">
+                    Uploaded
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="group grid w-full gap-3 rounded-2xl border border-dashed border-white/15 bg-black/25 p-3 text-left transition hover:border-[#03A9F4]/50 hover:bg-[#03A9F4]/5 disabled:cursor-wait disabled:opacity-60 sm:grid-cols-[112px_1fr]"
+              >
+                <div className="h-28 overflow-hidden rounded-xl bg-black/40 ring-1 ring-white/5">
                   {draft.imageUrl ? (
                     <img src={draft.imageUrl} alt="" className="h-full w-full object-contain p-2" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-white/20">
-                      <i className="ri-image-add-line text-2xl" />
+                      <i className="ri-image-add-line text-3xl" />
                     </div>
                   )}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">Product image</p>
-                  <p className="mt-1 max-w-full truncate text-xs text-white/35" title={uploadedFileName || (draft.imageUrl ? "Image uploaded" : "No image uploaded")}>
-                    {uploading ? "Uploading image..." : uploadedFileName || (draft.imageUrl ? "Image uploaded" : "No image uploaded")}
+                <div className="flex min-w-0 flex-col justify-center">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                    <i className={uploading ? "ri-loader-4-line animate-spin text-[#03A9F4]" : "ri-upload-cloud-2-line text-[#03A9F4]"} />
+                    {uploading ? "Uploading image..." : draft.imageUrl ? "Replace image" : "Upload image"}
+                  </div>
+                  <p className="mt-2 max-w-full truncate text-xs text-white/45" title={uploadedFileName || (draft.imageUrl ? "Image uploaded" : "No image uploaded")}>
+                    {uploadedFileName || (draft.imageUrl ? "Image ready for this product" : "Click to choose a product photo")}
                   </p>
-                  <button onClick={() => fileRef.current?.click()} disabled={uploading} className="mt-3 rounded-lg bg-white/10 px-3 py-2 text-xs hover:bg-white/20 disabled:opacity-40">
-                    {uploading ? "Uploading..." : "Upload Image"}
-                  </button>
-                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadProductImage(file); }} />
+                  <span className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/70 transition group-hover:bg-[#03A9F4] group-hover:text-white">
+                    <i className="ri-folder-image-line" />
+                    Browse
+                  </span>
                 </div>
-              </div>
+              </button>
+              <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadProductImage(file); }} />
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
