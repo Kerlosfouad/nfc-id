@@ -26,6 +26,7 @@ interface CategoryRow {
 }
 
 type Toast = { message: string; type: "success" | "error" };
+type UploadState = "idle" | "uploading" | "ready" | "error";
 
 const blankProduct: Omit<ProductRow, "id"> = {
   name: "",
@@ -56,6 +57,7 @@ export default function AdminProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [toast, setToast] = useState<Toast | null>(null);
+  const [uploadState, setUploadState] = useState<UploadState>("idle");
   const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const authHeaders = useCallback((json = true) => ({
@@ -120,6 +122,8 @@ export default function AdminProductsPage() {
       displayOrder: product.displayOrder,
     });
     setUploadedFileName("");
+    setUploadState(product.imageUrl ? "ready" : "idle");
+    setError(null);
   }
 
   function resetForm() {
@@ -128,6 +132,7 @@ export default function AdminProductsPage() {
     setNewCategory("");
     setError(null);
     setUploadedFileName("");
+    setUploadState("idle");
   }
 
   async function createCategory() {
@@ -150,16 +155,19 @@ export default function AdminProductsPage() {
 
   async function uploadProductImage(file: File) {
     if (!file.type.startsWith("image/")) {
-      showToast("Please upload an image file", "error");
+      setError("Please upload an image file");
+      setUploadState("error");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      showToast("Image must be smaller than 5MB", "error");
+      setError("Image must be smaller than 5MB");
+      setUploadState("error");
       return;
     }
     setUploading(true);
     setError(null);
     setUploadedFileName(file.name);
+    setUploadState("uploading");
     try {
       const form = new FormData();
       form.append("file", file);
@@ -172,15 +180,33 @@ export default function AdminProductsPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Image upload failed");
       setDraft((current) => ({ ...current, imageUrl: json.url }));
-      showToast("Image uploaded");
+      setUploadState("ready");
     } catch (e) {
       const message = e instanceof Error ? e.message : "Image upload failed";
       setError(message);
-      showToast(message, "error");
+      setUploadState("error");
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
     }
+  }
+
+  async function toggleProductVisibility(product: ProductRow) {
+    const nextProduct = { ...product, isActive: !product.isActive };
+    setProducts((current) => current.map((item) => (item.id === product.id ? nextProduct : item)));
+    const res = await fetch(`/api/v1/admin/products/${product.id}`, {
+      method: "PATCH",
+      headers: authHeaders(),
+      body: JSON.stringify(nextProduct),
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) {
+      setProducts((current) => current.map((item) => (item.id === product.id ? product : item)));
+      showToast(json?.error?.message ?? "Visibility update failed", "error");
+      return;
+    }
+    setProducts((current) => current.map((item) => (item.id === product.id ? json.data : item)));
+    showToast(nextProduct.isActive ? "Product is visible in shop" : "Product hidden from shop");
   }
 
   async function saveProduct() {
@@ -231,14 +257,14 @@ export default function AdminProductsPage() {
   return (
     <AdminChrome title="Products" subtitle="Add products, create sections, upload images, and control the public shop.">
       {toast && (
-        <div className="fixed left-1/2 top-5 z-[100] w-[calc(100%-2rem)] max-w-md -translate-x-1/2">
-          <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xl backdrop-blur-xl ${
+        <div className="fixed left-1/2 top-5 z-[100] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2">
+          <div className={`flex items-center gap-3 rounded-full border px-4 py-3 text-sm font-semibold shadow-2xl backdrop-blur-xl ${
             toast.type === "success"
-              ? "border-green-400/30 bg-green-500/15 text-green-200"
-              : "border-red-400/30 bg-red-500/15 text-red-200"
+              ? "border-[#03A9F4]/35 bg-[#07141c]/95 text-white"
+              : "border-red-400/35 bg-[#1c0707]/95 text-red-100"
           }`}>
-            <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl ${
-              toast.type === "success" ? "bg-green-400/15 text-green-300" : "bg-red-400/15 text-red-300"
+            <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${
+              toast.type === "success" ? "bg-[#03A9F4]/15 text-[#03A9F4]" : "bg-red-400/15 text-red-300"
             }`}>
               <i className={toast.type === "success" ? "ri-check-line" : "ri-error-warning-line"} />
             </span>
@@ -316,11 +342,11 @@ export default function AdminProductsPage() {
                 </div>
                 <div className="flex min-w-0 flex-col justify-center">
                   <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                    <i className={uploading ? "ri-loader-4-line animate-spin text-[#03A9F4]" : "ri-upload-cloud-2-line text-[#03A9F4]"} />
-                    {uploading ? "Uploading image..." : draft.imageUrl ? "Replace image" : "Upload image"}
+                    <i className={uploading ? "ri-loader-4-line animate-spin text-[#03A9F4]" : uploadState === "error" ? "ri-error-warning-line text-red-300" : "ri-upload-cloud-2-line text-[#03A9F4]"} />
+                    {uploading ? "Uploading image..." : uploadState === "error" ? "Upload failed" : draft.imageUrl ? "Replace image" : "Upload image"}
                   </div>
-                  <p className="mt-2 max-w-full truncate text-xs text-white/45" title={uploadedFileName || (draft.imageUrl ? "Image uploaded" : "No image uploaded")}>
-                    {uploadedFileName || (draft.imageUrl ? "Image ready for this product" : "Click to choose a product photo")}
+                  <p className={`mt-2 max-w-full truncate text-xs ${uploadState === "error" ? "text-red-300" : "text-white/45"}`} title={error || uploadedFileName || (draft.imageUrl ? "Image uploaded" : "No image uploaded")}>
+                    {uploadState === "error" ? error : uploadedFileName || (draft.imageUrl ? "Image ready for this product" : "Click to choose a product photo")}
                   </p>
                   <span className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/70 transition group-hover:bg-[#03A9F4] group-hover:text-white">
                     <i className="ri-folder-image-line" />
@@ -329,6 +355,20 @@ export default function AdminProductsPage() {
                 </div>
               </button>
               <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadProductImage(file); }} />
+              <div className="mt-3">
+                <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Or paste image URL</label>
+                <input
+                  value={draft.imageUrl}
+                  onChange={(e) => {
+                    setDraft({ ...draft, imageUrl: e.target.value.trim() });
+                    setUploadedFileName("");
+                    setUploadState(e.target.value.trim() ? "ready" : "idle");
+                    setError(null);
+                  }}
+                  placeholder="https://..."
+                  className="custom-input"
+                />
+              </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
@@ -386,6 +426,9 @@ export default function AdminProductsPage() {
                       <p className="mt-2 text-sm text-[#03A9F4]">{product.priceLabel} · {product.category}</p>
                     </div>
                     <div className="flex gap-2 sm:flex-col">
+                      <button onClick={() => toggleProductVisibility(product)} className="rounded-lg bg-[#03A9F4]/10 px-3 py-2 text-xs text-[#03A9F4] hover:bg-[#03A9F4]/20">
+                        {product.isActive ? "Hide" : "Show"}
+                      </button>
                       <button onClick={() => editProduct(product)} className="rounded-lg bg-white/10 px-3 py-2 text-xs hover:bg-white/20">Edit</button>
                       <button onClick={() => deleteProduct(product.id)} className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300 hover:bg-red-500/20">Delete</button>
                     </div>
