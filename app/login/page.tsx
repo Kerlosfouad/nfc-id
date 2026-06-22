@@ -1,10 +1,11 @@
 "use client";
 import { Suspense } from "react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { isOwnerEmail } from "@/lib/config/ownerAccess";
 
 function LoginContent() {
   const [showPass, setShowPass] = useState(false);
@@ -22,6 +23,10 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get("redirect");
   const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/dashboard";
+  const resolveRedirect = useCallback((userEmail?: string | null) => {
+    if (isOwnerEmail(userEmail) && redirectTo === "/dashboard") return "/admin";
+    return redirectTo;
+  }, [redirectTo]);
   const callbackError = searchParams.get("error");
   const supabase = useMemo(() => createClient(), []);
 
@@ -31,9 +36,9 @@ function LoginContent() {
     }
 
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) router.replace(redirectTo);
+      if (data.user) router.replace(resolveRedirect(data.user.email));
     });
-  }, [callbackError, redirectTo, router, supabase]);
+  }, [callbackError, resolveRedirect, router, supabase]);
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -44,7 +49,8 @@ function LoginContent() {
       const { data: mfaData } = await supabase.auth.mfa.listFactors();
       const totpFactor = mfaData?.totp?.find((f) => f.status === "verified");
       if (totpFactor) { setFactorId(totpFactor.id); setMfaRequired(true); return; }
-      router.replace(redirectTo);
+      const { data } = await supabase.auth.getUser();
+      router.replace(resolveRedirect(data.user?.email));
     } catch { setError("An unexpected error occurred."); }
     finally { setLoading(false); }
   }
@@ -56,7 +62,8 @@ function LoginContent() {
     try {
       const { error: mfaErr } = await supabase.auth.mfa.challengeAndVerify({ factorId, code: totpCode });
       if (mfaErr) { setMfaError(mfaErr.message); return; }
-      router.replace(redirectTo);
+      const { data } = await supabase.auth.getUser();
+      router.replace(resolveRedirect(data.user?.email));
     } catch { setMfaError("An unexpected error occurred."); }
     finally { setMfaLoading(false); }
   }

@@ -9,11 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from './auth';
 import { createServerClient } from '@supabase/ssr';
 import { db } from '@/lib/db';
-
-function getAdminEmails(): string[] {
-  const raw = process.env.ADMIN_EMAILS ?? '';
-  return raw.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
-}
+import { isOwnerEmail } from '@/lib/config/ownerAccess';
 
 export async function requireAdmin(
   request: NextRequest
@@ -52,9 +48,8 @@ export async function requireAdmin(
     email = data.user?.email ?? '';
   }
 
-  // 3. Check ADMIN_EMAILS env var first (fast path)
-  const adminEmails = getAdminEmails();
-  if (email && adminEmails.includes(email.toLowerCase())) {
+  // 3. Check owner/admin emails first (fast path)
+  if (isOwnerEmail(email)) {
     return { userId: authResult.userId, email };
   }
 
