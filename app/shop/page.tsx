@@ -7,6 +7,8 @@ export const metadata = {
   description: "Shop NFC ID cards, keychains, and business bundles.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function ShopPage() {
   return (
     <main className="bg-[#0b0a0a] min-h-screen">

@@ -1,0 +1,56 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { requireAdmin } from '@/lib/middleware/adminCheck';
+import { deleteProduct, updateProduct } from '@/lib/services/productCatalog';
+
+const ProductSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  priceLabel: z.string().min(1),
+  imageUrl: z.string().min(1),
+  badge: z.string().optional().default(''),
+  icon: z.string().optional().default('ri-shopping-bag-3-line'),
+  category: z.string().optional().default('General'),
+  isActive: z.boolean().optional().default(true),
+  displayOrder: z.number().int().optional().default(0),
+});
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof Response) return authResult;
+
+  const parsed = ProductSchema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { data: null, error: { code: 'VALIDATION_ERROR', message: 'Invalid product data' } },
+      { status: 400 },
+    );
+  }
+
+  const { id } = await params;
+  const product = await updateProduct(id, parsed.data);
+  if (!product) {
+    return NextResponse.json(
+      { data: null, error: { code: 'NOT_FOUND', message: 'Product not found' } },
+      { status: 404 },
+    );
+  }
+
+  return NextResponse.json({ data: product, error: null });
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof Response) return authResult;
+
+  const { id } = await params;
+  await deleteProduct(id);
+  return NextResponse.json({ data: { deleted: true }, error: null });
+}
+
