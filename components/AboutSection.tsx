@@ -21,7 +21,7 @@ const comparison = [
 export default function AboutSection() {
   return (
     <section id="about" className="py-12 sm:py-24 px-4">
-      <div className="container mx-auto">
+      <div className="w-full max-w-none md:container md:mx-auto">
         {/* Section header */}
         <div className="flex items-center gap-3 mb-2">
           <span className="w-8 h-[2px] bg-[#03A9F4] rounded-full" />
@@ -30,9 +30,9 @@ export default function AboutSection() {
         <h2 className="text-white text-3xl sm:text-5xl font-bold uppercase mb-1">About Us</h2>
         <p className="text-[#555] text-sm sm:text-base mb-6 sm:mb-10">Everything you need to know</p>
 
-        <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
+        <div className="flex w-full flex-col md:flex-row gap-6 md:gap-8 items-start">
           {/* Stats grid */}
-          <div className="md:w-1/2 grid grid-cols-2 gap-3">
+          <div className="grid w-full grid-cols-2 gap-3 md:w-1/2">
             {stats.map((s, i) => (
               <div
                 key={i}
