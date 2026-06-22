@@ -11,6 +11,7 @@ interface ProductRow {
   name: string;
   description: string;
   priceLabel: string;
+  salePriceLabel: string | null;
   imageUrl: string;
   badge: string;
   icon: string;
@@ -32,6 +33,7 @@ const blankProduct: Omit<ProductRow, "id"> = {
   name: "",
   description: "",
   priceLabel: "",
+  salePriceLabel: null,
   imageUrl: "",
   badge: "",
   icon: "ri-shopping-bag-3-line",
@@ -113,6 +115,7 @@ export default function AdminProductsPage() {
       name: product.name,
       description: product.description,
       priceLabel: product.priceLabel,
+      salePriceLabel: product.salePriceLabel,
       imageUrl: product.imageUrl,
       badge: product.badge,
       icon: product.icon,
@@ -215,6 +218,7 @@ export default function AdminProductsPage() {
     try {
       const productPayload = {
         ...draft,
+        salePriceLabel: draft.salePriceLabel?.trim() ? draft.salePriceLabel.trim() : null,
         discountLabel: draft.discountLabel?.trim() ? draft.discountLabel.trim() : null,
       };
       const res = await fetch(editingId ? `/api/v1/admin/products/${editingId}` : "/api/v1/admin/products", {
@@ -280,7 +284,7 @@ export default function AdminProductsPage() {
               <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="NFC Medal" className="custom-input" />
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               <div>
                 <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Section</label>
                 <select value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })} className="custom-input">
@@ -290,8 +294,12 @@ export default function AdminProductsPage() {
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Price</label>
+                <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Original price</label>
                 <input value={draft.priceLabel} onChange={(e) => setDraft({ ...draft, priceLabel: e.target.value })} placeholder="EGP 399" className="custom-input" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Sale price</label>
+                <input value={draft.salePriceLabel ?? ""} onChange={(e) => setDraft({ ...draft, salePriceLabel: e.target.value || null })} placeholder="EGP 299" className="custom-input" />
               </div>
             </div>
 
@@ -308,7 +316,7 @@ export default function AdminProductsPage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Discount (optional)</label>
+              <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Discount badge (optional)</label>
               <input value={draft.discountLabel ?? ""} onChange={(e) => setDraft({ ...draft, discountLabel: e.target.value || null })} placeholder="20% OFF or leave empty" className="custom-input" />
             </div>
 
@@ -423,7 +431,20 @@ export default function AdminProductsPage() {
                         {product.discountLabel && <span className="rounded-full bg-[#03A9F4]/10 px-2 py-0.5 text-xs text-[#03A9F4]">{product.discountLabel}</span>}
                       </div>
                       <p className="mt-1 line-clamp-2 text-sm text-white/45">{product.description}</p>
-                      <p className="mt-2 text-sm text-[#03A9F4]">{product.priceLabel} · {product.category}</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                        {product.salePriceLabel ? (
+                          <>
+                            <span className="relative text-white/35">
+                              {product.priceLabel}
+                              <span className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-[#03A9F4]" />
+                            </span>
+                            <span className="font-semibold text-[#03A9F4]">{product.salePriceLabel}</span>
+                          </>
+                        ) : (
+                          <span className="font-semibold text-[#03A9F4]">{product.priceLabel}</span>
+                        )}
+                        <span className="text-white/25">· {product.category}</span>
+                      </div>
                     </div>
                     <div className="flex gap-2 sm:flex-col">
                       <button onClick={() => toggleProductVisibility(product)} className="rounded-lg bg-[#03A9F4]/10 px-3 py-2 text-xs text-[#03A9F4] hover:bg-[#03A9F4]/20">

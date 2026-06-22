@@ -6,6 +6,7 @@ export interface CatalogProduct {
   name: string;
   description: string;
   priceLabel: string;
+  salePriceLabel: string | null;
   imageUrl: string;
   badge: string;
   icon: string;
@@ -21,6 +22,7 @@ export interface ProductInput {
   name: string;
   description: string;
   priceLabel: string;
+  salePriceLabel: string | null;
   imageUrl: string;
   badge: string;
   icon: string;
@@ -40,6 +42,7 @@ export async function ensureProductCatalogTable() {
       name TEXT NOT NULL,
       description TEXT NOT NULL,
       price_label TEXT NOT NULL,
+      sale_price_label TEXT,
       image_url TEXT NOT NULL,
       badge TEXT NOT NULL DEFAULT '',
       icon TEXT NOT NULL DEFAULT 'ri-shopping-bag-3-line',
@@ -59,6 +62,7 @@ export async function ensureProductCatalogTable() {
     )
   `);
   await db.$executeRawUnsafe(`ALTER TABLE admin_products ADD COLUMN IF NOT EXISTS discount_label TEXT`);
+  await db.$executeRawUnsafe(`ALTER TABLE admin_products ADD COLUMN IF NOT EXISTS sale_price_label TEXT`);
   ensured = true;
 }
 
@@ -67,6 +71,7 @@ function mapProduct(row: {
   name: string;
   description: string;
   price_label: string;
+  sale_price_label: string | null;
   image_url: string;
   badge: string;
   icon: string;
@@ -82,6 +87,7 @@ function mapProduct(row: {
     name: row.name,
     description: row.description,
     priceLabel: row.price_label,
+    salePriceLabel: row.sale_price_label,
     imageUrl: row.image_url,
     badge: row.badge,
     icon: row.icon,
@@ -116,10 +122,10 @@ export async function createProduct(input: ProductInput) {
   const id = randomUUID();
   const rows = await db.$queryRaw<Array<Parameters<typeof mapProduct>[0]>>`
     INSERT INTO admin_products (
-      id, name, description, price_label, image_url, badge, icon, category, discount_label, is_active, display_order
+      id, name, description, price_label, sale_price_label, image_url, badge, icon, category, discount_label, is_active, display_order
     )
     VALUES (
-      ${id}, ${input.name}, ${input.description}, ${input.priceLabel}, ${input.imageUrl},
+      ${id}, ${input.name}, ${input.description}, ${input.priceLabel}, ${input.salePriceLabel}, ${input.imageUrl},
       ${input.badge}, ${input.icon}, ${input.category}, ${input.discountLabel}, ${input.isActive}, ${input.displayOrder}
     )
     RETURNING *
@@ -136,6 +142,7 @@ export async function updateProduct(id: string, input: ProductInput) {
       name = ${input.name},
       description = ${input.description},
       price_label = ${input.priceLabel},
+      sale_price_label = ${input.salePriceLabel},
       image_url = ${input.imageUrl},
       badge = ${input.badge},
       icon = ${input.icon},

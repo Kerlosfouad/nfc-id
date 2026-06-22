@@ -8,6 +8,7 @@ interface ShopProduct {
   name: string;
   description: string;
   priceLabel: string;
+  salePriceLabel: string | null;
   imageUrl: string;
   badge: string;
   icon: string;
@@ -17,38 +18,50 @@ interface ShopProduct {
 
 function ProductCard({ product }: { product: ShopProduct }) {
   return (
-    <article className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#101010] transition-all duration-300 hover:border-[#03A9F4]/40">
+    <article className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#101010] transition-all duration-300 hover:border-[#03A9F4]/40">
       <div className="absolute inset-0 bg-gradient-to-b from-[#03A9F4]/8 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-      <div className="relative aspect-[4/3] overflow-hidden bg-[#070707]">
+      <div className="relative aspect-[5/3] overflow-hidden bg-[#070707]">
         <img
           src={product.imageUrl}
           alt={product.name}
-          className="h-full w-full object-contain p-8 transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-contain p-5 transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-[#03A9F4]/30 bg-black/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[#03A9F4] backdrop-blur-md">
+        <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-[#03A9F4]/30 bg-black/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#03A9F4] backdrop-blur-md">
           <i className={product.icon || "ri-shopping-bag-3-line"} />
           {product.badge || product.category}
         </div>
         {product.discountLabel && (
-          <div className="absolute right-4 top-4 rounded-full bg-[#03A9F4] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
+          <div className="absolute right-3 top-3 rounded-full bg-[#03A9F4] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
             {product.discountLabel}
           </div>
         )}
       </div>
 
-      <div className="relative p-5 sm:p-6">
-        <h3 className="mb-2 text-lg font-bold uppercase text-white sm:text-xl">{product.name}</h3>
-        <p className="min-h-[64px] text-sm leading-relaxed text-white/40">{product.description}</p>
+      <div className="relative p-4 sm:p-5">
+        <h3 className="mb-2 text-base font-bold uppercase text-white sm:text-lg">{product.name}</h3>
+        <p className="line-clamp-2 min-h-[44px] text-sm leading-relaxed text-white/40">{product.description}</p>
 
-        <div className="mt-6 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-white/25">Starting at</p>
-            <p className="text-lg font-bold text-[#03A9F4]">{product.priceLabel}</p>
+        <div className="mt-5 flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-widest text-white/25">Starting at</p>
+            <div className="mt-1 flex flex-wrap items-baseline gap-2">
+              {product.salePriceLabel ? (
+                <>
+                  <span className="relative text-sm font-semibold text-white/35">
+                    {product.priceLabel}
+                    <span className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-[#03A9F4]" />
+                  </span>
+                  <span className="text-lg font-bold text-[#03A9F4]">{product.salePriceLabel}</span>
+                </>
+              ) : (
+                <span className="text-lg font-bold text-[#03A9F4]">{product.priceLabel}</span>
+              )}
+            </div>
           </div>
           <Link
             href="/signup"
-            className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-black transition-all duration-300 hover:bg-[#03A9F4] hover:text-white"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-[11px] font-bold uppercase tracking-wider text-black transition-all duration-300 hover:bg-[#03A9F4] hover:text-white"
           >
             Order
             <i className="ri-arrow-right-up-line" />

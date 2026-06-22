@@ -8,6 +8,7 @@ const ProductSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
   priceLabel: z.string().min(1),
+  salePriceLabel: z.string().nullable().optional().default(null),
   imageUrl: z.string().min(1),
   badge: z.string().optional().default(''),
   icon: z.string().optional().default('ri-shopping-bag-3-line'),
