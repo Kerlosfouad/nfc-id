@@ -14,7 +14,7 @@ const navItems = [
   { href: "/admin/moderation", icon: "ri-shield-check-line", label: "Moderation" },
 ];
 
-export function AdminChrome({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+export function AdminChrome({ children }: { title: string; subtitle: string; children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
@@ -58,14 +58,19 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
 
       <main className="relative z-10 flex min-h-screen flex-col lg:pl-[220px]">
         <header className="sticky top-0 z-20 border-b border-white/5 bg-[#0b0a0a]/90 px-4 py-4 backdrop-blur-xl sm:px-6">
-          <div className="flex flex-wrap items-center gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#03A9F4]">Owner Dashboard</p>
-              <h1 className="mt-1 text-xl font-bold uppercase sm:text-2xl">{title}</h1>
-              <p className="mt-1 max-w-2xl text-xs sm:text-sm text-white/40">{subtitle}</p>
-            </div>
-            <Link href="/dashboard" className="ml-auto hidden h-10 items-center rounded-full bg-[#03A9F4] px-4 text-xs font-semibold uppercase tracking-wider text-white sm:inline-flex">
-              Client View
+          <div className="flex items-center justify-between gap-4">
+            <Link href="/admin" className="flex items-center gap-3 group">
+              <Image src="/img/logo.png" alt="NFC ID" width={38} height={38} className="transition-all group-hover:drop-shadow-[0_0_10px_#03A9F4]" />
+              <span className="text-lg font-bold tracking-wider">
+                NFC <span className="text-[#03A9F4]">ID</span>
+              </span>
+            </Link>
+            <Link
+              href="/"
+              aria-label="Back to website"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition-all hover:border-[#03A9F4]/40 hover:text-[#03A9F4]"
+            >
+              <i className="ri-home-5-line text-lg" />
             </Link>
           </div>
         </header>
