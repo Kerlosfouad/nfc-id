@@ -50,6 +50,7 @@ export function AdminChrome({ children }: { title: string; subtitle: string; chi
         <nav className="flex-1 px-2 py-3 space-y-0.5">
           {navItems.map((item) => {
             const active = pathname === item.href;
+            const showOrderBadge = item.href === "/admin/orders" && orderCount > 0 && pathname !== "/admin/orders";
             return (
               <Link
                 key={item.href}
@@ -62,7 +63,7 @@ export function AdminChrome({ children }: { title: string; subtitle: string; chi
               >
                 <i className={`${item.icon} text-lg`} />
                 {item.label}
-                {item.href === "/admin/orders" && orderCount > 0 && (
+                {showOrderBadge && (
                   <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#03A9F4] px-1.5 text-[10px] font-bold text-white">
                     {orderCount}
                   </span>
@@ -100,6 +101,7 @@ export function AdminChrome({ children }: { title: string; subtitle: string; chi
       <nav className="fixed bottom-0 left-0 right-0 z-40 flex border-t border-white/5 bg-[#0f0f0f] lg:hidden">
         {navItems.slice(0, 5).map((item) => {
           const active = pathname === item.href;
+          const showOrderBadge = item.href === "/admin/orders" && orderCount > 0 && pathname !== "/admin/orders";
           return (
             <Link
               key={item.href}
@@ -108,12 +110,14 @@ export function AdminChrome({ children }: { title: string; subtitle: string; chi
                 active ? "text-[#03A9F4]" : "text-white/30"
               }`}
             >
-              <i className={`${item.icon} text-lg`} />
-              {item.href === "/admin/orders" && orderCount > 0 && (
-                <span className="absolute mt-[-18px] ml-5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#03A9F4] px-1 text-[9px] font-bold text-white">
-                  {orderCount}
-                </span>
-              )}
+              <span className="relative flex h-5 items-center justify-center">
+                <i className={`${item.icon} text-lg`} />
+                {showOrderBadge && (
+                  <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#03A9F4] px-1 text-[9px] font-bold text-white">
+                    {orderCount}
+                  </span>
+                )}
+              </span>
               <span className="max-w-full truncate px-1">{item.label}</span>
             </Link>
           );
