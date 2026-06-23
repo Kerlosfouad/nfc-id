@@ -141,6 +141,15 @@ export default function CheckoutPage() {
   return (
     <main className="min-h-screen bg-[#0b0a0a] text-white">
       <Navbar />
+      <div
+        className={`fixed left-1/2 top-24 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 transition-all duration-300 ${
+          orderMessage ? "translate-y-0 opacity-100" : "-translate-y-4 pointer-events-none opacity-0"
+        }`}
+      >
+        <div className="rounded-2xl border border-[#03A9F4]/30 bg-[#03A9F4] px-5 py-3 text-center text-sm font-bold text-white shadow-2xl shadow-[#03A9F4]/25">
+          {orderMessage}
+        </div>
+      </div>
       <section className="relative overflow-hidden px-4 pb-20 pt-28">
         <div className="absolute inset-x-0 top-24 h-px bg-gradient-to-r from-transparent via-[#03A9F4]/30 to-transparent" />
         <div className="pointer-events-none absolute right-0 top-24 h-[320px] w-[520px] rounded-full bg-[#03A9F4]/8 blur-3xl" />
@@ -224,8 +233,6 @@ export default function CheckoutPage() {
                 </div>
 
                 {formError && <p className="mt-4 rounded-xl border border-red-400/20 bg-red-500/10 px-3 py-2 text-sm text-red-100">{formError}</p>}
-                {orderMessage && <p className="mt-4 rounded-xl border border-[#03A9F4]/20 bg-[#03A9F4]/10 px-3 py-2 text-sm text-[#b8ecff]">{orderMessage}</p>}
-
                 <button
                   type="submit"
                   disabled={submitting || cart.length === 0}

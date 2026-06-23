@@ -241,6 +241,16 @@ export async function listOrders() {
   return mapOrderRows(orders, items);
 }
 
+export async function deleteOrder(id: string) {
+  await ensureOrderTables();
+  await db.$executeRaw`DELETE FROM shop_orders WHERE id = ${id}`;
+}
+
+export async function deleteAllOrders() {
+  await ensureOrderTables();
+  await db.$executeRaw`DELETE FROM shop_orders`;
+}
+
 function csvCell(value: unknown) {
   const text = value == null ? '' : String(value);
   return `"${text.replace(/"/g, '""')}"`;

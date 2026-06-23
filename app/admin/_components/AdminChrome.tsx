@@ -3,6 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
   { href: "/admin", icon: "ri-dashboard-line", label: "Overview" },
@@ -16,17 +18,32 @@ const navItems = [
 
 export function AdminChrome({ children }: { title: string; subtitle: string; children: React.ReactNode }) {
   const pathname = usePathname();
+  const [orderCount, setOrderCount] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    const supabase = createClient();
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return;
+      const res = await fetch("/api/v1/admin/orders", {
+        headers: { Authorization: `Bearer ${session.access_token}`, "x-user-id": session.user.id },
+      });
+      if (!res.ok) return;
+      const json = await res.json();
+      if (alive) setOrderCount(Array.isArray(json.data) ? json.data.length : 0);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0b0a0a] text-white" style={{ fontFamily: "Inter, sans-serif" }}>
       <div className="fixed inset-0 pointer-events-none hero-grid opacity-50" />
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[220px] border-r border-white/5 bg-[#0f0f0f] lg:flex lg:flex-col">
         <div className="px-4 py-5">
-          <Link href="/" className="flex items-center gap-3 group">
+          <Link href="/" className="inline-flex group" aria-label="NFC ID home">
             <Image src="/img/logo.png" alt="NFC ID" width={36} height={36} className="group-hover:drop-shadow-[0_0_10px_#03A9F4] transition-all" />
-            <span className="text-lg font-bold tracking-wider">
-              NFC <span className="text-[#03A9F4]">ID</span>
-            </span>
           </Link>
         </div>
 
@@ -45,6 +62,11 @@ export function AdminChrome({ children }: { title: string; subtitle: string; chi
               >
                 <i className={`${item.icon} text-lg`} />
                 {item.label}
+                {item.href === "/admin/orders" && orderCount > 0 && (
+                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#03A9F4] px-1.5 text-[10px] font-bold text-white">
+                    {orderCount}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -59,11 +81,8 @@ export function AdminChrome({ children }: { title: string; subtitle: string; chi
       <main className="relative z-10 flex min-h-screen flex-col lg:pl-[220px]">
         <header className="sticky top-0 z-20 border-b border-white/5 bg-[#0b0a0a]/90 px-4 py-4 backdrop-blur-xl sm:px-6">
           <div className="flex items-center justify-between gap-4">
-            <Link href="/admin" className="flex items-center gap-3 group">
+            <Link href="/admin" className="inline-flex group" aria-label="NFC ID admin">
               <Image src="/img/logo.png" alt="NFC ID" width={38} height={38} className="transition-all group-hover:drop-shadow-[0_0_10px_#03A9F4]" />
-              <span className="text-lg font-bold tracking-wider">
-                NFC <span className="text-[#03A9F4]">ID</span>
-              </span>
             </Link>
             <Link
               href="/"
@@ -85,11 +104,16 @@ export function AdminChrome({ children }: { title: string; subtitle: string; chi
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] transition-all ${
+                className={`relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] transition-all ${
                 active ? "text-[#03A9F4]" : "text-white/30"
               }`}
             >
               <i className={`${item.icon} text-lg`} />
+              {item.href === "/admin/orders" && orderCount > 0 && (
+                <span className="absolute mt-[-18px] ml-5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#03A9F4] px-1 text-[9px] font-bold text-white">
+                  {orderCount}
+                </span>
+              )}
               <span className="max-w-full truncate px-1">{item.label}</span>
             </Link>
           );
