@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { db } from '@/lib/db';
-import { ensureProductCatalogTable } from '@/lib/services/productCatalog';
+import { decrementProductStock, ensureProductCatalogTable } from '@/lib/services/productCatalog';
 
 export interface OrderItemInput {
   productId: string;
@@ -249,6 +249,15 @@ export async function deleteOrder(id: string) {
 export async function deleteAllOrders() {
   await ensureOrderTables();
   await db.$executeRaw`DELETE FROM shop_orders`;
+}
+
+export async function acceptAllOrders() {
+  const orders = await listOrders();
+  const stockItems = orders.flatMap((order) =>
+    order.items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+  );
+  await decrementProductStock(stockItems);
+  await deleteAllOrders();
 }
 
 function csvCell(value: unknown) {

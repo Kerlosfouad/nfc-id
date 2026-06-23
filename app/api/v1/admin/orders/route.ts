@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/middleware/adminCheck';
-import { deleteAllOrders, deleteOrder, listOrders, ordersToCsv } from '@/lib/services/orders';
+import { acceptAllOrders, deleteAllOrders, deleteOrder, listOrders, ordersToCsv } from '@/lib/services/orders';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const authResult = await requireAdmin(request);
@@ -26,9 +27,16 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
 
   const id = request.nextUrl.searchParams.get('id');
   const all = request.nextUrl.searchParams.get('all') === 'true';
+  const accept = request.nextUrl.searchParams.get('accept') === 'true';
 
   if (all) {
-    await deleteAllOrders();
+    if (accept) {
+      await acceptAllOrders();
+      revalidatePath('/shop');
+      revalidatePath('/');
+    } else {
+      await deleteAllOrders();
+    }
     return NextResponse.json({ data: { deleted: 'all' }, error: null });
   }
 

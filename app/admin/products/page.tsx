@@ -19,6 +19,7 @@ interface ProductRow {
   discountLabel: string | null;
   isActive: boolean;
   displayOrder: number;
+  stockQuantity: number;
 }
 
 interface CategoryRow {
@@ -41,6 +42,7 @@ const blankProduct: Omit<ProductRow, "id"> = {
   discountLabel: null,
   isActive: true,
   displayOrder: 0,
+  stockQuantity: 0,
 };
 
 export default function AdminProductsPage() {
@@ -123,6 +125,7 @@ export default function AdminProductsPage() {
       discountLabel: product.discountLabel,
       isActive: product.isActive,
       displayOrder: product.displayOrder,
+      stockQuantity: product.stockQuantity ?? 0,
     });
     setUploadedFileName("");
     setUploadState(product.imageUrl ? "ready" : "idle");
@@ -379,10 +382,11 @@ export default function AdminProductsPage() {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-4">
               <input value={draft.badge} onChange={(e) => setDraft({ ...draft, badge: e.target.value })} placeholder="Badge" className="custom-input" />
               <input value={draft.icon} onChange={(e) => setDraft({ ...draft, icon: e.target.value })} placeholder="ri-icon" className="custom-input" />
               <input type="number" value={draft.displayOrder} onChange={(e) => setDraft({ ...draft, displayOrder: Number(e.target.value) })} placeholder="Order" className="custom-input" />
+              <input type="number" min={0} value={draft.stockQuantity} onChange={(e) => setDraft({ ...draft, stockQuantity: Math.max(0, Number(e.target.value)) })} placeholder="Stock" className="custom-input" />
             </div>
 
             <label className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
@@ -444,6 +448,9 @@ export default function AdminProductsPage() {
                           <span className="font-semibold text-[#03A9F4]">{product.priceLabel}</span>
                         )}
                         <span className="text-white/25">· {product.category}</span>
+                        <span className="rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/10 px-2 py-0.5 text-xs font-semibold text-[#8ddfff]">
+                          Stock: {product.stockQuantity ?? 0}
+                        </span>
                       </div>
                     </div>
                     <div className="flex gap-2 sm:flex-col">

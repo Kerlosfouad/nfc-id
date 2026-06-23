@@ -14,6 +14,7 @@ export interface CatalogProduct {
   discountLabel: string | null;
   isActive: boolean;
   displayOrder: number;
+  stockQuantity: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,6 +31,7 @@ export interface ProductInput {
   discountLabel: string | null;
   isActive: boolean;
   displayOrder: number;
+  stockQuantity: number;
 }
 
 let ensured = false;
@@ -50,6 +52,7 @@ export async function ensureProductCatalogTable() {
       discount_label TEXT,
       is_active BOOLEAN NOT NULL DEFAULT true,
       display_order INTEGER NOT NULL DEFAULT 0,
+      stock_quantity INTEGER NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
@@ -63,6 +66,7 @@ export async function ensureProductCatalogTable() {
   `);
   await db.$executeRawUnsafe(`ALTER TABLE admin_products ADD COLUMN IF NOT EXISTS discount_label TEXT`);
   await db.$executeRawUnsafe(`ALTER TABLE admin_products ADD COLUMN IF NOT EXISTS sale_price_label TEXT`);
+  await db.$executeRawUnsafe(`ALTER TABLE admin_products ADD COLUMN IF NOT EXISTS stock_quantity INTEGER NOT NULL DEFAULT 0`);
   ensured = true;
 }
 
@@ -79,6 +83,7 @@ function mapProduct(row: {
   discount_label: string | null;
   is_active: boolean;
   display_order: number;
+  stock_quantity: number;
   created_at: Date;
   updated_at: Date;
 }): CatalogProduct {
@@ -95,6 +100,7 @@ function mapProduct(row: {
     discountLabel: row.discount_label,
     isActive: row.is_active,
     displayOrder: row.display_order,
+    stockQuantity: row.stock_quantity,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -122,11 +128,11 @@ export async function createProduct(input: ProductInput) {
   const id = randomUUID();
   const rows = await db.$queryRaw<Array<Parameters<typeof mapProduct>[0]>>`
     INSERT INTO admin_products (
-      id, name, description, price_label, sale_price_label, image_url, badge, icon, category, discount_label, is_active, display_order
+      id, name, description, price_label, sale_price_label, image_url, badge, icon, category, discount_label, is_active, display_order, stock_quantity
     )
     VALUES (
       ${id}, ${input.name}, ${input.description}, ${input.priceLabel}, ${input.salePriceLabel}, ${input.imageUrl},
-      ${input.badge}, ${input.icon}, ${input.category}, ${input.discountLabel}, ${input.isActive}, ${input.displayOrder}
+      ${input.badge}, ${input.icon}, ${input.category}, ${input.discountLabel}, ${input.isActive}, ${input.displayOrder}, ${input.stockQuantity}
     )
     RETURNING *
   `;
@@ -150,6 +156,7 @@ export async function updateProduct(id: string, input: ProductInput) {
       discount_label = ${input.discountLabel},
       is_active = ${input.isActive},
       display_order = ${input.displayOrder},
+      stock_quantity = ${input.stockQuantity},
       updated_at = NOW()
     WHERE id = ${id}
     RETURNING *
@@ -160,6 +167,18 @@ export async function updateProduct(id: string, input: ProductInput) {
 export async function deleteProduct(id: string) {
   await ensureProductCatalogTable();
   await db.$executeRaw`DELETE FROM admin_products WHERE id = ${id}`;
+}
+
+export async function decrementProductStock(items: Array<{ productId: string; quantity: number }>) {
+  await ensureProductCatalogTable();
+  for (const item of items) {
+    await db.$executeRaw`
+      UPDATE admin_products
+      SET stock_quantity = GREATEST(stock_quantity - ${item.quantity}, 0),
+          updated_at = NOW()
+      WHERE id = ${item.productId}
+    `;
+  }
 }
 
 export async function listCategories() {

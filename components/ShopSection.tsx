@@ -14,6 +14,7 @@ interface ShopProduct {
   icon: string;
   category: string;
   discountLabel: string | null;
+  stockQuantity?: number;
 }
 
 interface CartItem {
@@ -56,6 +57,9 @@ function ProductCard({ product, onAdd, onBuyNow }: { product: ShopProduct; onAdd
       <div className="relative p-4 sm:p-5">
         <h3 className="mb-2 text-base font-bold uppercase text-white sm:text-lg">{product.name}</h3>
         <p className="line-clamp-2 min-h-[44px] text-sm leading-relaxed text-white/40">{product.description}</p>
+        <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-white/35">
+          Stock: <span className="text-[#03A9F4]">{product.stockQuantity ?? 0}</span>
+        </p>
 
         <div className="mt-5 flex items-center justify-between gap-3">
           <div className="min-w-0">

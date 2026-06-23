@@ -101,6 +101,12 @@ export default function CheckoutPage() {
     setLoaded(true);
   }, []);
 
+  useEffect(() => {
+    if (!orderMessage) return;
+    const timer = window.setTimeout(() => setOrderMessage(""), 1500);
+    return () => window.clearTimeout(timer);
+  }, [orderMessage]);
+
   async function submitOrder(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
@@ -130,7 +136,7 @@ export default function CheckoutPage() {
       window.localStorage.removeItem("nfc-id-cart");
       setCart([]);
       setCheckout(emptyCheckout);
-      setOrderMessage(`Order #${json.data.orderNumber} received. We will contact you to confirm shipping.`);
+      setOrderMessage("Order Complete");
     } catch (e) {
       setFormError(e instanceof Error ? e.message : "Order could not be created");
     } finally {
@@ -142,11 +148,12 @@ export default function CheckoutPage() {
     <main className="min-h-screen bg-[#0b0a0a] text-white">
       <Navbar />
       <div
-        className={`fixed left-1/2 top-24 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 transition-all duration-300 ${
-          orderMessage ? "translate-y-0 opacity-100" : "-translate-y-4 pointer-events-none opacity-0"
+        className={`fixed left-1/2 top-20 z-50 w-[calc(100%-2rem)] max-w-xs -translate-x-1/2 transition-all duration-300 ease-out ${
+          orderMessage ? "translate-y-3 opacity-100" : "-translate-y-4 pointer-events-none opacity-0"
         }`}
       >
-        <div className="rounded-2xl border border-[#03A9F4]/30 bg-[#03A9F4] px-5 py-3 text-center text-sm font-bold text-white shadow-2xl shadow-[#03A9F4]/25">
+        <div className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#03A9F4]/30 bg-[#03A9F4] px-4 py-2 text-center text-xs font-bold uppercase tracking-wider text-white shadow-xl shadow-[#03A9F4]/20">
+          <i className="ri-check-line text-base" />
           {orderMessage}
         </div>
       </div>

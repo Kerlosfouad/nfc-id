@@ -96,7 +96,7 @@ export default function AdminOrdersPage() {
   }
 
   async function deleteAllOrders() {
-    const res = await fetch("/api/v1/admin/orders?all=true", {
+    const res = await fetch("/api/v1/admin/orders?all=true&accept=true", {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}`, "x-user-id": userId },
     });

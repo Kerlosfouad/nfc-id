@@ -16,6 +16,7 @@ const ProductSchema = z.object({
   discountLabel: z.string().nullable().optional().default(null),
   isActive: z.boolean().optional().default(true),
   displayOrder: z.number().int().optional().default(0),
+  stockQuantity: z.number().int().min(0).optional().default(0),
 });
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
