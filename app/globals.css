@@ -410,6 +410,11 @@ a {
   animation: productCounterOrbitReverse 30s linear infinite;
 }
 
+.product-orbit-paused,
+.product-orbit-paused > * {
+  animation-play-state: paused;
+}
+
 .product-orbit-glow {
   background:
     radial-gradient(circle at center, rgba(3,169,244,0.16), transparent 58%),
