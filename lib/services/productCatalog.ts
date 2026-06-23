@@ -175,6 +175,7 @@ export async function decrementProductStock(items: Array<{ productId: string; qu
     await db.$executeRaw`
       UPDATE admin_products
       SET stock_quantity = GREATEST(stock_quantity - ${item.quantity}, 0),
+          badge = GREATEST(stock_quantity - ${item.quantity}, 0)::text,
           updated_at = NOW()
       WHERE id = ${item.productId}
     `;

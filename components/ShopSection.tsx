@@ -44,22 +44,14 @@ function ProductCard({ product, onAdd, onBuyNow }: { product: ShopProduct; onAdd
           className="h-full w-full object-contain p-5 transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-[#03A9F4]/30 bg-black/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#03A9F4] backdrop-blur-md">
-          <i className={product.icon || "ri-shopping-bag-3-line"} />
-          {product.badge || product.category}
+          <i className="ri-archive-stack-line" />
+          {product.stockQuantity ?? (Number(product.badge) || 0)}
         </div>
-        {product.discountLabel && (
-          <div className="absolute right-3 top-3 rounded-full bg-[#03A9F4] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-            {product.discountLabel}
-          </div>
-        )}
       </div>
 
       <div className="relative p-4 sm:p-5">
         <h3 className="mb-2 text-base font-bold uppercase text-white sm:text-lg">{product.name}</h3>
         <p className="line-clamp-2 min-h-[44px] text-sm leading-relaxed text-white/40">{product.description}</p>
-        <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-white/35">
-          Stock: <span className="text-[#03A9F4]">{product.stockQuantity ?? 0}</span>
-        </p>
 
         <div className="mt-5 flex items-center justify-between gap-3">
           <div className="min-w-0">

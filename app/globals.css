@@ -358,6 +358,64 @@ a {
 .animate-float-left  { animation: float-left  3s ease-in-out infinite; }
 .animate-float-right { animation: float-right 3.4s ease-in-out infinite; }
 .animate-float-top   { animation: float-top   2.8s ease-in-out infinite; }
+
+/* ===== Product Orbit ===== */
+@keyframes productOrbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes productOrbitReverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes productCounterOrbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes productCounterOrbitReverse {
+  from { transform: rotate(-360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes orbitGlow {
+  0%, 100% { box-shadow: 0 0 48px rgba(3,169,244,0.12), inset 0 0 50px rgba(3,169,244,0.08); opacity: 0.75; }
+  50% { box-shadow: 0 0 80px rgba(3,169,244,0.22), inset 0 0 70px rgba(3,169,244,0.14); opacity: 1; }
+}
+
+.product-orbit {
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.product-orbit > * {
+  pointer-events: auto;
+}
+
+.product-orbit-slow {
+  animation: productOrbit 24s linear infinite;
+}
+
+.product-orbit-slow > * {
+  animation: productCounterOrbit 24s linear infinite;
+}
+
+.product-orbit-reverse {
+  animation: productOrbitReverse 30s linear infinite;
+}
+
+.product-orbit-reverse > * {
+  animation: productCounterOrbitReverse 30s linear infinite;
+}
+
+.product-orbit-glow {
+  background:
+    radial-gradient(circle at center, rgba(3,169,244,0.16), transparent 58%),
+    radial-gradient(circle at center, rgba(255,255,255,0.04), transparent 68%);
+  animation: orbitGlow 5s ease-in-out infinite;
+}
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

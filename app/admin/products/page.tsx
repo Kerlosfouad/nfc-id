@@ -119,7 +119,7 @@ export default function AdminProductsPage() {
       priceLabel: product.priceLabel,
       salePriceLabel: product.salePriceLabel,
       imageUrl: product.imageUrl,
-      badge: product.badge,
+      badge: String(product.stockQuantity ?? Number(product.badge) ?? 0),
       icon: product.icon,
       category: product.category,
       discountLabel: product.discountLabel,
@@ -197,32 +197,20 @@ export default function AdminProductsPage() {
     }
   }
 
-  async function toggleProductVisibility(product: ProductRow) {
-    const nextProduct = { ...product, isActive: !product.isActive };
-    setProducts((current) => current.map((item) => (item.id === product.id ? nextProduct : item)));
-    const res = await fetch(`/api/v1/admin/products/${product.id}`, {
-      method: "PATCH",
-      headers: authHeaders(),
-      body: JSON.stringify(nextProduct),
-    });
-    const json = await res.json().catch(() => null);
-    if (!res.ok) {
-      setProducts((current) => current.map((item) => (item.id === product.id ? product : item)));
-      showToast(json?.error?.message ?? "Visibility update failed", "error");
-      return;
-    }
-    setProducts((current) => current.map((item) => (item.id === product.id ? json.data : item)));
-    showToast(nextProduct.isActive ? "Product is visible in shop" : "Product hidden from shop");
-  }
-
   async function saveProduct() {
     setSaving(true);
     setError(null);
     try {
+      const stockQuantity = Math.max(0, Number(draft.badge || draft.stockQuantity || 0));
       const productPayload = {
         ...draft,
+        badge: String(stockQuantity),
+        stockQuantity,
+        icon: "ri-archive-stack-line",
+        isActive: true,
+        displayOrder: 0,
         salePriceLabel: draft.salePriceLabel?.trim() ? draft.salePriceLabel.trim() : null,
-        discountLabel: draft.discountLabel?.trim() ? draft.discountLabel.trim() : null,
+        discountLabel: null,
       };
       const res = await fetch(editingId ? `/api/v1/admin/products/${editingId}` : "/api/v1/admin/products", {
         method: editingId ? "PATCH" : "POST",
@@ -318,11 +306,6 @@ export default function AdminProductsPage() {
               <textarea value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} placeholder="Short product description" rows={3} className="custom-input resize-none" />
             </div>
 
-            <div>
-              <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Discount badge (optional)</label>
-              <input value={draft.discountLabel ?? ""} onChange={(e) => setDraft({ ...draft, discountLabel: e.target.value || null })} placeholder="20% OFF or leave empty" className="custom-input" />
-            </div>
-
             <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.07] to-white/[0.025] p-3">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
@@ -382,17 +365,20 @@ export default function AdminProductsPage() {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-4">
-              <input value={draft.badge} onChange={(e) => setDraft({ ...draft, badge: e.target.value })} placeholder="Badge" className="custom-input" />
-              <input value={draft.icon} onChange={(e) => setDraft({ ...draft, icon: e.target.value })} placeholder="ri-icon" className="custom-input" />
-              <input type="number" value={draft.displayOrder} onChange={(e) => setDraft({ ...draft, displayOrder: Number(e.target.value) })} placeholder="Order" className="custom-input" />
-              <input type="number" min={0} value={draft.stockQuantity} onChange={(e) => setDraft({ ...draft, stockQuantity: Math.max(0, Number(e.target.value)) })} placeholder="Stock" className="custom-input" />
+            <div>
+              <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Stock badge</label>
+              <input
+                type="number"
+                min={0}
+                value={draft.badge}
+                onChange={(e) => {
+                  const value = String(Math.max(0, Number(e.target.value)));
+                  setDraft({ ...draft, badge: value, stockQuantity: Number(value) });
+                }}
+                placeholder="Product stock count"
+                className="custom-input"
+              />
             </div>
-
-            <label className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
-              <span>Visible in shop</span>
-              <input type="checkbox" checked={draft.isActive} onChange={(e) => setDraft({ ...draft, isActive: e.target.checked })} />
-            </label>
 
             {error && <p className="text-sm text-red-400">{error}</p>}
 
@@ -429,10 +415,10 @@ export default function AdminProductsPage() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="font-bold uppercase">{product.name}</h3>
-                        <span className={`rounded-full px-2 py-0.5 text-xs ${product.isActive ? "bg-green-400/10 text-green-300" : "bg-white/10 text-white/35"}`}>
-                          {product.isActive ? "Visible" : "Hidden"}
+                        <span className="inline-flex items-center gap-1 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/10 px-2 py-0.5 text-xs font-semibold text-[#8ddfff]">
+                          <i className="ri-archive-stack-line" />
+                          {product.stockQuantity ?? Number(product.badge) ?? 0}
                         </span>
-                        {product.discountLabel && <span className="rounded-full bg-[#03A9F4]/10 px-2 py-0.5 text-xs text-[#03A9F4]">{product.discountLabel}</span>}
                       </div>
                       <p className="mt-1 line-clamp-2 text-sm text-white/45">{product.description}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
@@ -448,15 +434,9 @@ export default function AdminProductsPage() {
                           <span className="font-semibold text-[#03A9F4]">{product.priceLabel}</span>
                         )}
                         <span className="text-white/25">· {product.category}</span>
-                        <span className="rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/10 px-2 py-0.5 text-xs font-semibold text-[#8ddfff]">
-                          Stock: {product.stockQuantity ?? 0}
-                        </span>
                       </div>
                     </div>
                     <div className="flex gap-2 sm:flex-col">
-                      <button onClick={() => toggleProductVisibility(product)} className="rounded-lg bg-[#03A9F4]/10 px-3 py-2 text-xs text-[#03A9F4] hover:bg-[#03A9F4]/20">
-                        {product.isActive ? "Hide" : "Show"}
-                      </button>
                       <button onClick={() => editProduct(product)} className="rounded-lg bg-white/10 px-3 py-2 text-xs hover:bg-white/20">Edit</button>
                       <button onClick={() => deleteProduct(product.id)} className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300 hover:bg-red-500/20">Delete</button>
                     </div>
