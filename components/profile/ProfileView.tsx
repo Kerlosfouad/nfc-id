@@ -214,7 +214,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
       }}
     >
       {/* ── Cover Image ───────────────────────── */}
-      <div className="relative w-full" style={{ height: profileLayout === 'hero' ? '42vh' : '35vh' }}>
+      <div className="relative w-full" style={{ height: profileLayout === 'hero' ? '35vh' : '28vh' }}>
         {profile.theme.coverUrl ? (
           <img
             src={profile.theme.coverUrl}
