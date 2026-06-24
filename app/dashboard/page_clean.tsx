@@ -708,7 +708,7 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
           {/* Cover + Avatar wrapper */}
           <div className="relative">
             <div
-              className="relative h-28 sm:h-44 flex items-center justify-center cursor-pointer group overflow-hidden"
+              className="relative h-36 sm:h-52 flex items-center justify-center cursor-pointer group overflow-hidden"
               style={{ background: profile.theme?.coverUrl ? undefined : "linear-gradient(to bottom right, rgba(3,169,244,0.2), rgba(138,43,226,0.1), #111)" }}
               onClick={() => setCoverModal(true)}
             >
@@ -735,8 +735,8 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
             <div className="absolute bottom-0 left-4 sm:left-5 translate-y-1/2 z-10" onClick={e => { e.stopPropagation(); setAvatarModal(true); }}>
               <div className="relative group/av cursor-pointer">
                 {profile.avatarUrl
-                  ? <img src={profile.avatarUrl} alt="" className="h-14 w-14 rounded-full border-4 border-[#1a1a1a] object-cover sm:h-16 sm:w-16" />
-                  : <div className="h-14 w-14 rounded-full border-4 border-[#1a1a1a] bg-gradient-to-br from-[#03A9F4]/40 to-[#8A2BE2]/40 flex items-center justify-center text-xl font-bold sm:h-16 sm:w-16">{profile.displayName.charAt(0).toUpperCase()}</div>
+                  ? <img src={profile.avatarUrl} alt="" className="h-20 w-20 rounded-full border-4 border-[#1a1a1a] object-cover sm:h-24 sm:w-24" />
+                  : <div className="h-20 w-20 rounded-full border-4 border-[#1a1a1a] bg-gradient-to-br from-[#03A9F4]/40 to-[#8A2BE2]/40 flex items-center justify-center text-2xl font-bold sm:h-24 sm:w-24">{profile.displayName.charAt(0).toUpperCase()}</div>
                 }
                 <button
                   type="button"
@@ -751,10 +751,10 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
               </div>
             </div>
           </div>
-          <div className="px-4 pb-3.5 pt-9 sm:px-5 sm:pb-5 sm:pt-10">
+          <div className="px-4 pb-4 pt-12 sm:px-6 sm:pb-6 sm:pt-14">
             <div className="flex items-end justify-between gap-3">
               <div className="min-w-0">
-                <h2 className="truncate text-sm font-bold leading-tight text-white sm:text-lg">{profile.displayName}</h2>
+                <h2 className="truncate text-base font-bold leading-tight text-white sm:text-xl">{profile.displayName}</h2>
                 {profile.bio && <p className="mt-0.5 text-xs text-white/40 sm:text-sm">{profile.bio}</p>}
                 <a href={`/profile/${profile.publicId}`} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex max-w-full items-center gap-1.5 text-xs font-mono text-[#03A9F4]">
                   <span className="truncate">/profile/{profile.publicId}</span>
@@ -772,10 +772,10 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
           </div>
         </div>
         {editOpen && <EditProfilePanel profile={profile} saving={saving} onSave={(p) => { onPatch(p); setEditOpen(false); }} onClose={() => setEditOpen(false)} onAddLink={onAddLinkSubmit} />}
-        <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-3 text-white sm:p-5">
-          <div className="mb-3 flex items-center justify-between sm:mb-4">
-            <h3 className="text-sm font-semibold">Your Links</h3>
-            <button onClick={onAddLink} className="flex items-center gap-1.5 rounded-lg bg-[#03A9F4] px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#03A9F4]/80 sm:px-3"><i className="ri-add-line text-base" />Add Link</button>
+        <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-4 text-white sm:p-6">
+          <div className="mb-4 flex items-center justify-between sm:mb-5">
+            <h3 className="text-base font-semibold">Your Links</h3>
+            <button onClick={onAddLink} className="flex items-center gap-1.5 rounded-xl bg-[#03A9F4] px-3 py-2 text-sm font-semibold text-white hover:bg-[#03A9F4]/80 sm:px-4"><i className="ri-add-line text-base" />Add Link</button>
           </div>
           {addOpen && <AddLinkForm saving={saving} onSubmit={onAddLinkSubmit} onCancel={() => setAddOpen(false)} />}
           {editLink && (
@@ -789,7 +789,7 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
           )}
           {profile.links.length === 0 && !addOpen
             ? <div className="text-center py-8 border border-dashed border-white/10 rounded-xl"><i className="ri-links-line text-3xl text-white/20 mb-2 block" /><p className="text-white/30 text-sm">No links yet</p></div>
-            : <div className="space-y-2">
+            : <div className="space-y-3">
               {profile.links.map((link, i) => {
                 const m = LMETA[link.type] ?? { icon: "ri-link", color: "#03A9F4" };
                 const serverHidden = link.activeTo && new Date(link.activeTo) < new Date();
@@ -809,19 +809,19 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
                       onMoveTo(from, i);
                     }}
                     onClick={e => { if (!(e.target as HTMLElement).closest("button")) onEditLink(link); }}
-                    className={`flex items-center gap-2 rounded-xl border px-2 py-2 transition-all cursor-pointer sm:gap-3 sm:px-3 sm:py-2.5 ${isHidden ? "border-white/5 bg-white/2 opacity-60" : "border-white/10 bg-white/5 hover:border-white/20"}`}
+                    className={`flex items-center gap-3 rounded-xl border px-3 py-3 transition-all cursor-pointer sm:gap-4 sm:px-4 sm:py-3.5 ${isHidden ? "border-white/5 bg-white/2 opacity-60" : "border-white/10 bg-white/5 hover:border-white/20"}`}
                   >
                     {/* Drag handle */}
-                    <i className="ri-draggable text-sm text-white/20 transition-colors cursor-grab active:cursor-grabbing flex-shrink-0 sm:text-base group-hover:text-white/50" />
+                    <i className="ri-draggable text-base text-white/20 transition-colors cursor-grab active:cursor-grabbing flex-shrink-0 group-hover:text-white/50" />
 
                     {/* Icon */}
-                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg sm:h-8 sm:w-8" style={{ backgroundColor: m.color + "20" }}>
-                      <i className={m.icon + " text-sm"} style={{ color: m.color }} />
+                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10" style={{ backgroundColor: m.color + "20" }}>
+                      <i className={m.icon + " text-base"} style={{ color: m.color }} />
                     </div>
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="truncate text-xs font-medium text-white sm:text-sm">{link.title}</p>
+                      <p className="truncate text-sm font-medium text-white">{link.title}</p>
                       <p className="truncate text-xs text-white/30">{link.url}</p>
                     </div>
 
