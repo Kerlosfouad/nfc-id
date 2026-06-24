@@ -19,6 +19,101 @@ const COLORS = ["#03A9F4", "#8A2BE2", "#ec4899", "#f59e0b", "#10b981", "#ef4444"
 const FONTS = ["Inter", "Poppins", "Roboto", "Montserrat", "Playfair Display"];
 type Tab = "home" | "analytics" | "share" | "design" | "settings";
 
+type LinkPickerCategory = "Social" | "Professional" | "Entertainment" | "Payment" | "Contact" | "Portfolio" | "Other";
+type LinkPickerItem = { label: string; icon: string; color: string; type?: string; placeholder?: string };
+
+const LINK_PICKER_SECTIONS: { category: LinkPickerCategory; items: LinkPickerItem[] }[] = [
+  {
+    category: "Social",
+    items: [
+      { label: "Facebook", icon: "ri-facebook-fill", color: "#1877F2" },
+      { label: "Instagram", icon: "ri-instagram-line", color: "#E4405F" },
+      { label: "Twitter", icon: "ri-twitter-x-line", color: "#111111" },
+      { label: "WhatsApp", icon: "ri-whatsapp-line", color: "#25D366", type: "WHATSAPP", placeholder: "https://wa.me/..." },
+      { label: "WhatsApp Channel", icon: "ri-whatsapp-line", color: "#16a34a" },
+      { label: "WhatsApp Business", icon: "ri-whatsapp-line", color: "#22c55e" },
+      { label: "TikTok", icon: "ri-tiktok-line", color: "#111111", type: "TIKTOK", placeholder: "https://tiktok.com/@username" },
+      { label: "YouTube", icon: "ri-youtube-fill", color: "#FF0000", type: "YOUTUBE", placeholder: "https://youtube.com/..." },
+      { label: "Snapchat", icon: "ri-snapchat-fill", color: "#facc15" },
+      { label: "Pinterest", icon: "ri-pinterest-fill", color: "#E60023" },
+      { label: "Discord", icon: "ri-discord-fill", color: "#5865F2" },
+      { label: "Telegram", icon: "ri-telegram-fill", color: "#229ED9" },
+      { label: "WeChat", icon: "ri-wechat-fill", color: "#22c55e" },
+    ],
+  },
+  {
+    category: "Professional",
+    items: [
+      { label: "LinkedIn", icon: "ri-linkedin-box-fill", color: "#0A66C2" },
+      { label: "GitHub", icon: "ri-github-fill", color: "#24292f" },
+      { label: "Behance", icon: "ri-behance-fill", color: "#1769FF" },
+      { label: "Qabilah", icon: "ri-quill-pen-fill", color: "#111111" },
+      { label: "Dribbble", icon: "ri-dribbble-fill", color: "#EA4C89" },
+      { label: "Medium", icon: "ri-medium-fill", color: "#111111" },
+      { label: "Stack Overflow", icon: "ri-stack-overflow-fill", color: "#F48024" },
+      { label: "Upwork", icon: "ri-briefcase-4-fill", color: "#14a800" },
+      { label: "Amazon", icon: "ri-amazon-fill", color: "#232F3E" },
+      { label: "Noon", icon: "ri-shopping-bag-4-fill", color: "#FEEE00" },
+      { label: "Jumia", icon: "ri-shopping-cart-2-fill", color: "#f59e0b" },
+      { label: "Google Scholar", icon: "ri-graduation-cap-fill", color: "#111111" },
+      { label: "Scopus", icon: "ri-file-list-3-fill", color: "#111111" },
+      { label: "Figma", icon: "ri-figma-fill", color: "#F24E1E" },
+      { label: "Slack", icon: "ri-slack-fill", color: "#4A154B" },
+      { label: "Notion", icon: "ri-notion-fill", color: "#111111" },
+      { label: "Google Meet", icon: "ri-video-chat-fill", color: "#34A853" },
+    ],
+  },
+  {
+    category: "Entertainment",
+    items: [
+      { label: "Spotify", icon: "ri-spotify-fill", color: "#1DB954", type: "SPOTIFY", placeholder: "https://open.spotify.com/..." },
+      { label: "Twitch", icon: "ri-twitch-fill", color: "#9146FF" },
+      { label: "SoundCloud", icon: "ri-soundcloud-fill", color: "#FF7700" },
+    ],
+  },
+  {
+    category: "Payment",
+    items: [
+      { label: "Instapay", icon: "ri-bank-card-fill", color: "#5b21b6" },
+      { label: "Telda", icon: "ri-wallet-3-fill", color: "#111111" },
+      { label: "PayPal", icon: "ri-paypal-fill", color: "#003087" },
+      { label: "Venmo", icon: "ri-bank-card-2-fill", color: "#3D95CE" },
+      { label: "Cash App", icon: "ri-money-dollar-circle-fill", color: "#111111" },
+    ],
+  },
+  {
+    category: "Contact",
+    items: [
+      { label: "Email", icon: "ri-mail-fill", color: "#f59e0b" },
+      { label: "Phone", icon: "ri-phone-fill", color: "#10b981" },
+      { label: "Website", icon: "ri-global-fill", color: "#38bdf8" },
+      { label: "Address", icon: "ri-home-5-fill", color: "#ef4444" },
+      { label: "Location", icon: "ri-map-pin-fill", color: "#22d3ee" },
+      { label: "Google Maps", icon: "ri-map-pin-2-fill", color: "#4285F4" },
+      { label: "CV", icon: "ri-file-user-fill", color: "#10b981", type: "VCF" },
+      { label: "Gmail", icon: "ri-google-fill", color: "#EA4335" },
+      { label: "Attachment", icon: "ri-attachment-2", color: "#10b981" },
+    ],
+  },
+  {
+    category: "Portfolio",
+    items: [
+      { label: "WordPress", icon: "ri-wordpress-fill", color: "#21759B" },
+      { label: "Dev.to", icon: "ri-code-box-fill", color: "#111111" },
+      { label: "Substack", icon: "ri-bookmark-fill", color: "#111111" },
+      { label: "Linktree", icon: "ri-asterisk", color: "#111111" },
+      { label: "Google Play", icon: "ri-google-play-fill", color: "#34A853" },
+      { label: "App Store", icon: "ri-app-store-fill", color: "#0A84FF" },
+    ],
+  },
+  {
+    category: "Other",
+    items: [
+      { label: "Custom Link", icon: "ri-link", color: "#c2410c", type: "URL", placeholder: "https://..." },
+    ],
+  },
+];
+
 const PRESET_THEMES = [
   { id: "default", name: "Default", desc: "Clean and minimal design", colors: ["#ffffff", "#f3f4f6", "#6b7280", "#374151"], premium: false },
   { id: "dark", name: "Dark Mode", desc: "Sleek dark interface", colors: ["#111827", "#1f2937", "#3b82f6", "#f9fafb"], premium: false },
@@ -94,22 +189,139 @@ function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { pro
 }
 
 function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit: (d: { type: string; title: string; url: string }) => void; onCancel: () => void }) {
-  const [type, setType] = useState("URL");
-  const [title, setTitle] = useState("");
+  const categories = ["All", ...LINK_PICKER_SECTIONS.map(s => s.category)];
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<LinkPickerItem | null>(null);
+  const [customTitle, setCustomTitle] = useState("");
   const [url, setUrl] = useState("");
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const visibleSections = LINK_PICKER_SECTIONS
+    .filter(section => activeCategory === "All" || section.category === activeCategory)
+    .map(section => ({
+      ...section,
+      items: section.items.filter(item => !normalizedQuery || item.label.toLowerCase().includes(normalizedQuery)),
+    }))
+    .filter(section => section.items.length > 0);
+
+  function selectItem(item: LinkPickerItem) {
+    setSelected(item);
+    setCustomTitle(item.label);
+    if (query.startsWith("http://") || query.startsWith("https://")) setUrl(query);
+  }
+
+  function submitSelected() {
+    if (!selected || !url.trim()) return;
+    const type = selected.type && LTYPES.includes(selected.type) ? selected.type : "URL";
+    onSubmit({ type, title: customTitle.trim() || selected.label, url: url.trim() });
+  }
+
   return (
-    <div className="bg-white/5 border border-white/20 rounded-xl p-4 space-y-3 mb-3">
-      <p className="text-sm font-medium">New Link</p>
-      <div className="grid grid-cols-3 sm:grid-cols-3 gap-1.5 sm:gap-2">
-        {LTYPES.map(t => { const m = LMETA[t]; return (<button key={t} type="button" onClick={() => setType(t)} className={"flex flex-col items-center gap-1 py-2 rounded-lg border text-xs " + (type === t ? "border-white/40 bg-white/10" : "border-white/10 text-white/40")}><i className={m.icon + " text-base"} style={{ color: type === t ? m.color : undefined }} /><span className="text-[10px]">{t}</span></button>); })}
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div><label className="text-xs text-white/40 block mb-1">Title</label><input value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" placeholder="My Link" /></div>
-        <div><label className="text-xs text-white/40 block mb-1">URL</label><input value={url} onChange={e => setUrl(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" placeholder="https://..." /></div>
-      </div>
-      <div className="flex gap-2">
-        <button onClick={() => { if (title && url) onSubmit({ type, title, url }); }} disabled={saving || !title || !url} className="bg-white text-black text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">{saving ? "Adding..." : "Add"}</button>
-        <button onClick={onCancel} className="text-sm text-white/40 px-4 py-2">Cancel</button>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/55 backdrop-blur-sm sm:items-center" onClick={e => { if (e.target === e.currentTarget) onCancel(); }}>
+      <div className="flex h-[86svh] w-full flex-col overflow-hidden rounded-t-3xl bg-white text-[#111] shadow-2xl sm:h-[760px] sm:max-w-2xl sm:rounded-3xl" onClick={e => e.stopPropagation()}>
+        <div className="mx-auto mt-3 h-1 w-24 rounded-full bg-black/5" />
+
+        <div className="shrink-0 border-b border-black/10 px-4 pb-4 pt-5">
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {categories.map(category => (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setActiveCategory(category)}
+                className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                  activeCategory === category ? "bg-[#111] text-white" : "bg-black/[0.04] text-black/50"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+          <div className="mt-3 rounded-full border border-black/10 bg-white px-4 py-3 shadow-sm">
+            <input
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              className="w-full bg-transparent text-sm text-black outline-none placeholder:text-black/40"
+              placeholder="Search or paste a link..."
+            />
+          </div>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
+          {visibleSections.length === 0 ? (
+            <div className="py-14 text-center">
+              <i className="ri-search-line text-4xl text-black/15" />
+              <p className="mt-3 text-sm text-black/45">No link type found</p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {visibleSections.map(section => (
+                <section key={section.category}>
+                  <h3 className="mb-4 text-base font-bold text-black">{section.category}</h3>
+                  <div className="grid grid-cols-3 gap-x-5 gap-y-8">
+                    {section.items.map(item => {
+                      const isSelected = selected?.label === item.label;
+                      return (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={() => selectItem(item)}
+                          className={`flex min-h-[86px] flex-col items-center justify-start gap-2 rounded-2xl px-1 py-2 text-center transition-all ${
+                            isSelected ? "bg-[#03A9F4]/10 ring-1 ring-[#03A9F4]/35" : "hover:bg-black/[0.03]"
+                          }`}
+                        >
+                          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-black/[0.03]">
+                            <i className={`${item.icon} text-4xl`} style={{ color: item.color }} />
+                          </span>
+                          <span className="text-sm leading-tight text-black">{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {selected && (
+          <div className="shrink-0 border-t border-black/10 bg-white px-4 py-3">
+            <div className="mb-3 flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-black/[0.04]">
+                <i className={`${selected.icon} text-2xl`} style={{ color: selected.color }} />
+              </span>
+              <input
+                value={customTitle}
+                onChange={e => setCustomTitle(e.target.value)}
+                className="min-w-0 flex-1 rounded-xl border border-black/10 px-3 py-2 text-sm outline-none focus:border-[#03A9F4]/60"
+                placeholder={selected.label}
+              />
+            </div>
+            <div className="flex gap-2">
+              <input
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                className="min-w-0 flex-1 rounded-xl border border-black/10 px-3 py-2 text-sm outline-none focus:border-[#03A9F4]/60"
+                placeholder={selected.placeholder ?? "https://..."}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={submitSelected}
+                disabled={saving || !url.trim()}
+                className="rounded-xl bg-[#111] px-4 py-2 text-sm font-bold text-white disabled:opacity-35"
+              >
+                {saving ? "Adding..." : "Add"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="shrink-0 border-t border-black/10 bg-white p-4">
+          <button type="button" onClick={onCancel} className="h-12 w-full rounded-xl border border-black/10 text-base font-semibold text-black shadow-sm">
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -490,13 +702,13 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
   useEffect(() => { setOptimisticHidden({}); }, [profile.links]);
 
   return (<>
-    <div className="flex flex-col lg:flex-row gap-4 lg:gap-5">
-      <div className="flex-1 min-w-0 space-y-4">
+    <div className="flex flex-col lg:flex-row gap-3 lg:gap-5">
+      <div className="flex-1 min-w-0 space-y-3 lg:space-y-4">
         <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl overflow-hidden">
           {/* Cover + Avatar wrapper */}
           <div className="relative">
             <div
-              className="relative h-32 sm:h-44 flex items-center justify-center cursor-pointer group overflow-hidden"
+              className="relative h-28 sm:h-44 flex items-center justify-center cursor-pointer group overflow-hidden"
               style={{ background: profile.theme?.coverUrl ? undefined : "linear-gradient(to bottom right, rgba(3,169,244,0.2), rgba(138,43,226,0.1), #111)" }}
               onClick={() => setCoverModal(true)}
             >
@@ -512,11 +724,11 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
               </div>
             </div>
             {/* Avatar — outside overflow-hidden cover so it shows properly */}
-            <div className="absolute bottom-0 left-5 translate-y-1/2 z-10" onClick={e => { e.stopPropagation(); setAvatarModal(true); }}>
+            <div className="absolute bottom-0 left-4 sm:left-5 translate-y-1/2 z-10" onClick={e => { e.stopPropagation(); setAvatarModal(true); }}>
               <div className="relative group/av cursor-pointer">
                 {profile.avatarUrl
-                  ? <img src={profile.avatarUrl} alt="" className="w-16 h-16 rounded-full border-4 border-[#1a1a1a] object-cover" />
-                  : <div className="w-16 h-16 rounded-full border-4 border-[#1a1a1a] bg-gradient-to-br from-[#03A9F4]/40 to-[#8A2BE2]/40 flex items-center justify-center text-xl font-bold">{profile.displayName.charAt(0).toUpperCase()}</div>
+                  ? <img src={profile.avatarUrl} alt="" className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 border-[#1a1a1a] object-cover" />
+                  : <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 border-[#1a1a1a] bg-gradient-to-br from-[#03A9F4]/40 to-[#8A2BE2]/40 flex items-center justify-center text-xl font-bold">{profile.displayName.charAt(0).toUpperCase()}</div>
                 }
                 <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover/av:opacity-100 transition-opacity">
                   <i className="ri-camera-line text-white text-sm" />
@@ -524,17 +736,17 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
               </div>
             </div>
           </div>
-          <div className="pt-10 pb-4 sm:pb-5 px-4 sm:px-5">
-            <h2 className="text-white font-bold text-base sm:text-lg">{profile.displayName}</h2>
+          <div className="pt-9 sm:pt-10 pb-3.5 sm:pb-5 px-4 sm:px-5">
+            <h2 className="text-white font-bold text-sm sm:text-lg">{profile.displayName}</h2>
             {profile.bio && <p className="text-white/40 text-xs sm:text-sm mt-0.5 break-words">{profile.bio}</p>}
             <p className="text-[#03A9F4] text-xs font-mono mt-1 truncate">/profile/{profile.publicId}</p>
           </div>
         </div>
         {editOpen && <EditProfilePanel profile={profile} saving={saving} onSave={(p) => { onPatch(p); setEditOpen(false); }} onClose={() => setEditOpen(false)} onAddLink={onAddLinkSubmit} />}
         <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-3 sm:p-5">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h3 className="font-semibold text-sm">Your Links</h3>
-            <button onClick={onAddLink} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#03A9F4] text-white text-xs font-semibold hover:bg-[#03A9F4]/80"><i className="ri-add-line" />Add Link</button>
+            <button onClick={onAddLink} className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#03A9F4] text-white text-xs font-semibold hover:bg-[#03A9F4]/80"><i className="ri-add-line" />Add Link</button>
           </div>
           {addOpen && <AddLinkForm saving={saving} onSubmit={onAddLinkSubmit} onCancel={() => setAddOpen(false)} />}
           {editLink && (
@@ -580,7 +792,7 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{link.title}</p>
+                      <p className="text-xs sm:text-sm font-medium truncate">{link.title}</p>
                       <p className="text-xs text-white/30 truncate">{link.url}</p>
                     </div>
 
@@ -605,7 +817,7 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
           }
         </div>
       </div>
-      <div className="w-full lg:w-52 flex-shrink-0">
+      <div className="hidden lg:block w-full lg:w-52 flex-shrink-0">
         <div className="grid grid-cols-3 lg:grid-cols-1 gap-2 lg:gap-3">
           <a href={"/profile/" + profile.publicId} target="_blank" rel="noopener noreferrer" className="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3 bg-[#1a1a1a] border border-white/10 rounded-xl px-3 lg:px-4 py-3 lg:py-3.5 hover:bg-white/5 hover:border-white/20 group">
             <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10"><i className="ri-eye-line text-white/60 group-hover:text-white text-sm lg:text-base" /></div>
@@ -1374,9 +1586,9 @@ export default function DashboardPage() {
       <aside className={`fixed md:relative z-50 md:z-auto h-full w-[220px] flex-shrink-0 bg-[#0f0f0f] border-r border-white/5 flex flex-col transition-transform duration-300
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
         <div className="px-4 py-4 border-b border-white/5 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/img/logo.png" alt="NFC ID" className="w-7 h-7" />
-            <span className="font-bold text-base">NFC<span className="text-[#03A9F4]">·ID</span></span>
+          <Link href="/" className="flex items-center gap-0">
+            <img src="/img/logo.png" alt="NFC ID" className="w-8 h-8" />
+            <span className="hidden font-bold text-base">NFC<span className="text-[#03A9F4]">·ID</span></span>
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="md:hidden text-white/30 hover:text-white">
             <i className="ri-close-line text-lg" />
@@ -1413,9 +1625,9 @@ export default function DashboardPage() {
           <button onClick={() => setSidebarOpen(true)} className="text-white/50 hover:text-white">
             <i className="ri-menu-line text-xl" />
           </button>
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/img/logo.png" alt="NFC ID" className="w-6 h-6" />
-            <span className="font-bold text-sm">NFC<span className="text-[#03A9F4]">·ID</span></span>
+          <Link href="/" className="flex items-center gap-0">
+            <img src="/img/logo.png" alt="NFC ID" className="w-7 h-7" />
+            <span className="hidden font-bold text-sm">NFC<span className="text-[#03A9F4]">·ID</span></span>
           </Link>
         </div>
 
@@ -1427,10 +1639,10 @@ export default function DashboardPage() {
               <Link href="/admin/tags" className="px-5 py-2.5 rounded-full bg-[#03A9F4] text-white text-sm font-semibold hover:bg-[#03A9F4]/80">Generate a Tag</Link>
             </div>
           ) : (
-            <div className={"h-full " + (tab === "design" ? "overflow-hidden px-3 sm:px-6 py-4 sm:py-6" : "overflow-y-auto")}>
+            <div className={"h-full " + (tab === "design" ? "overflow-hidden px-3 sm:px-6 py-4 sm:py-6 pb-24 md:pb-6" : "overflow-y-auto")}>
               {tab !== "design" && (
-                <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
-                  <div className="flex items-center justify-between bg-[#03A9F4]/10 border border-[#03A9F4]/20 rounded-xl px-3 sm:px-4 py-2.5 mb-5">
+                <div className="max-w-5xl mx-auto px-3 sm:px-6 py-3 sm:py-6 pb-24 md:pb-6">
+                  <div className="flex items-center justify-between bg-[#03A9F4]/10 border border-[#03A9F4]/20 rounded-xl px-3 sm:px-4 py-2.5 mb-3 sm:mb-5">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
                       <span className="text-white/50 text-xs hidden sm:inline">You are live</span>
@@ -1450,7 +1662,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Mobile bottom nav */}
-        <nav className="md:hidden flex border-t border-white/5 bg-[#0f0f0f] flex-shrink-0">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex border-t border-white/5 bg-[#0f0f0f]/95 backdrop-blur-xl">
           {NAV.map(n => (
             <button key={n.id} onClick={() => setTab(n.id)} className={"flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] transition-all " + (tab === n.id ? "text-[#03A9F4]" : "text-white/30 hover:text-white/60")}>
               <i className={n.icon + " text-lg"} />
@@ -1462,3 +1674,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
