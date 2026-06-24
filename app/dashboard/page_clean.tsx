@@ -203,7 +203,9 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
     setClosing(true);
     setVisible(false);
   }
-  function handleTransitionEnd() { if (closing) onCancel(); }
+  function handleSheetTransitionEnd(e: React.TransitionEvent<HTMLDivElement>) {
+    if (closing && e.propertyName === "transform" && e.target === e.currentTarget) onCancel();
+  }
 
   const normalizedQuery = query.trim().toLowerCase();
   const visibleSections = LINK_PICKER_SECTIONS
@@ -228,13 +230,13 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex items-end justify-center transition-all duration-500 ${visible ? "bg-black/70 backdrop-blur-sm" : "bg-black/0 backdrop-blur-none"}`}
+      className={`fixed inset-0 z-[100] flex items-end justify-center transition-all duration-700 ${visible ? "bg-black/70 backdrop-blur-sm" : "bg-black/0 backdrop-blur-none"}`}
       onClick={e => { if (e.target === e.currentTarget) handleClose(); }}
     >
       <div
-        className={`flex h-[86svh] w-full flex-col overflow-hidden rounded-t-3xl bg-[#111] text-white shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] sm:h-[760px] sm:max-w-2xl sm:rounded-3xl ${visible ? "translate-y-0" : "translate-y-full"}`}
+        className={`flex h-[86svh] w-full flex-col overflow-hidden rounded-t-3xl bg-[#111] text-white shadow-2xl transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] sm:h-[760px] sm:max-w-2xl sm:rounded-3xl ${visible ? "translate-y-0" : "translate-y-full"}`}
         onClick={e => e.stopPropagation()}
-        onTransitionEnd={handleTransitionEnd}
+        onTransitionEnd={handleSheetTransitionEnd}
       >
         <div className="mx-auto mt-3 h-1 w-24 rounded-full bg-white/10" />
 
