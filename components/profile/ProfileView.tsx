@@ -164,33 +164,27 @@ function LinkItem({ link, primaryColor, themeVars, layout }: {
       href={link.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-200 active:scale-[0.98] group"
+      className="flex items-center gap-4 px-4 py-4 rounded-2xl transition-all duration-200 active:scale-[0.98] group"
       style={{
         backgroundColor: themeVars.linkBg,
         border: `1px solid ${themeVars.linkBorder}`,
       }}
     >
       {link.thumbnailUrl ? (
-        <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0">
+        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0">
           <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
         </div>
       ) : (
         <div
-          className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110"
+          className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{ backgroundColor: `${color}25` }}
         >
-          <i className={`${icon} text-xl`} style={{ color }} />
+          <i className={`${icon} text-2xl`} style={{ color }} />
         </div>
       )}
-      <span className="font-semibold text-[15px] flex-1 truncate" style={{ color: themeVars.textPrimary }}>
+      <span className="font-bold text-base flex-1 truncate" style={{ color: themeVars.textPrimary }}>
         {link.title}
       </span>
-      <div
-        className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
-        style={{ backgroundColor: themeVars.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }}
-      >
-        <i className="ri-more-fill text-base" style={{ color: themeVars.textSecondary }} />
-      </div>
     </a>
   );
 }
@@ -220,7 +214,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
       }}
     >
       {/* ── Cover Image ───────────────────────── */}
-      <div className="relative w-full" style={{ minHeight: profileLayout === 'hero' ? '45vh' : '38vh' }}>
+      <div className="relative w-full" style={{ height: profileLayout === 'hero' ? '42vh' : '35vh' }}>
         {profile.theme.coverUrl ? (
           <img
             src={profile.theme.coverUrl}
@@ -237,7 +231,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
         )}
         {/* Bottom gradient fade */}
         <div
-          className="absolute bottom-0 left-0 right-0 h-32"
+          className="absolute bottom-0 left-0 right-0 h-28"
           style={{
             background: `linear-gradient(to top, ${themeVars.bg}, transparent)`,
           }}
@@ -245,37 +239,35 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
       </div>
 
       {/* ── Profile Info ──────────────────────── */}
-      <div className="relative w-full max-w-lg mx-auto px-5 -mt-14 z-10">
-        {/* Avatar + Name + Actions row */}
-        <div className="flex items-end justify-between mb-1">
-          <div className="flex items-end gap-4">
-            {/* Avatar with ring */}
-            <div className="relative flex-shrink-0">
-              <div
-                className="w-[100px] h-[100px] rounded-full p-[3px]"
-                style={{
-                  background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
-                  boxShadow: `0 0 20px ${primaryColor}40`,
-                }}
-              >
-                <div className="w-full h-full rounded-full overflow-hidden" style={{ border: `3px solid ${themeVars.bg}` }}>
-                  {profile.avatarUrl ? (
-                    <img src={profile.avatarUrl} alt={profile.displayName} className="w-full h-full object-cover" />
-                  ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center text-3xl font-bold"
-                      style={{ backgroundColor: `${primaryColor}30`, color: primaryColor }}
-                    >
-                      {profile.displayName.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
+      <div className="relative w-full max-w-lg mx-auto px-4 -mt-16 z-10">
+        {/* Avatar + Actions row */}
+        <div className="flex items-end justify-between mb-2">
+          {/* Avatar with ring */}
+          <div className="relative flex-shrink-0">
+            <div
+              className="w-[110px] h-[110px] rounded-full p-[3px]"
+              style={{
+                background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
+                boxShadow: `0 0 24px ${primaryColor}50`,
+              }}
+            >
+              <div className="w-full h-full rounded-full overflow-hidden" style={{ border: `3px solid ${themeVars.bg}` }}>
+                {profile.avatarUrl ? (
+                  <img src={profile.avatarUrl} alt={profile.displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <div
+                    className="w-full h-full flex items-center justify-center text-3xl font-bold"
+                    style={{ backgroundColor: `${primaryColor}30`, color: primaryColor }}
+                  >
+                    {profile.displayName.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* Save & Share buttons */}
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-3">
             <SaveButton profile={profile} isDark={themeVars.isDark} />
             {cvLink && (
               <a
@@ -298,12 +290,12 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
         </div>
 
         {/* Name & Bio */}
-        <div className="mt-2 mb-6">
-          <h1 className="text-xl font-bold leading-tight" style={{ color: themeVars.textPrimary }}>
+        <div className="mt-3 mb-7">
+          <h1 className="text-2xl font-bold leading-tight" style={{ color: themeVars.textPrimary }}>
             {profile.displayName}
           </h1>
           {profile.bio && (
-            <p className="text-sm mt-1 leading-relaxed" style={{ color: themeVars.textSecondary }}>
+            <p className="text-sm mt-1.5 leading-relaxed" style={{ color: themeVars.textSecondary }}>
               {profile.bio}
             </p>
           )}
