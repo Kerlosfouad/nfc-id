@@ -704,12 +704,12 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
   return (<>
     <div className="flex flex-col lg:flex-row gap-3 lg:gap-5">
       <div className="flex-1 min-w-0 space-y-3 lg:space-y-4">
-        <div className="overflow-hidden rounded-[28px] border border-black/10 bg-white text-black shadow-sm lg:rounded-2xl lg:border-white/10 lg:bg-[#1a1a1a] lg:text-white">
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#1a1a1a] text-white">
           {/* Cover + Avatar wrapper */}
           <div className="relative">
             <div
-              className="relative h-[170px] sm:h-44 flex items-center justify-center cursor-pointer group overflow-hidden"
-              style={{ background: profile.theme?.coverUrl ? undefined : "linear-gradient(to bottom right, rgba(3,169,244,0.2), rgba(138,43,226,0.1), #eef7ff)" }}
+              className="relative h-28 sm:h-44 flex items-center justify-center cursor-pointer group overflow-hidden"
+              style={{ background: profile.theme?.coverUrl ? undefined : "linear-gradient(to bottom right, rgba(3,169,244,0.2), rgba(138,43,226,0.1), #111)" }}
               onClick={() => setCoverModal(true)}
             >
               {profile.theme?.coverUrl
@@ -725,25 +725,25 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
               <button
                 type="button"
                 onClick={e => { e.stopPropagation(); setCoverModal(true); }}
-                className="absolute right-4 top-4 flex h-12 w-12 items-center justify-center rounded-full bg-black/75 text-white shadow-lg lg:hidden"
+                className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/70 text-white shadow-lg lg:hidden"
                 aria-label="Change cover"
               >
-                <i className="ri-image-add-line text-2xl" />
+                <i className="ri-image-add-line text-lg" />
               </button>
             </div>
             {/* Avatar — outside overflow-hidden cover so it shows properly */}
             <div className="absolute bottom-0 left-4 sm:left-5 translate-y-1/2 z-10" onClick={e => { e.stopPropagation(); setAvatarModal(true); }}>
               <div className="relative group/av cursor-pointer">
                 {profile.avatarUrl
-                  ? <img src={profile.avatarUrl} alt="" className="h-[92px] w-[92px] rounded-full border-4 border-[#03A9F4] object-cover sm:w-16 sm:h-16 sm:border-[#1a1a1a]" />
-                  : <div className="h-[92px] w-[92px] rounded-full border-4 border-[#03A9F4] bg-gradient-to-br from-[#03A9F4]/40 to-[#8A2BE2]/40 flex items-center justify-center text-xl font-bold sm:w-16 sm:h-16 sm:border-[#1a1a1a]">{profile.displayName.charAt(0).toUpperCase()}</div>
+                  ? <img src={profile.avatarUrl} alt="" className="h-14 w-14 rounded-full border-4 border-[#1a1a1a] object-cover sm:h-16 sm:w-16" />
+                  : <div className="h-14 w-14 rounded-full border-4 border-[#1a1a1a] bg-gradient-to-br from-[#03A9F4]/40 to-[#8A2BE2]/40 flex items-center justify-center text-xl font-bold sm:h-16 sm:w-16">{profile.displayName.charAt(0).toUpperCase()}</div>
                 }
                 <button
                   type="button"
-                  className="absolute -bottom-1 -left-1 flex h-8 w-8 items-center justify-center rounded-full bg-black/80 text-white shadow-md lg:hidden"
+                  className="absolute -bottom-1 -left-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/80 text-white shadow-md lg:hidden"
                   aria-label="Change avatar"
                 >
-                  <i className="ri-image-add-line text-lg" />
+                  <i className="ri-image-add-line text-base" />
                 </button>
                 <div className="absolute inset-0 rounded-full bg-black/50 hidden items-center justify-center opacity-0 group-hover/av:opacity-100 transition-opacity lg:flex">
                   <i className="ri-camera-line text-white text-sm" />
@@ -751,12 +751,12 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
               </div>
             </div>
           </div>
-          <div className="px-7 pb-5 pt-12 sm:px-5 sm:pt-10 sm:pb-5">
+          <div className="px-4 pb-3.5 pt-9 sm:px-5 sm:pb-5 sm:pt-10">
             <div className="flex items-end justify-between gap-3">
               <div className="min-w-0">
-                <h2 className="truncate text-2xl font-semibold leading-tight text-black sm:text-lg lg:text-white">{profile.displayName}</h2>
-                <p className="mt-1 text-base text-black/45 sm:text-sm lg:text-white/40">{profile.bio || "Tag bio"}</p>
-                <a href={`/profile/${profile.publicId}`} target="_blank" rel="noopener noreferrer" className="mt-7 inline-flex max-w-full items-center gap-2 text-base font-semibold text-black/50 underline sm:mt-1 sm:text-xs lg:text-[#03A9F4] lg:no-underline">
+                <h2 className="truncate text-sm font-bold leading-tight text-white sm:text-lg">{profile.displayName}</h2>
+                {profile.bio && <p className="mt-0.5 text-xs text-white/40 sm:text-sm">{profile.bio}</p>}
+                <a href={`/profile/${profile.publicId}`} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex max-w-full items-center gap-1.5 text-xs font-mono text-[#03A9F4]">
                   <span className="truncate">/profile/{profile.publicId}</span>
                   <i className="ri-external-link-line shrink-0" />
                 </a>
@@ -764,7 +764,7 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
               <button
                 type="button"
                 onClick={() => setEditOpen(!editOpen)}
-                className="flex h-12 shrink-0 items-center justify-center rounded-full bg-[#111] px-4 text-sm font-bold text-white shadow-lg min-[390px]:px-5 lg:hidden"
+                className="flex h-9 shrink-0 items-center justify-center rounded-full bg-[#03A9F4] px-3 text-xs font-bold text-white shadow-lg lg:hidden"
               >
                 Edit Profile
               </button>
@@ -772,10 +772,10 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
           </div>
         </div>
         {editOpen && <EditProfilePanel profile={profile} saving={saving} onSave={(p) => { onPatch(p); setEditOpen(false); }} onClose={() => setEditOpen(false)} onAddLink={onAddLinkSubmit} />}
-        <div className="rounded-[28px] border border-black/10 bg-white p-6 text-black shadow-sm lg:rounded-2xl lg:border-white/10 lg:bg-[#1a1a1a] lg:p-5 lg:text-white">
-          <div className="mb-6 flex items-center justify-between lg:mb-4">
-            <h3 className="text-2xl font-normal lg:text-sm lg:font-semibold">Your Links</h3>
-            <button onClick={onAddLink} className="flex h-12 items-center gap-2 rounded-full bg-[#111] px-6 text-base font-bold text-white shadow-md hover:bg-black/80 lg:h-auto lg:rounded-lg lg:bg-[#03A9F4] lg:px-3 lg:py-1.5 lg:text-xs"><i className="ri-add-line text-2xl lg:text-base" />Add</button>
+        <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-3 text-white sm:p-5">
+          <div className="mb-3 flex items-center justify-between sm:mb-4">
+            <h3 className="text-sm font-semibold">Your Links</h3>
+            <button onClick={onAddLink} className="flex items-center gap-1.5 rounded-lg bg-[#03A9F4] px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#03A9F4]/80 sm:px-3"><i className="ri-add-line text-base" />Add Link</button>
           </div>
           {addOpen && <AddLinkForm saving={saving} onSubmit={onAddLinkSubmit} onCancel={() => setAddOpen(false)} />}
           {editLink && (
@@ -788,8 +788,8 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
             />
           )}
           {profile.links.length === 0 && !addOpen
-            ? <div className="text-center py-8 border border-dashed border-black/10 lg:border-white/10 rounded-xl"><i className="ri-links-line text-3xl text-black/20 lg:text-white/20 mb-2 block" /><p className="text-black/30 lg:text-white/30 text-sm">No links yet</p></div>
-            : <div className="space-y-5 lg:space-y-2">
+            ? <div className="text-center py-8 border border-dashed border-white/10 rounded-xl"><i className="ri-links-line text-3xl text-white/20 mb-2 block" /><p className="text-white/30 text-sm">No links yet</p></div>
+            : <div className="space-y-2">
               {profile.links.map((link, i) => {
                 const m = LMETA[link.type] ?? { icon: "ri-link", color: "#03A9F4" };
                 const serverHidden = link.activeTo && new Date(link.activeTo) < new Date();
@@ -809,20 +809,20 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
                       onMoveTo(from, i);
                     }}
                     onClick={e => { if (!(e.target as HTMLElement).closest("button")) onEditLink(link); }}
-                    className={`flex items-center gap-4 rounded-[28px] border px-5 py-5 shadow-sm transition-all cursor-pointer lg:gap-3 lg:rounded-xl lg:px-3 lg:py-2.5 lg:shadow-none ${isHidden ? "border-black/5 bg-black/[0.02] opacity-60 lg:border-white/5 lg:bg-white/2" : "border-black/5 bg-[#f8f8f8] hover:border-black/10 lg:border-white/10 lg:bg-white/5 lg:hover:border-white/20"}`}
+                    className={`flex items-center gap-2 rounded-xl border px-2 py-2 transition-all cursor-pointer sm:gap-3 sm:px-3 sm:py-2.5 ${isHidden ? "border-white/5 bg-white/2 opacity-60" : "border-white/10 bg-white/5 hover:border-white/20"}`}
                   >
                     {/* Drag handle */}
-                    <i className="ri-draggable text-2xl text-black/45 transition-colors cursor-grab active:cursor-grabbing flex-shrink-0 lg:text-white/20 lg:text-base lg:group-hover:text-white/50" />
+                    <i className="ri-draggable text-sm text-white/20 transition-colors cursor-grab active:cursor-grabbing flex-shrink-0 sm:text-base group-hover:text-white/50" />
 
                     {/* Icon */}
-                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg lg:h-8 lg:w-8" style={{ backgroundColor: m.color + "12" }}>
-                      <i className={m.icon + " text-3xl lg:text-sm"} style={{ color: m.color }} />
+                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg sm:h-8 sm:w-8" style={{ backgroundColor: m.color + "20" }}>
+                      <i className={m.icon + " text-sm"} style={{ color: m.color }} />
                     </div>
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="truncate text-xl font-medium text-black lg:text-sm lg:text-white">{link.title}</p>
-                      <p className="truncate text-base text-black/45 lg:text-xs lg:text-white/30">{link.url}</p>
+                      <p className="truncate text-xs font-medium text-white sm:text-sm">{link.title}</p>
+                      <p className="truncate text-xs text-white/30">{link.url}</p>
                     </div>
 
                     {/* Toggle — optimistic: update UI instantly, API in background */}
@@ -834,10 +834,10 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
                         // Fire API in background (don't await / don't block)
                         onUpdateLink(link.id, { activeTo: newHidden ? new Date(Date.now() - 1000).toISOString() : null });
                       }}
-                      className={`relative h-7 w-14 rounded-full transition-all flex-shrink-0 lg:h-5 lg:w-9 ${isHidden ? "bg-black/10 lg:bg-white/10" : "bg-[#111] lg:bg-[#03A9F4]"}`}
+                      className={`relative h-5 w-9 rounded-full transition-all flex-shrink-0 ${isHidden ? "bg-white/10" : "bg-[#03A9F4]"}`}
                       title={isHidden ? "Enable link" : "Disable link"}
                     >
-                      <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all duration-200 lg:top-0.5 lg:h-4 lg:w-4 ${isHidden ? "left-1 lg:left-0.5" : "left-8 lg:left-[18px]"}`} />
+                      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all duration-200 ${isHidden ? "left-0.5" : "left-[18px]"}`} />
                     </button>
                   </div>
                 );
@@ -1605,7 +1605,7 @@ export default function DashboardPage() {
   if (loading) return (<div className="bg-[#111] min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#03A9F4] border-t-transparent rounded-full animate-spin" /></div>);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white text-black md:bg-[#111] md:text-white" style={{ fontFamily: "Inter, sans-serif" }}>
+    <div className="flex h-screen overflow-hidden bg-[#111] text-white" style={{ fontFamily: "Inter, sans-serif" }}>
       {toast && <div className={"fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 px-4 py-3 rounded-xl text-sm font-medium shadow-xl border " + (toast.ok ? "bg-green-500/20 border-green-500/40 text-green-300" : "bg-red-500/20 border-red-500/40 text-red-300")}>{toast.msg}</div>}
 
       {/* Mobile sidebar overlay */}
@@ -1650,15 +1650,15 @@ export default function DashboardPage() {
       {/* Main content */}
       <main className="flex-1 overflow-hidden flex flex-col min-w-0">
         {/* Mobile top bar */}
-        <div className="md:hidden flex items-center justify-between px-5 py-4 bg-white flex-shrink-0">
+        <div className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-[#0f0f0f] flex-shrink-0">
           <button onClick={() => setSidebarOpen(true)} className="hidden text-white/50 hover:text-white">
             <i className="ri-menu-line text-xl" />
           </button>
           <Link href="/" className="flex items-center gap-0">
-            <img src="/img/logo.png" alt="NFC ID" className="h-16 w-16 object-contain" />
+            <img src="/img/logo.png" alt="NFC ID" className="h-8 w-8 object-contain" />
             <span className="hidden font-bold text-sm">NFC<span className="text-[#03A9F4]">·ID</span></span>
           </Link>
-          <button type="button" className="inline-flex h-10 items-center gap-2 rounded-full border border-[#03A9F4]/50 px-4 text-sm font-semibold text-[#14b8a6]">
+          <button type="button" className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#03A9F4]/40 px-3 text-xs font-semibold text-[#03A9F4]">
             <i className="ri-sparkling-2-line" />
             Try Pro For Free
           </button>
@@ -1674,7 +1674,7 @@ export default function DashboardPage() {
           ) : (
             <div className={"h-full " + (tab === "design" ? "overflow-hidden px-3 sm:px-6 py-4 sm:py-6 pb-24 md:pb-6" : "overflow-y-auto")}>
               {tab !== "design" && (
-                <div className="mx-auto max-w-5xl px-5 py-3 pb-32 sm:px-6 sm:py-6 md:pb-6">
+                <div className="mx-auto max-w-5xl px-3 py-3 pb-24 sm:px-6 sm:py-6 md:pb-6">
                   <div className="hidden items-center justify-between bg-[#03A9F4]/10 border border-[#03A9F4]/20 rounded-xl px-3 sm:px-4 py-2.5 mb-3 sm:mb-5 md:flex">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
@@ -1699,18 +1699,18 @@ export default function DashboardPage() {
             href={`/profile/${profile.publicId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="fixed bottom-[92px] left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-black/10 bg-white px-8 py-4 text-lg font-bold text-black shadow-xl md:hidden"
+            className="fixed bottom-[76px] left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#181818]/95 px-5 py-3 text-sm font-bold text-white shadow-xl backdrop-blur-xl md:hidden"
           >
-            <i className="ri-eye-line text-2xl" />
+            <i className="ri-eye-line text-lg" />
             Preview
           </a>
         )}
 
         {/* Mobile bottom nav */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex border-t border-black/10 bg-white/95 text-black backdrop-blur-xl">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex border-t border-white/5 bg-[#0f0f0f]/95 text-white backdrop-blur-xl">
           {NAV.map(n => (
-            <button key={n.id} onClick={() => setTab(n.id)} className={"flex-1 flex flex-col items-center gap-1 py-3 text-xs transition-all " + (tab === n.id ? "text-black" : "text-black/50")}>
-              <i className={n.icon + " text-3xl"} />
+            <button key={n.id} onClick={() => setTab(n.id)} className={"flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] transition-all " + (tab === n.id ? "text-[#03A9F4]" : "text-white/30 hover:text-white/60")}>
+              <i className={n.icon + " text-lg"} />
               <span>{n.label}</span>
             </button>
           ))}
