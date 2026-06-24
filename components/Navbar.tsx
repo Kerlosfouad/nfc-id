@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -100,21 +100,40 @@ export default function Navbar() {
         >
           x
         </button>
-        <ul className="list-none text-center w-full p-0 m-0">
-          {links.map((l) => (
-            <li key={l.href} className="w-full border-b border-white/5 last:border-0">
+        <ul className="mobile-menu-slides list-none text-center w-full p-0 m-0">
+          {links.map((l, index) => (
+            <li
+              key={l.href}
+              className="mobile-menu-slide w-full"
+              style={
+                {
+                  "--slide-delay": menuOpen ? `${120 + index * 75}ms` : "0ms",
+                  "--lead-delay": menuOpen ? `${540 + index * 75}ms` : "0ms",
+                } as CSSProperties
+              }
+            >
               <Link
                 href={l.href}
-                className="block text-white text-2xl sm:text-3xl uppercase tracking-widest py-5 hover:text-[#03A9F4] hover:bg-[#03A9F4]/5 transition-all duration-200"
+                className="mobile-menu-link block text-white text-xl sm:text-3xl uppercase tracking-widest py-5 hover:text-[#03A9F4] hover:bg-[#03A9F4]/5"
                 onClick={() => setMenuOpen(false)}
               >
                 {l.label}
               </Link>
             </li>
           ))}
-          <li className="pt-5">
+          <li
+            className="mobile-menu-slide pt-5"
+            style={
+              {
+                "--slide-delay": menuOpen ? `${120 + links.length * 75}ms` : "0ms",
+                "--lead-delay": menuOpen ? `${540 + links.length * 75}ms` : "0ms",
+              } as CSSProperties
+            }
+          >
             <Link href={isLoggedIn ? "/dashboard" : "/signup"} onClick={() => setMenuOpen(false)}>
-              <button className="px-7 py-3 bg-[#03A9F4] text-white rounded-full text-sm font-semibold uppercase tracking-wider hover:shadow-[0_0_20px_rgba(3,169,244,0.5)] transition-all">
+              <button
+                className="mobile-menu-cta px-7 py-3 bg-[#03A9F4] text-white rounded-full text-sm font-semibold uppercase tracking-wider hover:shadow-[0_0_20px_rgba(3,169,244,0.5)]"
+              >
                 {isLoggedIn ? "Dashboard" : "Get Started"}
               </button>
             </Link>

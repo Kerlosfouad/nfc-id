@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
+import AnimatedCounter from "./AnimatedCounter";
 import ParticleBackground from "./ParticleBackground";
 
 const stats = [
-  { value: "50K+", label: "Active Profiles" },
-  { value: "2M+", label: "Monthly Scans" },
-  { value: "99.9%", label: "Uptime" },
+  { value: 12, suffix: "K+", label: "Active Profiles" },
+  { value: 180, suffix: "K+", label: "Monthly Scans" },
+  { value: 98, suffix: "%", label: "Uptime" },
 ];
 
 export default function HeroSection() {
@@ -57,7 +58,9 @@ export default function HeroSection() {
           <div className="grid grid-cols-3 gap-2.5 sm:flex sm:items-center sm:justify-center sm:gap-8">
             {stats.map((s, i) => (
               <div key={i} className="text-center">
-                <div className="text-xl sm:text-2xl font-bold text-white">{s.value}</div>
+                <div className="text-xl sm:text-2xl font-bold text-white">
+                  <AnimatedCounter value={s.value} suffix={s.suffix} />
+                </div>
                 <div className="text-[10px] sm:text-xs text-white/40 uppercase tracking-wide sm:tracking-wider leading-tight">{s.label}</div>
               </div>
             ))}

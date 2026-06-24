@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
+import AnimatedCounter from "./AnimatedCounter";
 
 const steps = [
   {
@@ -45,7 +46,7 @@ export default function HowItWorks() {
             Simple Setup
           </div>
           <h2 className="text-white text-3xl sm:text-4xl font-bold uppercase leading-tight">How It Works</h2>
-          <p className="text-[#555] text-xs sm:text-sm mt-2 leading-relaxed">From tap to live profile in under 2 minutes</p>
+          <p className="text-[#555] text-xs sm:text-sm mt-2 leading-relaxed">From tap to live profile in minutes</p>
         </div>
 
         <div className="w-full max-w-[520px] space-y-3">
@@ -57,7 +58,9 @@ export default function HowItWorks() {
             >
               <div className="flex justify-between items-center relative z-10">
                 <div className="flex items-center gap-3">
-                  <span className="text-[#03A9F4]/40 text-xs font-mono font-bold">{s.num}</span>
+                  <span className="text-[#03A9F4]/40 text-xs font-mono font-bold">
+                    <AnimatedCounter value={i + 1} padStart={2} duration={900} />
+                  </span>
                   <span className="text-[#03A9F4] text-sm sm:text-base font-semibold leading-tight">
                     {s.title}
                   </span>

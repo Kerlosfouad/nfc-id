@@ -1,10 +1,11 @@
 import Image from "next/image";
+import AnimatedCounter from "./AnimatedCounter";
 
 const stats = [
-  { icon: "ri-user-2-line", value: "50K+", label: "Active Users", desc: "Creators & professionals" },
-  { icon: "ri-qr-scan-2-line", value: "2M+", label: "Monthly Scans", desc: "Successful connections" },
-  { icon: "ri-global-line", value: "30+", label: "Countries", desc: "Global reach & growing" },
-  { icon: "ri-sim-card-2-line", value: "NFC", label: "Technology", desc: "Fast & secure tap" },
+  { icon: "ri-user-2-line", value: 12, suffix: "K+", label: "Active Users", desc: "Creators & professionals" },
+  { icon: "ri-qr-scan-2-line", value: 180, suffix: "K+", label: "Monthly Scans", desc: "Successful connections" },
+  { icon: "ri-global-line", value: 18, suffix: "+", label: "Countries", desc: "Global reach & growing" },
+  { icon: "ri-sim-card-2-line", value: 1, suffix: " Tap", label: "Technology", desc: "Fast & secure NFC" },
 ];
 
 const comparison = [
@@ -43,7 +44,9 @@ export default function AboutSection() {
                   <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#1f1f23] group-hover:bg-[#03A9F4]/20 border border-[#2c2c2c] group-hover:border-[#03A9F4]/30 flex items-center justify-center mb-3 transition-all duration-300">
                     <i className={`${s.icon} text-[#03A9F4] text-lg sm:text-xl`} />
                   </div>
-                  <div className="text-[#03A9F4] text-xl sm:text-2xl font-bold mb-0.5">{s.value}</div>
+                  <div className="text-[#03A9F4] text-xl sm:text-2xl font-bold mb-0.5">
+                    <AnimatedCounter value={s.value} suffix={s.suffix} />
+                  </div>
                   <div className="text-white text-xs sm:text-sm font-semibold leading-tight">{s.label}</div>
                   <div className="text-[#555] text-[10px] sm:text-xs mt-0.5 leading-tight">{s.desc}</div>
                 </div>
