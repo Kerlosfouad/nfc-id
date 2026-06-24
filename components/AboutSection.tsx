@@ -20,15 +20,15 @@ const comparison = [
 
 export default function AboutSection() {
   return (
-    <section id="about" className="py-12 sm:py-24 px-4">
+    <section id="about" className="py-10 sm:py-24 px-4">
       <div className="w-full max-w-none md:container md:mx-auto">
         {/* Section header */}
-        <div className="flex items-center gap-3 mb-2">
-          <span className="w-8 h-[2px] bg-[#03A9F4] rounded-full" />
-          <span className="text-[#03A9F4] text-xs font-semibold uppercase tracking-widest">Who We Are</span>
+        <div className="flex items-center gap-2.5 mb-2">
+          <span className="w-7 sm:w-8 h-[2px] bg-[#03A9F4] rounded-full" />
+          <span className="text-[#03A9F4] text-[10px] sm:text-xs font-semibold uppercase tracking-widest">Who We Are</span>
         </div>
-        <h2 className="text-white text-3xl sm:text-5xl font-bold uppercase mb-1">About Us</h2>
-        <p className="text-[#555] text-sm sm:text-base mb-6 sm:mb-10">Everything you need to know</p>
+        <h2 className="text-white text-2xl sm:text-5xl font-bold uppercase mb-1 leading-tight">About Us</h2>
+        <p className="text-[#555] text-xs sm:text-base mb-5 sm:mb-10 leading-relaxed">Everything you need to know</p>
 
         <div className="flex w-full flex-col md:flex-row gap-6 md:gap-8 items-start">
           {/* Stats grid */}
@@ -36,7 +36,7 @@ export default function AboutSection() {
             {stats.map((s, i) => (
               <div
                 key={i}
-                className="group relative min-h-[132px] bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-4 sm:p-5 border border-[#222] hover:border-[#03A9F4]/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                className="group relative min-h-[120px] sm:min-h-[132px] bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-3.5 sm:p-5 border border-[#222] hover:border-[#03A9F4]/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
               >
                 <div className="absolute inset-0 bg-[#03A9F4]/0 group-hover:bg-[#03A9F4]/5 transition-all duration-300 rounded-2xl" />
                 <div className="relative z-10">

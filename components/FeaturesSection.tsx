@@ -41,21 +41,21 @@ const extraFeatures = [
 
 export default function FeaturesSection() {
   return (
-    <section className="py-20 sm:py-24 px-5 sm:px-4">
+    <section className="py-14 sm:py-24 px-5 sm:px-4">
       <div className="container mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 text-[#03A9F4] text-xs font-semibold uppercase tracking-widest mb-4">
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 text-[#03A9F4] text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-3 sm:mb-4">
             Everything You Need
           </div>
-          <h2 className="text-white text-4xl sm:text-5xl font-bold uppercase">Power Features</h2>
-          <p className="text-[#555] text-base mt-3 max-w-md mx-auto">
+          <h2 className="text-white text-3xl sm:text-5xl font-bold uppercase leading-tight">Power Features</h2>
+          <p className="text-[#555] text-sm sm:text-base mt-2 sm:mt-3 max-w-[330px] sm:max-w-md mx-auto leading-relaxed">
             More than a link-in-bio. A complete phygital identity platform.
           </p>
         </div>
 
         {/* Main 3 cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 mb-6 sm:mb-8">
           {features.map((f, i) => (
             <div
               key={i}
@@ -70,8 +70,8 @@ export default function FeaturesSection() {
                   {f.badge}
                 </span>
               </div>
-              <h3 className="text-white text-xl font-bold uppercase mb-2">{f.title}</h3>
-              <p className="text-[#777] text-base sm:text-sm mb-6 leading-relaxed">{f.desc}</p>
+              <h3 className="text-white text-lg sm:text-xl font-bold uppercase mb-2 leading-tight">{f.title}</h3>
+              <p className="text-[#777] text-sm mb-5 sm:mb-6 leading-relaxed">{f.desc}</p>
               <div className="flex justify-center">
                 <Image src={f.img} alt={f.title} width={200} height={200} className="mx-auto group-hover:scale-105 transition-transform duration-500" />
               </div>

@@ -78,9 +78,9 @@ a {
 .glass-card {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(15px);
-  border-radius: 20px;
-  padding: 20px;
-  margin-bottom: 25px;
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 14px;
   width: 100%;
   max-width: 500px;
   cursor: pointer;
@@ -107,7 +107,19 @@ a {
 .glass-card.active .card-body-content {
   max-height: 500px;
   opacity: 1;
-  padding-top: 10px;
+  padding-top: 8px;
+}
+
+@media (min-width: 640px) {
+  .glass-card {
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 25px;
+  }
+
+  .glass-card.active .card-body-content {
+    padding-top: 10px;
+  }
 }
 
 /* Marquee */
@@ -408,6 +420,21 @@ a {
 
 .product-orbit-reverse > * {
   animation: productCounterOrbitReverse 30s linear infinite;
+}
+
+.product-orbit-delay-1,
+.product-orbit-delay-1 > * {
+  animation-delay: -7s;
+}
+
+.product-orbit-delay-2,
+.product-orbit-delay-2 > * {
+  animation-delay: -13s;
+}
+
+.product-orbit-delay-3,
+.product-orbit-delay-3 > * {
+  animation-delay: -21s;
 }
 
 .product-orbit-paused,

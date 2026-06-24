@@ -31,7 +31,7 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="flex justify-center items-center w-full px-4 sm:px-5 py-4 sm:py-5 fixed top-0 z-50">
+    <header className="flex justify-center items-center w-full px-4 sm:px-5 py-3 sm:py-5 fixed top-0 z-50">
       <nav
         className={`w-full max-w-[calc(100vw-32px)] sm:w-auto flex justify-center items-center rounded-[22px] border transition-all duration-300 ${
           scrolled
@@ -39,10 +39,10 @@ export default function Navbar() {
             : "bg-white/[0.03] backdrop-blur-md border-[#2c2c2c]"
         }`}
       >
-        <div className="w-full sm:w-auto flex items-center justify-between md:justify-center gap-4 md:gap-8 px-4 sm:px-5 py-3.5 md:py-3 min-h-[64px] md:min-h-0">
+        <div className="w-full sm:w-auto flex items-center justify-between md:justify-center gap-3 md:gap-8 px-3.5 sm:px-5 py-2.5 md:py-3 min-h-[52px] md:min-h-0">
           {/* Logo */}
           <Link href="/" className="flex items-center group" aria-label="NFC ID home">
-            <Image src="/img/logo.png" alt="NFC ID" width={44} height={44} className="w-11 h-11 md:w-9 md:h-9 group-hover:drop-shadow-[0_0_8px_#03A9F4] transition-all duration-300" />
+            <Image src="/img/logo.png" alt="NFC ID" width={40} height={40} className="w-9 h-9 md:w-9 md:h-9 group-hover:drop-shadow-[0_0_8px_#03A9F4] transition-all duration-300" />
           </Link>
 
           {/* Desktop Links */}
@@ -79,13 +79,13 @@ export default function Navbar() {
 
             {/* Hamburger */}
             <button
-              className="md:hidden flex flex-col justify-center gap-1.5 w-12 h-12 rounded-full border border-white/10 bg-white/5 cursor-pointer group items-center"
+              className="md:hidden flex flex-col justify-center gap-1.5 w-10 h-10 rounded-full border border-white/10 bg-white/5 cursor-pointer group items-center"
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
             >
-              <span className="block h-[2px] w-6 bg-white rounded group-hover:bg-[#03A9F4] transition-colors" />
               <span className="block h-[2px] w-5 bg-white rounded group-hover:bg-[#03A9F4] transition-colors" />
-              <span className="block h-[2px] w-6 bg-white rounded group-hover:bg-[#03A9F4] transition-colors" />
+              <span className="block h-[2px] w-5 bg-white rounded group-hover:bg-[#03A9F4] transition-colors" />
+              <span className="block h-[2px] w-5 bg-white rounded group-hover:bg-[#03A9F4] transition-colors" />
             </button>
           </div>
         </div>
@@ -112,9 +112,9 @@ export default function Navbar() {
               </Link>
             </li>
           ))}
-          <li className="pt-6">
+          <li className="pt-5">
             <Link href={isLoggedIn ? "/dashboard" : "/signup"} onClick={() => setMenuOpen(false)}>
-              <button className="px-9 py-4 bg-[#03A9F4] text-white rounded-full font-semibold uppercase tracking-wider hover:shadow-[0_0_20px_rgba(3,169,244,0.5)] transition-all">
+              <button className="px-7 py-3 bg-[#03A9F4] text-white rounded-full text-sm font-semibold uppercase tracking-wider hover:shadow-[0_0_20px_rgba(3,169,244,0.5)] transition-all">
                 {isLoggedIn ? "Dashboard" : "Get Started"}
               </button>
             </Link>

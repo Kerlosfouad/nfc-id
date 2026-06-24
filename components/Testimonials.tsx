@@ -10,17 +10,17 @@ const testimonials = [
 
 function TestimonialCard({ t }: { t: typeof testimonials[0] }) {
   return (
-    <div className="bg-[#121212] border border-[#222] rounded-[15px] p-5 w-[min(350px,calc(100vw-40px))] mr-5 flex-shrink-0 hover:border-[#444] hover:bg-[#1a1a1a] transition-colors">
+    <div className="bg-[#121212] border border-[#222] rounded-[15px] p-4 sm:p-5 w-[min(330px,calc(100vw-40px))] sm:w-[min(350px,calc(100vw-40px))] mr-4 sm:mr-5 flex-shrink-0 hover:border-[#444] hover:bg-[#1a1a1a] transition-colors">
       <div className="flex items-center mb-3">
         <div className="w-11 h-11 bg-[#03A9F4] rounded-full flex items-center justify-center text-white font-bold">
           {t.initial}
         </div>
         <div className="ml-3">
-          <h6 className="text-[#03A9F4] font-semibold mb-0">{t.name}</h6>
+          <h6 className="text-[#03A9F4] text-sm sm:text-base font-semibold mb-0">{t.name}</h6>
           <small className="text-gray-500">{t.role}</small>
         </div>
       </div>
-      <p className="text-white text-sm">&quot;{t.text}&quot;</p>
+      <p className="text-white text-xs sm:text-sm leading-relaxed">&quot;{t.text}&quot;</p>
     </div>
   );
 }
@@ -39,9 +39,9 @@ export default function Testimonials() {
   }, []);
 
   return (
-    <section id="Testimonials" className="py-20 overflow-hidden">
+    <section id="Testimonials" className="py-14 sm:py-20 overflow-hidden">
       <div className="px-4">
-        <h1 className="text-white text-4xl font-bold uppercase mb-12 container mx-auto">Testimonials</h1>
+        <h1 className="text-white text-3xl sm:text-4xl font-bold uppercase mb-7 sm:mb-12 container mx-auto leading-tight">Testimonials</h1>
         <div className="testimonial-wrapper">
           <div className="marquee-container mb-4">
             <div ref={row1Ref} className="marquee-content scroll-left">
