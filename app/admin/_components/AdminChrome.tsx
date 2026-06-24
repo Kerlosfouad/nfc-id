@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -18,7 +18,13 @@ const navItems = [
 
 export function AdminChrome({ children }: { title: string; subtitle: string; children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [orderCount, setOrderCount] = useState(0);
+
+  async function signOutAdmin() {
+    await createClient().auth.signOut();
+    router.push("/login");
+  }
 
   useEffect(() => {
     let alive = true;
@@ -82,16 +88,17 @@ export function AdminChrome({ children }: { title: string; subtitle: string; chi
       <main className="relative z-10 flex min-h-screen flex-col lg:pl-[220px]">
         <header className="sticky top-0 z-20 border-b border-white/5 bg-[#0b0a0a]/90 px-4 py-4 backdrop-blur-xl sm:px-6">
           <div className="flex items-center justify-between gap-4">
-            <Link href="/admin" className="inline-flex group" aria-label="NFC ID admin">
+            <Link href="/" className="inline-flex group" aria-label="Back to website">
               <Image src="/img/logo.png" alt="NFC ID" width={38} height={38} className="transition-all group-hover:drop-shadow-[0_0_10px_#03A9F4]" />
             </Link>
-            <Link
-              href="/"
-              aria-label="Back to website"
+            <button
+              type="button"
+              onClick={signOutAdmin}
+              aria-label="Sign out"
               className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition-all hover:border-[#03A9F4]/40 hover:text-[#03A9F4]"
             >
-              <i className="ri-home-5-line text-lg" />
-            </Link>
+              <i className="ri-logout-box-r-line text-lg" />
+            </button>
           </div>
         </header>
 
