@@ -196,15 +196,14 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
   const [customTitle, setCustomTitle] = useState("");
   const [url, setUrl] = useState("");
   const [visible, setVisible] = useState(false);
-  const [closing, setClosing] = useState(false);
+  const closingRef = useRef(false);
   useEffect(() => { const id = requestAnimationFrame(() => setVisible(true)); return () => cancelAnimationFrame(id); }, []);
   function handleClose() {
-    if (closing) return;
-    setClosing(true);
+    if (closingRef.current) return;
+    closingRef.current = true;
     setVisible(false);
-  }
-  function handleSheetTransitionEnd(e: React.TransitionEvent<HTMLDivElement>) {
-    if (closing && e.propertyName === "transform" && e.target === e.currentTarget) onCancel();
+    // Safety net: unmount after animation duration regardless of transitionend
+    setTimeout(onCancel, 750);
   }
 
   const normalizedQuery = query.trim().toLowerCase();
@@ -236,7 +235,6 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
       <div
         className={`flex h-[86svh] w-full flex-col overflow-hidden rounded-t-3xl bg-[#111] text-white shadow-2xl transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] sm:h-[760px] sm:max-w-2xl sm:rounded-3xl ${visible ? "translate-y-0" : "translate-y-full"}`}
         onClick={e => e.stopPropagation()}
-        onTransitionEnd={handleSheetTransitionEnd}
       >
         <div className="mx-auto mt-3 h-1 w-24 rounded-full bg-white/10" />
 
