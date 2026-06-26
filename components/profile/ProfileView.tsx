@@ -90,33 +90,6 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
   }
 }
 
-/* ── Save Contact ─────────────────────────────────────────── */
-
-function SaveButton({ profile, isDark, primaryColor }: { profile: Profile; isDark: boolean; primaryColor: string }) {
-  function download() {
-    const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${profile.displayName}\n${profile.bio ? `NOTE:${profile.bio}\n` : ''}END:VCARD`;
-    const blob = new Blob([vcard], { type: 'text/vcard' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `${profile.displayName}.vcf`; a.click();
-    URL.revokeObjectURL(url);
-  }
-  return (
-    <button
-      onClick={download}
-      className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95"
-      style={{
-        backgroundColor: primaryColor,
-        color: '#fff',
-        boxShadow: `0 4px 20px ${primaryColor}60`,
-      }}
-    >
-      <i className="ri-contacts-line text-base" />
-      Save Contact
-    </button>
-  );
-}
-
 /* ── Link Row ─────────────────────────────────────────────── */
 
 function LinkRow({ link, primaryColor, isDark }: { link: ProfileLink; primaryColor: string; isDark: boolean }) {
@@ -130,23 +103,28 @@ function LinkRow({ link, primaryColor, isDark }: { link: ProfileLink; primaryCol
       rel="noopener noreferrer"
       className="flex items-center gap-0 transition-all duration-200 active:scale-[0.98]"
     >
-      {/* Icon circle */}
+      {/* Icon circle — use thumbnailUrl if available, else icon */}
       <div
-        className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 z-10"
-        style={{ backgroundColor: color, boxShadow: `0 2px 12px ${color}60` }}
+        className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 z-10 overflow-hidden"
+        style={{ backgroundColor: color, boxShadow: `0 2px 16px ${color}70` }}
       >
-        <i className={`${icon} text-xl text-white`} />
+        {link.thumbnailUrl
+          ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+          : <i className={`${icon} text-2xl text-white`} />
+        }
       </div>
-      {/* Pill label — extends from icon */}
+      {/* Pill label */}
       <div
-        className="flex-1 h-12 flex items-center pl-4 -ml-6 rounded-r-full"
+        className="flex-1 h-14 flex items-center pl-5 -ml-7 rounded-r-full"
         style={{
-          backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)',
-          backdropFilter: 'blur(12px)',
+          backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'}`,
         }}
       >
         <span
-          className="font-semibold text-base"
+          className="font-semibold text-base ml-1"
           style={{ color: isDark ? '#ffffff' : '#1a1a1a' }}
         >
           {link.title}
@@ -169,8 +147,8 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
   const themeVars = getThemeVars(profile.theme);
   const bgStyle = getBgStyle(profile.theme);
 
-  const cvLink = links.find(l => l.type === 'VCF');
-  const visibleLinks = links.filter(l => l.type !== 'VCF');
+  const cvLink = links.find(l => l.type === 'VCF' || l.title === 'CV / Resume');
+  const visibleLinks = links.filter(l => l !== cvLink);
 
   return (
     <main
@@ -218,9 +196,52 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
             {profile.bio}
           </p>
         )}
-        <p className="text-xs font-semibold tracking-widest uppercase mb-8" style={{ color: primaryColor }}>
+        <p className="text-xs font-semibold tracking-widest uppercase mb-5" style={{ color: primaryColor }}>
           NFC ID
         </p>
+
+        {/* Save (right) + CV (left) buttons row */}
+        <div className="w-full flex items-center justify-between mb-7 px-1">
+          {/* CV / Resume — left */}
+          {cvLink ? (
+            <a
+              href={cvLink.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95"
+              style={{
+                backgroundColor: themeVars.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+                color: themeVars.isDark ? '#fff' : '#1a1a1a',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${themeVars.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)'}`,
+              }}
+            >
+              <i className="ri-file-user-line text-base" />
+              CV
+            </a>
+          ) : <div />}
+
+          {/* Save Contact — right */}
+          <button
+            onClick={() => {
+              const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${profile.displayName}\n${profile.bio ? `NOTE:${profile.bio}\n` : ''}END:VCARD`;
+              const blob = new Blob([vcard], { type: 'text/vcard' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url; a.download = `${profile.displayName}.vcf`; a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95"
+            style={{
+              backgroundColor: primaryColor,
+              color: '#fff',
+              boxShadow: `0 4px 16px ${primaryColor}60`,
+            }}
+          >
+            <i className="ri-contacts-line text-base" />
+            Save
+          </button>
+        </div>
 
         {/* Links */}
         <div className="w-full flex flex-col gap-3 mb-8">
@@ -229,32 +250,11 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
           ))}
         </div>
 
-        {/* Save Contact button */}
-        <SaveButton profile={profile} isDark={themeVars.isDark} primaryColor={primaryColor} />
-
-        {/* CV link */}
-        {cvLink && (
-          <a
-            href={cvLink.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95"
-            style={{
-              backgroundColor: themeVars.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
-              color: themeVars.isDark ? '#fff' : '#1a1a1a',
-              backdropFilter: 'blur(10px)',
-            }}
-          >
-            <i className="ri-file-user-line text-base" />
-            CV / Resume
-          </a>
-        )}
-
         {/* Lead form */}
         {showLeadForm && <LeadForm profileId={profile.id} publicId={profile.publicId} />}
 
         {/* Footer */}
-        <div className="flex flex-col items-center gap-2 pt-12">
+        <div className="flex flex-col items-center gap-2 pt-8">
           <Link href="/" className="flex flex-col items-center gap-1.5 group transition-opacity hover:opacity-70">
             <img src="/img/logo.png" alt="NFC ID" className="w-8 h-8 rounded-lg opacity-70" />
             <span className="text-[10px] font-semibold tracking-widest uppercase" style={{ color: themeVars.textSecondary }}>
