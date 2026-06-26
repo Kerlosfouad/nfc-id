@@ -115,16 +115,16 @@ function LinkRow({ link, primaryColor, isDark }: { link: ProfileLink; primaryCol
       </div>
       {/* Pill label */}
       <div
-        className="flex-1 h-14 flex items-center pl-5 -ml-7 rounded-r-full"
+        className="flex-1 h-14 flex items-center justify-center pl-5 -ml-7 rounded-r-full"
         style={{
-          backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)',
+          backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'}`,
+          border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
         }}
       >
         <span
-          className="font-semibold text-base ml-1"
+          className="font-semibold text-sm uppercase tracking-widest"
           style={{ color: isDark ? '#ffffff' : '#1a1a1a' }}
         >
           {link.title}
@@ -208,7 +208,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
               href={cvLink.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95"
               style={{
                 backgroundColor: themeVars.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
                 color: themeVars.isDark ? '#fff' : '#1a1a1a',
@@ -231,7 +231,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
               a.href = url; a.download = `${profile.displayName}.vcf`; a.click();
               URL.revokeObjectURL(url);
             }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95"
             style={{
               backgroundColor: primaryColor,
               color: '#fff',
