@@ -156,10 +156,9 @@ function LinkRow({ link, primaryColor, isDark }: { link: ProfileLink; primaryCol
       <div
         className="flex-1 h-14 flex items-center justify-center pl-5 -ml-7 rounded-r-2xl"
         style={{
-          backgroundColor: isDark ? 'rgba(15,30,60,0.45)' : 'rgba(0,0,0,0.15)',
+          backgroundColor: isDark ? 'rgba(15,30,60,0.28)' : 'rgba(0,0,0,0.10)',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
-          border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
         }}
       >
         <span
@@ -199,7 +198,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
         <div className="fixed inset-0 bg-black/40 z-0" />
       )}
 
-      <div className="relative z-10 flex flex-col items-center w-full max-w-sm mx-auto px-5 pt-16 pb-10">
+      <div className="relative z-10 flex flex-col items-center w-full max-w-sm mx-auto px-5 pt-24 pb-10">
 
         {/* Avatar */}
         <div
