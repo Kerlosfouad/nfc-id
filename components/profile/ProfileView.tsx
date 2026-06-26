@@ -12,18 +12,9 @@ const LINK_ICONS: Record<string, string> = {
   URL: 'ri-link',
   VCF: 'ri-contacts-line',
   WHATSAPP: 'ri-whatsapp-line',
-  YOUTUBE: 'ri-youtube-line',
-  SPOTIFY: 'ri-spotify-line',
+  YOUTUBE: 'ri-youtube-fill',
+  SPOTIFY: 'ri-spotify-fill',
   TIKTOK: 'ri-tiktok-line',
-  FACEBOOK: 'ri-facebook-fill',
-  INSTAGRAM: 'ri-instagram-line',
-  TWITTER: 'ri-twitter-x-line',
-  LINKEDIN: 'ri-linkedin-fill',
-  GITHUB: 'ri-github-fill',
-  EMAIL: 'ri-mail-line',
-  PHONE: 'ri-phone-line',
-  TELEGRAM: 'ri-telegram-line',
-  SNAPCHAT: 'ri-snapchat-line',
 };
 
 const LINK_COLORS: Record<string, string> = {
@@ -33,16 +24,65 @@ const LINK_COLORS: Record<string, string> = {
   YOUTUBE: '#FF0000',
   SPOTIFY: '#1DB954',
   TIKTOK: '#cccccc',
-  FACEBOOK: '#1877F2',
-  INSTAGRAM: '#E4405F',
-  TWITTER: '#1DA1F2',
-  LINKEDIN: '#0A66C2',
-  GITHUB: '#cccccc',
-  EMAIL: '#F59E0B',
-  PHONE: '#10B981',
-  TELEGRAM: '#26A5E4',
-  SNAPCHAT: '#FFFC00',
 };
+
+// Map from link title (lowercase) → { icon, color }
+const TITLE_META: Record<string, { icon: string; color: string }> = {
+  'facebook':           { icon: 'ri-facebook-fill',           color: '#1877F2' },
+  'instagram':          { icon: 'ri-instagram-line',           color: '#E4405F' },
+  'twitter':            { icon: 'ri-twitter-x-line',           color: '#111111' },
+  'x':                  { icon: 'ri-twitter-x-line',           color: '#111111' },
+  'whatsapp':           { icon: 'ri-whatsapp-line',            color: '#25D366' },
+  'whatsapp channel':   { icon: 'ri-whatsapp-line',            color: '#16a34a' },
+  'whatsapp business':  { icon: 'ri-whatsapp-line',            color: '#22c55e' },
+  'tiktok':             { icon: 'ri-tiktok-line',              color: '#111111' },
+  'youtube':            { icon: 'ri-youtube-fill',             color: '#FF0000' },
+  'snapchat':           { icon: 'ri-snapchat-fill',            color: '#facc15' },
+  'pinterest':          { icon: 'ri-pinterest-fill',           color: '#E60023' },
+  'discord':            { icon: 'ri-discord-fill',             color: '#5865F2' },
+  'telegram':           { icon: 'ri-telegram-fill',            color: '#229ED9' },
+  'wechat':             { icon: 'ri-wechat-fill',              color: '#22c55e' },
+  'linkedin':           { icon: 'ri-linkedin-box-fill',        color: '#0A66C2' },
+  'github':             { icon: 'ri-github-fill',              color: '#24292f' },
+  'behance':            { icon: 'ri-behance-fill',             color: '#1769FF' },
+  'dribbble':           { icon: 'ri-dribbble-fill',            color: '#EA4C89' },
+  'medium':             { icon: 'ri-medium-fill',              color: '#111111' },
+  'figma':              { icon: 'ri-figma-fill',               color: '#F24E1E' },
+  'slack':              { icon: 'ri-slack-fill',               color: '#4A154B' },
+  'notion':             { icon: 'ri-notion-fill',              color: '#111111' },
+  'spotify':            { icon: 'ri-spotify-fill',             color: '#1DB954' },
+  'twitch':             { icon: 'ri-twitch-fill',              color: '#9146FF' },
+  'soundcloud':         { icon: 'ri-soundcloud-fill',          color: '#FF7700' },
+  'paypal':             { icon: 'ri-paypal-fill',              color: '#003087' },
+  'email':              { icon: 'ri-mail-fill',                color: '#f59e0b' },
+  'gmail':              { icon: 'ri-google-fill',              color: '#EA4335' },
+  'phone':              { icon: 'ri-phone-fill',               color: '#10b981' },
+  'website':            { icon: 'ri-global-fill',              color: '#38bdf8' },
+  'address':            { icon: 'ri-home-5-fill',              color: '#ef4444' },
+  'location':           { icon: 'ri-map-pin-fill',             color: '#22d3ee' },
+  'google maps':        { icon: 'ri-map-pin-2-fill',           color: '#4285F4' },
+  'wordpress':          { icon: 'ri-wordpress-fill',           color: '#21759B' },
+  'google play':        { icon: 'ri-google-play-fill',         color: '#34A853' },
+  'app store':          { icon: 'ri-app-store-fill',           color: '#0A84FF' },
+  'instapay':           { icon: 'ri-bank-card-fill',           color: '#5b21b6' },
+  'stack overflow':     { icon: 'ri-stack-overflow-fill',      color: '#F48024' },
+  'upwork':             { icon: 'ri-briefcase-4-fill',         color: '#14a800' },
+  'amazon':             { icon: 'ri-amazon-fill',              color: '#FF9900' },
+  'cv':                 { icon: 'ri-file-user-fill',           color: '#10b981' },
+  'cv / resume':        { icon: 'ri-file-user-fill',           color: '#10b981' },
+  'my team':            { icon: 'ri-team-fill',                color: '#6366f1' },
+};
+
+function getLinkMeta(link: ProfileLink, primaryColor: string): { icon: string; color: string } {
+  // Try title match first (case-insensitive)
+  const byTitle = TITLE_META[link.title.toLowerCase()];
+  if (byTitle) return byTitle;
+  // Fall back to type
+  return {
+    icon: LINK_ICONS[link.type] ?? 'ri-link',
+    color: LINK_COLORS[link.type] ?? primaryColor,
+  };
+}
 
 /* ── Theme helpers ──────────────────────────────────────────── */
 
@@ -93,8 +133,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
 /* ── Link Row ─────────────────────────────────────────────── */
 
 function LinkRow({ link, primaryColor, isDark }: { link: ProfileLink; primaryColor: string; isDark: boolean }) {
-  const icon = LINK_ICONS[link.type] ?? 'ri-link';
-  const color = LINK_COLORS[link.type] ?? primaryColor;
+  const { icon, color } = getLinkMeta(link, primaryColor);
 
   return (
     <a
@@ -147,7 +186,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
   const themeVars = getThemeVars(profile.theme);
   const bgStyle = getBgStyle(profile.theme);
 
-  const cvLink = links.find(l => l.type === 'VCF' || l.title === 'CV / Resume');
+  const cvLink = links.find(l => l.type === 'VCF' || l.title.toLowerCase().includes('cv') || l.title.toLowerCase().includes('resume'));
   const visibleLinks = links.filter(l => l !== cvLink);
 
   return (
