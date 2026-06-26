@@ -145,7 +145,7 @@ function LinkRow({ link, primaryColor, isDark }: { link: ProfileLink; primaryCol
       {/* Icon circle — use thumbnailUrl if available, else icon */}
       <div
         className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 z-10 overflow-hidden"
-        style={{ backgroundColor: color, boxShadow: `0 2px 16px ${color}70` }}
+        style={{ backgroundColor: color, boxShadow: `0 2px 12px ${color}80` }}
       >
         {link.thumbnailUrl
           ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
@@ -154,12 +154,12 @@ function LinkRow({ link, primaryColor, isDark }: { link: ProfileLink; primaryCol
       </div>
       {/* Pill label */}
       <div
-        className="flex-1 h-14 flex items-center justify-center pl-5 -ml-7 rounded-r-full"
+        className="flex-1 h-14 flex items-center justify-center pl-5 -ml-7 rounded-r-2xl"
         style={{
-          backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
+          backgroundColor: isDark ? 'rgba(15,30,60,0.45)' : 'rgba(0,0,0,0.15)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
         }}
       >
         <span
@@ -203,7 +203,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
 
         {/* Avatar */}
         <div
-          className="w-28 h-28 rounded-full p-[3px] mb-4"
+          className="w-36 h-36 rounded-full p-[3px] mb-4"
           style={{
             background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
             boxShadow: `0 0 32px ${primaryColor}60`,
@@ -283,7 +283,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
         </div>
 
         {/* Links */}
-        <div className="w-full flex flex-col gap-3 mb-8">
+        <div className="w-full flex flex-col gap-2 mb-8">
           {visibleLinks.map(link => (
             <LinkRow key={link.id} link={link} primaryColor={primaryColor} isDark={themeVars.isDark} />
           ))}
