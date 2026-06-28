@@ -36,6 +36,17 @@ function isFutureDate(value: string | null | undefined): boolean {
   return !!value && new Date(value).getTime() > Date.now();
 }
 
+async function readApiJson(response: Response) {
+  const text = await response.text();
+  if (!text) return {};
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(response.ok ? "Invalid server response" : "Server error. Please try again after the database update finishes.");
+  }
+}
+
 function isLinkHidden(link: Pick<LinkItem, "activeTo">): boolean {
   return !!(link.activeTo && new Date(link.activeTo) <= new Date());
 }
@@ -1740,13 +1751,13 @@ export default function DashboardPage() {
       try {
         // 1. Get profiles list
         const listRes = await fetch("/api/v1/profiles", { headers: { Authorization: "Bearer " + tok, "x-user-id": uid } });
-        const listJson = await listRes.json();
+        const listJson = await readApiJson(listRes);
         const list: ProfileData[] = listJson.data ?? [];
         // 2. Fetch full data (with links + theme) for each profile in parallel
         const full = await Promise.all(list.map(async (p) => {
           try {
             const r = await fetch("/api/v1/profiles/" + p.id, { headers: { Authorization: "Bearer " + tok, "x-user-id": uid } });
-            const j = await r.json();
+            const j = await readApiJson(r);
             return j.data ? { ...j.data, links: j.data.links ?? [] } : { ...p, links: [] };
           } catch { return { ...p, links: [] }; }
         }));
@@ -1757,7 +1768,7 @@ export default function DashboardPage() {
 
   async function patchProfile(patch: Record<string, unknown>) {
     if (!profile) return; setSaving(true);
-    try { const r = await fetch("/api/v1/profiles/" + profile.id, { method: "PATCH", headers: hdrs(), body: JSON.stringify(patch) }); const j = await r.json(); if (!r.ok) throw new Error(j.error?.message ?? "Failed"); setProfiles(prev => prev.map(p => p.id === profile.id ? { ...j.data, links: j.data.links ?? p.links ?? [] } : p)); showToast("Saved"); }
+    try { const r = await fetch("/api/v1/profiles/" + profile.id, { method: "PATCH", headers: hdrs(), body: JSON.stringify(patch) }); const j = await readApiJson(r); if (!r.ok) throw new Error(j.error?.message ?? "Failed"); setProfiles(prev => prev.map(p => p.id === profile.id ? { ...j.data, links: j.data.links ?? p.links ?? [] } : p)); showToast("Saved"); }
     catch (e: unknown) { showToast(e instanceof Error ? e.message : "Error", false); } finally { setSaving(false); }
   }
   async function addLink(data: LinkDraft) {
@@ -1786,7 +1797,7 @@ export default function DashboardPage() {
     setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: [...p.links, optimisticLink] } : p));
     try {
       const r = await fetch("/api/v1/profiles/" + profileId + "/links", { method: "POST", headers: hdrs(), body: JSON.stringify(data) });
-      const j = await r.json();
+      const j = await readApiJson(r);
       if (!r.ok) throw new Error(j.error?.message ?? "Failed");
       setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.map(l => l.id === tempId ? j.data : l) } : p));
       showToast("Link added");
@@ -1806,7 +1817,7 @@ export default function DashboardPage() {
     setEditLink(null);
     try {
       const r = await fetch("/api/v1/profiles/" + profileId + "/links/" + linkId, { method: "PATCH", headers: hdrs(), body: JSON.stringify(patch) });
-      const j = await r.json();
+      const j = await readApiJson(r);
       if (!r.ok) throw new Error(j.error?.message ?? "Failed");
       setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.map(l => l.id === linkId ? j.data : l) } : p));
       showToast("Saved");
