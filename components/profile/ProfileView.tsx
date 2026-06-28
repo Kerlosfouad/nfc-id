@@ -98,12 +98,18 @@ function getLinkMeta(link: ProfileLink, primaryColor: string): { icon: string; c
   };
 }
 
+function isCvLink(link: ProfileLink): boolean {
+  const title = link.title.toLowerCase();
+  const url = link.url.toLowerCase();
+  return title.includes('cv') || title.includes('resume') || url.endsWith('.pdf') || url.includes('.pdf?');
+}
+
 /* ── Theme helpers ──────────────────────────────────────────── */
 
 function getThemeVars(theme: ProfileTheme) {
   switch (theme.style) {
     case 'minimal':
-      return { textPrimary: '#18181b', textSecondary: '#52525b', isDark: false, glass: 'rgba(255,255,255,0.62)', glassBorder: 'rgba(24,24,27,0.10)' };
+      return { textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.72)', isDark: true, glass: 'rgba(255,255,255,0.12)', glassBorder: 'rgba(255,255,255,0.16)' };
     case 'nature':
       return { textPrimary: '#ecfdf5', textSecondary: 'rgba(236,253,245,0.72)', isDark: true, glass: 'rgba(6,78,59,0.28)', glassBorder: 'rgba(167,243,208,0.18)' };
     case 'ocean':
@@ -134,7 +140,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
     case 'sunset':    return { background: 'radial-gradient(circle at 72% 18%, rgba(251,146,60,0.36), transparent 34%), linear-gradient(150deg,#431407,#9a3412 52%,#1f0b05)' };
     case 'retro':     return { background: 'radial-gradient(circle at 72% 18%, rgba(251,191,36,0.34), transparent 34%), linear-gradient(150deg,#451a03,#92400e 52%,#1c0c03)' };
     case 'rose-gold': return { background: 'radial-gradient(circle at 72% 18%, rgba(251,113,133,0.34), transparent 34%), linear-gradient(150deg,#4c0519,#be123c 52%,#23040e)' };
-    case 'minimal':   return { background: 'linear-gradient(150deg,#fafafa,#e4e4e7 54%,#d4d4d8)' };
+    case 'minimal':   return { background: 'radial-gradient(circle at 72% 18%, rgba(255,255,255,0.16), transparent 34%), linear-gradient(150deg,#18181b,#3f3f46 54%,#09090b)' };
     case 'neon':      return { background: `radial-gradient(circle at 72% 18%, ${pc}66, transparent 34%), linear-gradient(150deg,#050505,#111827 50%,#020617)` };
     case 'purple-haze': return { background: 'radial-gradient(circle at 72% 18%, rgba(167,139,250,0.34), transparent 34%), linear-gradient(150deg,#1e1b4b,#6d28d9 54%,#16052e)' };
     case 'midnight':  return { background: 'radial-gradient(circle at 72% 18%, rgba(56,189,248,0.28), transparent 34%), linear-gradient(150deg,#020617,#1e3a5f 54%,#020617)' };
@@ -146,7 +152,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
 
 /* ── Link Row ─────────────────────────────────────────────── */
 
-function LinkRow({ link, primaryColor, themeVars }: { link: ProfileLink; primaryColor: string; themeVars: ReturnType<typeof getThemeVars> }) {
+function LinkRow({ link, primaryColor, themeVars, compact = false }: { link: ProfileLink; primaryColor: string; themeVars: ReturnType<typeof getThemeVars>; compact?: boolean }) {
   const { icon, color } = getLinkMeta(link, primaryColor);
 
   return (
@@ -158,17 +164,17 @@ function LinkRow({ link, primaryColor, themeVars }: { link: ProfileLink; primary
     >
       {/* Icon circle — use thumbnailUrl if available, else icon */}
       <div
-        className="w-[52px] h-[52px] rounded-full flex items-center justify-center flex-shrink-0 z-10 overflow-hidden"
+        className={`${compact ? 'w-12 h-12' : 'w-[52px] h-[52px]'} rounded-full flex items-center justify-center flex-shrink-0 z-10 overflow-hidden`}
         style={{ backgroundColor: color, boxShadow: `0 5px 18px ${color}66` }}
       >
         {link.thumbnailUrl
           ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
-          : <i className={`${icon} text-2xl text-white`} />
+          : <i className={`${icon} ${compact ? 'text-xl' : 'text-2xl'} text-white`} />
         }
       </div>
       {/* Pill label */}
       <div
-        className="flex-1 h-[52px] flex items-center justify-center pl-6 -ml-7 rounded-r-[18px] border"
+        className={`flex-1 ${compact ? 'h-12 pl-5' : 'h-[52px] pl-6'} flex items-center justify-center -ml-7 rounded-r-[18px] border`}
         style={{
           backgroundColor: themeVars.glass,
           borderColor: themeVars.glassBorder,
@@ -179,11 +185,42 @@ function LinkRow({ link, primaryColor, themeVars }: { link: ProfileLink; primary
       >
         <span
           className="font-semibold text-sm"
-          style={{ color: themeVars.isDark ? '#ffffff' : '#1a1a1a' }}
+          style={{ color: '#ffffff' }}
         >
           {link.title}
         </span>
       </div>
+    </a>
+  );
+}
+
+function LinkGridTile({ link, primaryColor, themeVars }: { link: ProfileLink; primaryColor: string; themeVars: ReturnType<typeof getThemeVars> }) {
+  const { icon, color } = getLinkMeta(link, primaryColor);
+
+  return (
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="min-h-[102px] rounded-[22px] border p-3 flex flex-col items-center justify-center gap-2 text-center transition-all duration-200 active:scale-[0.98]"
+      style={{
+        backgroundColor: themeVars.glass,
+        borderColor: themeVars.glassBorder,
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
+      }}
+    >
+      <div
+        className="h-11 w-11 rounded-full flex items-center justify-center overflow-hidden"
+        style={{ backgroundColor: color, boxShadow: `0 5px 18px ${color}66` }}
+      >
+        {link.thumbnailUrl
+          ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+          : <i className={`${icon} text-xl text-white`} />
+        }
+      </div>
+      <span className="max-w-full truncate text-sm font-semibold text-white">{link.title}</span>
     </a>
   );
 }
@@ -200,8 +237,10 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
   const { primaryColor = '#03A9F4', fontFamily } = profile.theme;
   const themeVars = getThemeVars(profile.theme);
   const bgStyle = getBgStyle(profile.theme);
+  const isGrid = profile.theme.linksLayout === 'grid';
+  const isHero = profile.theme.profileLayout === 'hero';
 
-  const cvLink = links.find(l => l.type === 'VCF' || l.title.toLowerCase().includes('cv') || l.title.toLowerCase().includes('resume'));
+  const cvLink = links.find(isCvLink);
   const visibleLinks = links.filter(l => l !== cvLink);
 
   return (
@@ -214,72 +253,79 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
         <div className="fixed inset-0 bg-black/40 z-0" />
       )}
 
-      <div className="relative z-10 flex min-h-screen w-full max-w-[390px] flex-col items-center mx-auto px-7 pt-16 pb-8">
+      <div className={`relative z-10 flex min-h-screen w-full max-w-[390px] flex-col items-center mx-auto px-7 ${isHero ? 'pt-7' : 'pt-16'} pb-8`}>
 
         {/* Avatar */}
-        <div
-          className="w-[126px] h-[126px] rounded-full p-[3px] mb-4"
-          style={{
-            background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
-            boxShadow: `0 0 32px ${primaryColor}60`,
-          }}
-        >
+        <div className={isHero ? 'w-full rounded-[28px] border p-5 mb-5 text-center' : 'contents'} style={isHero ? {
+          backgroundColor: 'rgba(255,255,255,0.10)',
+          borderColor: 'rgba(255,255,255,0.16)',
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+        } : undefined}>
           <div
-            className="w-full h-full rounded-full overflow-hidden"
-            style={{ border: `3px solid ${themeVars.isDark ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.6)'}` }}
+            className={`${isHero ? 'w-[112px] h-[112px]' : 'w-[126px] h-[126px]'} rounded-full p-[3px] mb-4 mx-auto`}
+            style={{
+              background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
+              boxShadow: `0 0 32px ${primaryColor}60`,
+            }}
           >
-            {profile.avatarUrl ? (
-              <img src={profile.avatarUrl} alt={profile.displayName} className="w-full h-full object-cover" />
-            ) : (
-              <div
-                className="w-full h-full flex items-center justify-center text-3xl font-bold text-white"
-                style={{ backgroundColor: `${primaryColor}50` }}
-              >
-                {profile.displayName.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <div
+              className="w-full h-full rounded-full overflow-hidden"
+              style={{ border: '3px solid rgba(255,255,255,0.35)' }}
+            >
+              {profile.avatarUrl ? (
+                <img src={profile.avatarUrl} alt={profile.displayName} className="w-full h-full object-cover" />
+              ) : (
+                <div
+                  className="w-full h-full flex items-center justify-center text-3xl font-bold text-white"
+                  style={{ backgroundColor: `${primaryColor}50` }}
+                >
+                  {profile.displayName.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Name & Bio */}
+          <h1 className="text-[26px] leading-tight font-bold text-center mb-1 flex items-center justify-center gap-2 text-white" style={{ color: '#ffffff' }}>
+            {profile.displayName}
+            {profile.isVerified && (
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                <circle cx="11" cy="11" r="11" fill={primaryColor} />
+                <path d="M6.5 11.5L9.5 14.5L15.5 8.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </h1>
+          {profile.bio && (
+            <p className="text-sm text-center mb-1 leading-relaxed" style={{ color: themeVars.textSecondary }}>
+              {profile.bio}
+            </p>
+          )}
+          <p className={`text-xs font-semibold tracking-widest uppercase ${isHero ? '' : 'mb-6'}`} style={{ color: primaryColor }}>
+            NFC ID
+          </p>
         </div>
 
-        {/* Name & Bio */}
-        <h1 className="text-[26px] leading-tight font-bold text-center mb-1 flex items-center gap-2" style={{ color: themeVars.textPrimary }}>
-          {profile.displayName}
-          {profile.isVerified && (
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-              <circle cx="11" cy="11" r="11" fill={primaryColor} />
-              <path d="M6.5 11.5L9.5 14.5L15.5 8.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          )}
-        </h1>
-        {profile.bio && (
-          <p className="text-sm text-center mb-1 leading-relaxed" style={{ color: themeVars.textSecondary }}>
-            {profile.bio}
-          </p>
-        )}
-        <p className="text-xs font-semibold tracking-widest uppercase mb-6" style={{ color: primaryColor }}>
-          NFC ID
-        </p>
-
         {/* Save (right) + CV (left) buttons row */}
-        <div className="w-full flex items-center justify-between mb-5 px-1">
+        <div className="w-full flex items-center justify-between gap-3 mb-5 px-1">
           {/* CV / Resume — left */}
           {cvLink ? (
             <a
               href={cvLink.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95"
+              className="flex-1 min-w-0 flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold transition-all active:scale-95"
               style={{
-                backgroundColor: themeVars.isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
-                color: themeVars.isDark ? '#fff' : '#1a1a1a',
+                backgroundColor: 'rgba(255,255,255,0.12)',
+                color: '#fff',
                 backdropFilter: 'blur(10px)',
-                border: `1px solid ${themeVars.isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)'}`,
+                border: '1px solid rgba(255,255,255,0.15)',
               }}
             >
               <i className="ri-file-user-line text-base" />
               CV
             </a>
-          ) : <div />}
+          ) : null}
 
           {/* Save Contact — right */}
           <button
@@ -291,7 +337,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
               a.href = url; a.download = `${profile.displayName}.vcf`; a.click();
               URL.revokeObjectURL(url);
             }}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all active:scale-95"
+            className={`${cvLink ? 'flex-1' : 'w-full'} min-w-0 flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold transition-all active:scale-95`}
             style={{
               backgroundColor: primaryColor,
               color: '#fff',
@@ -304,9 +350,11 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
         </div>
 
         {/* Links */}
-        <div className="w-full flex flex-col gap-2 mb-8">
-          {visibleLinks.map(link => (
-            <LinkRow key={link.id} link={link} primaryColor={primaryColor} themeVars={themeVars} />
+        <div className={`w-full mb-8 ${isGrid ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2'}`}>
+          {visibleLinks.map(link => isGrid ? (
+            <LinkGridTile key={link.id} link={link} primaryColor={primaryColor} themeVars={themeVars} />
+          ) : (
+            <LinkRow key={link.id} link={link} primaryColor={primaryColor} themeVars={themeVars} compact={isHero} />
           ))}
         </div>
 
