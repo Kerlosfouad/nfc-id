@@ -117,8 +117,8 @@ export async function PATCH(
     include: { links: { orderBy: { displayOrder: 'asc' } } },
   });
 
-  // Invalidate Redis cache for this profile's publicId
-  await del(profileCacheKey(existing.publicId));
+  // Invalidate Redis cache without delaying the profile update response.
+  void del(profileCacheKey(existing.publicId));
 
   return NextResponse.json({ data: updated, error: null });
 }

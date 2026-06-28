@@ -21,6 +21,25 @@ type Tab = "home" | "analytics" | "share" | "design" | "settings";
 
 type LinkPickerCategory = "Social" | "Professional" | "Entertainment" | "Payment" | "Contact" | "Portfolio" | "Other";
 type LinkPickerItem = { label: string; icon: string; color: string; type?: string; placeholder?: string };
+type LinkDraft = { type: string; title: string; url: string };
+type PendingLinks = Record<string, "add" | "update" | "delete" | "toggle">;
+
+const CLOSED_LINK_TIMESTAMP = "2000-01-01T00:00:00.000Z";
+
+function isLinkHidden(link: Pick<LinkItem, "activeTo">): boolean {
+  return !!(link.activeTo && new Date(link.activeTo) <= new Date());
+}
+
+function isCvLink(link: Pick<LinkItem, "type" | "title">): boolean {
+  const title = link.title.toLowerCase();
+  return link.type === "VCF" || title.includes("cv") || title.includes("resume");
+}
+
+function reorderPayload(links: LinkItem[]) {
+  return {
+    links: links.map((link, displayOrder) => ({ id: link.id, displayOrder })),
+  };
+}
 
 const LINK_PICKER_SECTIONS: { category: LinkPickerCategory; items: LinkPickerItem[] }[] = [
   {
@@ -114,6 +133,21 @@ const LINK_PICKER_SECTIONS: { category: LinkPickerCategory; items: LinkPickerIte
   },
 ];
 
+const TITLE_META = LINK_PICKER_SECTIONS
+  .flatMap(section => section.items)
+  .reduce<Record<string, { icon: string; color: string }>>((acc, item) => {
+    acc[item.label.toLowerCase()] = { icon: item.icon, color: item.color };
+    return acc;
+  }, {});
+
+function getLinkMeta(link: Pick<LinkItem, "type" | "title">): { icon: string; color: string } {
+  const title = link.title.toLowerCase();
+  const exact = TITLE_META[title];
+  if (exact) return exact;
+  const fuzzy = Object.entries(TITLE_META).find(([key]) => key.length > 2 && title.includes(key));
+  return fuzzy?.[1] ?? LMETA[link.type] ?? { icon: "ri-link", color: "#03A9F4" };
+}
+
 const PRESET_THEMES = [
   { id: "default", name: "Default", desc: "Clean and minimal design", colors: ["#ffffff", "#f3f4f6", "#6b7280", "#374151"], premium: false },
   { id: "dark", name: "Dark Mode", desc: "Sleek dark interface", colors: ["#111827", "#1f2937", "#3b82f6", "#f9fafb"], premium: false },
@@ -128,7 +162,7 @@ const PRESET_THEMES = [
   { id: "rose-gold", name: "Rose Gold", desc: "Elegant pink and gold", colors: ["#fff1f2", "#fecdd3", "#e11d48", "#f59e0b"], premium: true },
   { id: "forest", name: "Forest", desc: "Deep forest greens", colors: ["#052e16", "#14532d", "#22c55e", "#bbf7d0"], premium: true },
 ];
-function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { profile: ProfileData; saving: boolean; onSave: (p: Record<string, unknown>) => void; onClose: () => void; onAddLink?: (d: { type: string; title: string; url: string }) => void }) {
+function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { profile: ProfileData; saving: boolean; onSave: (p: Record<string, unknown>) => void; onClose: () => void; onAddLink?: (d: LinkDraft) => void }) {
   const [name, setName] = useState(profile.displayName);
   const [bio, setBio] = useState(profile.bio ?? "");
   const [avatar, setAvatar] = useState(profile.avatarUrl ?? "");
@@ -153,7 +187,7 @@ function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { pro
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Upload failed");
-      onAddLink?.({ type: "URL", title: "CV / Resume", url: json.url });
+      onAddLink?.({ type: "VCF", title: "CV", url: json.url });
       onClose();
     } catch (err) {
       console.error("CV upload error:", err);
@@ -188,7 +222,7 @@ function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { pro
   );
 }
 
-function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit: (d: { type: string; title: string; url: string }) => void; onCancel: () => void }) {
+function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit: (d: LinkDraft) => void; onCancel: () => void }) {
   const categories = ["All", ...LINK_PICKER_SECTIONS.map(s => s.category)];
   const [activeCategory, setActiveCategory] = useState("All");
   const [query, setQuery] = useState("");
@@ -196,14 +230,15 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
   const [customTitle, setCustomTitle] = useState("");
   const [url, setUrl] = useState("");
   const [visible, setVisible] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const closingRef = useRef(false);
   useEffect(() => { const id = requestAnimationFrame(() => setVisible(true)); return () => cancelAnimationFrame(id); }, []);
   function handleClose() {
     if (closingRef.current) return;
     closingRef.current = true;
     setVisible(false);
-    // Safety net: unmount after animation duration regardless of transitionend
-    setTimeout(onCancel, 750);
+    // Keep the exit quick so the sheet does not feel like a duplicate is lingering.
+    setTimeout(onCancel, 180);
   }
 
   const normalizedQuery = query.trim().toLowerCase();
@@ -222,18 +257,19 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
   }
 
   function submitSelected() {
-    if (!selected || !url.trim()) return;
+    if (!selected || !url.trim() || submitted) return;
     const type = selected.type && LTYPES.includes(selected.type) ? selected.type : "URL";
+    setSubmitted(true);
     onSubmit({ type, title: customTitle.trim() || selected.label, url: url.trim() });
   }
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex items-end justify-center transition-all duration-700 ${visible ? "bg-black/70 backdrop-blur-sm" : "bg-black/0 backdrop-blur-none"}`}
+      className={`fixed inset-0 z-[100] flex items-end justify-center transition-all duration-150 ${visible ? "bg-black/70 backdrop-blur-sm" : "bg-black/0 backdrop-blur-none"}`}
       onClick={e => { if (e.target === e.currentTarget) handleClose(); }}
     >
       <div
-        className={`flex h-[86svh] w-full flex-col overflow-hidden rounded-t-3xl bg-[#111] text-white shadow-2xl transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] sm:h-[760px] sm:max-w-2xl sm:rounded-3xl ${visible ? "translate-y-0" : "translate-y-full"}`}
+        className={`flex h-[86svh] w-full flex-col overflow-hidden rounded-t-3xl bg-[#111] text-white shadow-2xl transition-transform duration-150 ease-out sm:h-[760px] sm:max-w-2xl sm:rounded-3xl ${visible ? "translate-y-0" : "translate-y-full"}`}
         onClick={e => e.stopPropagation()}
       >
         <div className="mx-auto mt-3 h-1 w-24 rounded-full bg-white/10" />
@@ -324,10 +360,10 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
               <button
                 type="button"
                 onClick={submitSelected}
-                disabled={saving || !url.trim()}
+                disabled={saving || submitted || !url.trim()}
                 className="rounded-xl bg-[#03A9F4] px-4 py-2 text-sm font-bold text-white disabled:opacity-35"
               >
-                {saving ? "Adding..." : "Add"}
+                {saving || submitted ? "Adding..." : "Add"}
               </button>
             </div>
           </div>
@@ -346,14 +382,14 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
 function EditLinkForm({ link, saving, onSubmit, onCancel, onDelete }: { link: LinkItem; saving: boolean; onSubmit: (p: Record<string, unknown>) => void; onCancel: () => void; onDelete?: () => void }) {
   const [title, setTitle] = useState(link.title);
   const [url, setUrl] = useState(link.url);
-  const isHidden = !!(link.activeTo && new Date(link.activeTo) < new Date());
+  const isHidden = isLinkHidden(link);
   const [visible, setVisible] = useState(!isHidden);
   const [directLink, setDirectLink] = useState(!!(link as LinkItem & { directLink?: boolean }).directLink);
 
   function handleSave() {
     const patch: Record<string, unknown> = { title, url };
     if (!visible) {
-      patch.activeTo = new Date(Date.now() - 1000).toISOString();
+      patch.activeTo = CLOSED_LINK_TIMESTAMP;
     } else {
       patch.activeTo = null;
     }
@@ -565,7 +601,7 @@ function SortableLinks({ links, onMoveTo, onEditLink, onUpdateLink, onDeleteLink
   // optimistic hidden state
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => {
     const s = new Set<string>();
-    links.forEach(l => { if (l.activeTo && new Date(l.activeTo) < new Date()) s.add(l.id); });
+    links.forEach(l => { if (isLinkHidden(l)) s.add(l.id); });
     return s;
   });
   // track IDs that have a pending toggle so we don't overwrite optimistic state
@@ -578,7 +614,7 @@ function SortableLinks({ links, onMoveTo, onEditLink, onUpdateLink, onDeleteLink
       const next = new Set(prev);
       links.forEach(l => {
         if (pendingIds.current.has(l.id)) return; // skip — optimistic update in flight
-        const shouldBeHidden = !!(l.activeTo && new Date(l.activeTo) < new Date());
+        const shouldBeHidden = isLinkHidden(l);
         if (shouldBeHidden) next.add(l.id); else next.delete(l.id);
       });
       return next;
@@ -627,7 +663,7 @@ function SortableLinks({ links, onMoveTo, onEditLink, onUpdateLink, onDeleteLink
       if (isHidden) next.delete(link.id); else next.add(link.id);
       return next;
     });
-    onUpdateLink(link.id, { activeTo: isHidden ? null : new Date(Date.now() - 1000).toISOString() });
+    onUpdateLink(link.id, { activeTo: isHidden ? null : CLOSED_LINK_TIMESTAMP });
     // clear pending after server response has had time to propagate
     setTimeout(() => pendingIds.current.delete(link.id), 2000);
   }
@@ -635,7 +671,7 @@ function SortableLinks({ links, onMoveTo, onEditLink, onUpdateLink, onDeleteLink
   return (
     <div ref={containerRef} className="space-y-2 relative">
       {links.map((link, i) => {
-        const m = LMETA[link.type] ?? { icon: "ri-link", color: "#03A9F4" };
+        const m = getLinkMeta(link);
         const isHidden = hiddenIds.has(link.id);
         const isDraggingThis = dragging === i;
         const isTarget = dragOver === i && dragging !== null && dragging !== i;
@@ -692,8 +728,8 @@ function SortableLinks({ links, onMoveTo, onEditLink, onUpdateLink, onDeleteLink
           style={{ left: pos.x, top: pos.y, width: itemRefs.current[dragging]?.offsetWidth ?? 300 }}
         >
           <i className="ri-drag-move-2-line text-[#03A9F4] text-base flex-shrink-0" />
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: (LMETA[links[dragging]?.type] ?? { color: "#03A9F4" }).color + "20" }}>
-            <i className={(LMETA[links[dragging]?.type] ?? { icon: "ri-link" }).icon + " text-sm"} style={{ color: (LMETA[links[dragging]?.type] ?? { color: "#03A9F4" }).color }} />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: getLinkMeta(links[dragging]).color + "20" }}>
+            <i className={getLinkMeta(links[dragging]).icon + " text-sm"} style={{ color: getLinkMeta(links[dragging]).color }} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{links[dragging]?.title}</p>
@@ -705,13 +741,15 @@ function SortableLinks({ links, onMoveTo, onEditLink, onUpdateLink, onDeleteLink
   );
 }
 
-function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink, onMove, onMoveTo, editOpen, setEditOpen, addOpen, setAddOpen, editLink, setEditLink, onUpdateLink, onAddLinkSubmit }: {
+function HomeTab({ profile, saving, pendingLinks, onPatch, onAddLink, onEditLink, onDeleteLink, onMove, onMoveTo, editOpen, setEditOpen, addOpen, setAddOpen, editLink, setEditLink, onUpdateLink, onAddLinkSubmit }: {
   profile: ProfileData; saving: boolean; onPatch: (p: Record<string, unknown>) => void; onAddLink: () => void; onEditLink: (l: LinkItem) => void; onDeleteLink: (id: string) => void; onMove: (i: number, d: "up" | "down") => void; onMoveTo: (from: number, to: number) => void;
+  pendingLinks: PendingLinks;
   editOpen: boolean; setEditOpen: (v: boolean) => void; addOpen: boolean; setAddOpen: (v: boolean) => void; editLink: LinkItem | null; setEditLink: (l: LinkItem | null) => void;
-  onUpdateLink: (id: string, p: Record<string, unknown>) => void; onAddLinkSubmit: (d: { type: string; title: string; url: string }) => void;
+  onUpdateLink: (id: string, p: Record<string, unknown>) => void; onAddLinkSubmit: (d: LinkDraft) => void;
 }) {
   const [avatarModal, setAvatarModal] = useState(false);
   const [coverModal, setCoverModal] = useState(false);
+  const regularLinks = profile.links.filter(link => !isCvLink(link));
   // Optimistic toggle state for link visibility
   const [optimisticHidden, setOptimisticHidden] = useState<Record<string, boolean>>({});
   // Clear optimistic overrides when server data arrives
@@ -793,7 +831,7 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
             <h3 className="text-base font-semibold">Your Links</h3>
             <button onClick={onAddLink} className="flex items-center gap-1.5 rounded-xl bg-[#03A9F4] px-3 py-2 text-sm font-semibold text-white hover:bg-[#03A9F4]/80 sm:px-4"><i className="ri-add-line text-base" />Add Link</button>
           </div>
-          {addOpen && <AddLinkForm saving={saving} onSubmit={onAddLinkSubmit} onCancel={() => setAddOpen(false)} />}          {editLink && (
+          {editLink && (
             <EditLinkForm
               link={editLink}
               saving={saving}
@@ -802,13 +840,15 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
               onDelete={() => { onDeleteLink(editLink.id); setEditLink(null); }}
             />
           )}
-          {profile.links.length === 0 && !addOpen
+          {regularLinks.length === 0 && !addOpen
             ? <div className="text-center py-8 border border-dashed border-white/10 rounded-xl"><i className="ri-links-line text-3xl text-white/20 mb-2 block" /><p className="text-white/30 text-sm">No links yet</p></div>
             : <div className="space-y-3">
-              {profile.links.map((link, i) => {
-                const m = LMETA[link.type] ?? { icon: "ri-link", color: "#03A9F4" };
-                const serverHidden = link.activeTo && new Date(link.activeTo) < new Date();
+              {regularLinks.map((link) => {
+                const i = profile.links.findIndex(l => l.id === link.id);
+                const m = getLinkMeta(link);
+                const serverHidden = isLinkHidden(link);
                 const isHidden = link.id in optimisticHidden ? optimisticHidden[link.id] : !!serverHidden;
+                const isPending = !!pendingLinks[link.id];
                 return (
                   <div
                     key={link.id}
@@ -824,7 +864,7 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
                       onMoveTo(from, i);
                     }}
                     onClick={e => { if (!(e.target as HTMLElement).closest("button")) onEditLink(link); }}
-                    className={`flex items-center gap-3 rounded-xl border px-3 py-3 transition-all cursor-pointer sm:gap-4 sm:px-4 sm:py-3.5 ${isHidden ? "border-white/5 bg-white/2 opacity-60" : "border-white/10 bg-white/5 hover:border-white/20"}`}
+                    className={`flex items-center gap-3 rounded-xl border px-3 py-3 transition-all cursor-pointer sm:gap-4 sm:px-4 sm:py-3.5 ${isHidden ? "border-white/5 bg-white/2 opacity-60" : "border-white/10 bg-white/5 hover:border-white/20"} ${isPending ? "pointer-events-none" : ""}`}
                   >
                     {/* Drag handle */}
                     <i className="ri-draggable text-base text-white/20 transition-colors cursor-grab active:cursor-grabbing flex-shrink-0 group-hover:text-white/50" />
@@ -843,12 +883,14 @@ function HomeTab({ profile, saving, onPatch, onAddLink, onEditLink, onDeleteLink
                     {/* Toggle — optimistic: update UI instantly, API in background */}
                     <button
                       onClick={() => {
+                        if (isPending) return;
                         const newHidden = !isHidden;
                         // Instantly update UI
                         setOptimisticHidden(prev => ({ ...prev, [link.id]: newHidden }));
                         // Fire API in background (don't await / don't block)
-                        onUpdateLink(link.id, { activeTo: newHidden ? new Date(Date.now() - 1000).toISOString() : null });
+                        onUpdateLink(link.id, { activeTo: newHidden ? CLOSED_LINK_TIMESTAMP : null });
                       }}
+                      disabled={isPending}
                       className={`relative h-5 w-9 rounded-full transition-all flex-shrink-0 ${isHidden ? "bg-white/10" : "bg-[#03A9F4]"}`}
                       title={isHidden ? "Enable link" : "Disable link"}
                     >
@@ -1505,7 +1547,7 @@ function DesignTab({ profile, saving, onSave }: { profile: ProfileData; saving: 
             <div className="w-[375px] h-[812px] origin-top-left" style={{ transform: "scale(0.597)" }}>
               <iframe
                 key={refreshKey}
-                src={`/profile/${profile.publicId}`}
+                src={`/profile/${profile.publicId}?preview=true`}
                 className="w-full h-full border-none"
                 title="Profile Preview"
               />
@@ -1537,6 +1579,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [pendingLinks, setPendingLinks] = useState<PendingLinks>({});
   const [editOpen, setEditOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [editLink, setEditLink] = useState<LinkItem | null>(null);
@@ -1547,6 +1590,14 @@ export default function DashboardPage() {
 
   function showToast(msg: string, ok = true) { setToast({ msg, ok }); if (tRef.current) clearTimeout(tRef.current); tRef.current = setTimeout(() => setToast(null), 3000); }
   function hdrs() { return { "Content-Type": "application/json", Authorization: "Bearer " + token, "x-user-id": uid }; }
+  function setLinkPending(linkId: string, state: PendingLinks[string] | null) {
+    setPendingLinks(prev => {
+      const next = { ...prev };
+      if (state) next[linkId] = state;
+      else delete next[linkId];
+      return next;
+    });
+  }
 
   useEffect(() => {
     createClient().auth.getSession().then(async ({ data: { session } }) => {
@@ -1577,29 +1628,87 @@ export default function DashboardPage() {
     try { const r = await fetch("/api/v1/profiles/" + profile.id, { method: "PATCH", headers: hdrs(), body: JSON.stringify(patch) }); const j = await r.json(); if (!r.ok) throw new Error(j.error?.message ?? "Failed"); setProfiles(prev => prev.map(p => p.id === profile.id ? { ...j.data, links: j.data.links ?? p.links ?? [] } : p)); showToast("Saved"); }
     catch (e: unknown) { showToast(e instanceof Error ? e.message : "Error", false); } finally { setSaving(false); }
   }
-  async function addLink(data: { type: string; title: string; url: string }) {
-    if (!profile) return; setSaving(true);
-    try { const r = await fetch("/api/v1/profiles/" + profile.id + "/links", { method: "POST", headers: hdrs(), body: JSON.stringify(data) }); const j = await r.json(); if (!r.ok) throw new Error(j.error?.message ?? "Failed"); setProfiles(prev => prev.map(p => p.id === profile.id ? { ...p, links: [...p.links, j.data] } : p)); showToast("Link added"); setAddOpen(false); }
-    catch (e: unknown) { showToast(e instanceof Error ? e.message : "Error", false); } finally { setSaving(false); }
+  async function addLink(data: LinkDraft) {
+    if (!profile) return;
+    const profileId = profile.id;
+    if (isCvLink(data)) {
+      const existingCv = profile.links.find(isCvLink);
+      if (existingCv) {
+        await updateLink(existingCv.id, { type: "VCF", title: "CV", url: data.url, activeTo: null });
+        return;
+      }
+    }
+    const tempId = "temp-" + crypto.randomUUID();
+    const optimisticLink: LinkItem = {
+      id: tempId,
+      type: data.type,
+      title: data.title,
+      url: data.url,
+      thumbnailUrl: null,
+      displayOrder: profile.links.length,
+      activeFrom: null,
+      activeTo: null,
+    };
+    setAddOpen(false);
+    setLinkPending(tempId, "add");
+    setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: [...p.links, optimisticLink] } : p));
+    try {
+      const r = await fetch("/api/v1/profiles/" + profileId + "/links", { method: "POST", headers: hdrs(), body: JSON.stringify(data) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error?.message ?? "Failed");
+      setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.map(l => l.id === tempId ? j.data : l) } : p));
+      showToast("Link added");
+    } catch (e: unknown) {
+      setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.filter(l => l.id !== tempId) } : p));
+      showToast(e instanceof Error ? e.message : "Error", false);
+    } finally {
+      setLinkPending(tempId, null);
+    }
   }
   async function updateLink(linkId: string, patch: Record<string, unknown>) {
     if (!profile) return;
-    // optimistic: update UI instantly and close modal
-    setProfiles(prev => prev.map(p => p.id === profile.id ? { ...p, links: p.links.map(l => l.id === linkId ? { ...l, ...patch } : l) } : p));
+    const profileId = profile.id;
+    const previous = profile.links.find(l => l.id === linkId);
+    setLinkPending(linkId, "activeTo" in patch && Object.keys(patch).length === 1 ? "toggle" : "update");
+    setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.map(l => l.id === linkId ? { ...l, ...patch } : l) } : p));
     setEditLink(null);
-    try { const r = await fetch("/api/v1/profiles/" + profile.id + "/links/" + linkId, { method: "PATCH", headers: hdrs(), body: JSON.stringify(patch) }); const j = await r.json(); if (!r.ok) throw new Error(j.error?.message ?? "Failed"); setProfiles(prev => prev.map(p => p.id === profile.id ? { ...p, links: p.links.map(l => l.id === linkId ? j.data : l) } : p)); showToast("Saved"); }
-    catch (e: unknown) { showToast(e instanceof Error ? e.message : "Error", false); }
+    try {
+      const r = await fetch("/api/v1/profiles/" + profileId + "/links/" + linkId, { method: "PATCH", headers: hdrs(), body: JSON.stringify(patch) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error?.message ?? "Failed");
+      setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.map(l => l.id === linkId ? j.data : l) } : p));
+      showToast("Saved");
+    } catch (e: unknown) {
+      if (previous) setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.map(l => l.id === linkId ? previous : l) } : p));
+      showToast(e instanceof Error ? e.message : "Error", false);
+    } finally {
+      setLinkPending(linkId, null);
+    }
   }
   async function deleteLink(linkId: string) {
     if (!profile) return;
-    try { await fetch("/api/v1/profiles/" + profile.id + "/links/" + linkId, { method: "DELETE", headers: hdrs() }); setProfiles(prev => prev.map(p => p.id === profile.id ? { ...p, links: p.links.filter(l => l.id !== linkId) } : p)); showToast("Deleted"); }
-    catch { showToast("Error", false); }
+    const profileId = profile.id;
+    const deleted = profile.links.find(l => l.id === linkId);
+    setLinkPending(linkId, "delete");
+    setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.filter(l => l.id !== linkId) } : p));
+    try {
+      const r = await fetch("/api/v1/profiles/" + profileId + "/links/" + linkId, { method: "DELETE", headers: hdrs() });
+      if (!r.ok) throw new Error("Failed");
+      showToast("Deleted");
+    } catch {
+      if (deleted) {
+        setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: [...p.links, deleted].sort((a, b) => a.displayOrder - b.displayOrder) } : p));
+      }
+      showToast("Error", false);
+    } finally {
+      setLinkPending(linkId, null);
+    }
   }
   async function moveLink(index: number, dir: "up" | "down") {
     if (!profile) return; const links = [...profile.links]; const swap = dir === "up" ? index - 1 : index + 1; if (swap < 0 || swap >= links.length) return;
     [links[index], links[swap]] = [links[swap], links[index]]; const reordered = links.map((l, i) => ({ ...l, displayOrder: i }));
     setProfiles(prev => prev.map(p => p.id === profile.id ? { ...p, links: reordered } : p));
-    await fetch("/api/v1/profiles/" + profile.id + "/links/order", { method: "PUT", headers: hdrs(), body: JSON.stringify({ order: reordered.map(l => l.id) }) });
+    await fetch("/api/v1/profiles/" + profile.id + "/links/order", { method: "PUT", headers: hdrs(), body: JSON.stringify(reorderPayload(reordered)) });
   }
   async function moveLinkTo(from: number, to: number) {
     if (!profile || from === to) return;
@@ -1608,7 +1717,7 @@ export default function DashboardPage() {
     links.splice(to, 0, moved);
     const reordered = links.map((l, i) => ({ ...l, displayOrder: i }));
     setProfiles(prev => prev.map(p => p.id === profile.id ? { ...p, links: reordered } : p));
-    await fetch("/api/v1/profiles/" + profile.id + "/links/order", { method: "PUT", headers: hdrs(), body: JSON.stringify({ order: reordered.map(l => l.id) }) });
+    await fetch("/api/v1/profiles/" + profile.id + "/links/order", { method: "PUT", headers: hdrs(), body: JSON.stringify(reorderPayload(reordered)) });
   }
   function copyLink() { if (!profile) return; navigator.clipboard.writeText(window.location.origin + "/profile/" + profile.publicId); setCopied(true); setTimeout(() => setCopied(false), 2000); }
 
@@ -1699,7 +1808,7 @@ export default function DashboardPage() {
                     </div>
                     <button onClick={copyLink} className="text-xs text-white/40 hover:text-white flex items-center gap-1 flex-shrink-0 ml-2"><i className={copied ? "ri-check-line text-green-400" : "ri-file-copy-line"} />{copied ? "Copied!" : "Copy"}</button>
                   </div>
-                  {tab === "home" && <HomeTab profile={profile} saving={saving} onPatch={patchProfile} onAddLink={() => setAddOpen(true)} onEditLink={setEditLink} onDeleteLink={deleteLink} onMove={moveLink} onMoveTo={moveLinkTo} editOpen={editOpen} setEditOpen={setEditOpen} addOpen={addOpen} setAddOpen={setAddOpen} editLink={editLink} setEditLink={setEditLink} onUpdateLink={updateLink} onAddLinkSubmit={addLink} />}
+                  {tab === "home" && <HomeTab profile={profile} saving={saving} pendingLinks={pendingLinks} onPatch={patchProfile} onAddLink={() => setAddOpen(true)} onEditLink={setEditLink} onDeleteLink={deleteLink} onMove={moveLink} onMoveTo={moveLinkTo} editOpen={editOpen} setEditOpen={setEditOpen} addOpen={addOpen} setAddOpen={setAddOpen} editLink={editLink} setEditLink={setEditLink} onUpdateLink={updateLink} onAddLinkSubmit={addLink} />}
                   {tab === "analytics" && <AnalyticsTab profile={profile} token={token} uid={uid} />}
                   {tab === "share" && <ShareTab profile={profile} onCopy={copyLink} copied={copied} />}
                   {tab === "settings" && <SettingsTab profile={profile} token={token} uid={uid} />}

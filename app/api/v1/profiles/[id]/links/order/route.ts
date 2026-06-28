@@ -113,7 +113,7 @@ export async function PUT(
     )
   );
 
-  await del(profileCacheKey(profile.publicId));
+  void del(profileCacheKey(profile.publicId));
 
   return NextResponse.json({ data: { updated: links.length }, error: null });
 }

@@ -45,15 +45,22 @@ const TITLE_META: Record<string, { icon: string; color: string }> = {
   'linkedin':           { icon: 'ri-linkedin-box-fill',        color: '#0A66C2' },
   'github':             { icon: 'ri-github-fill',              color: '#24292f' },
   'behance':            { icon: 'ri-behance-fill',             color: '#1769FF' },
+  'qabilah':            { icon: 'ri-quill-pen-fill',           color: '#111111' },
   'dribbble':           { icon: 'ri-dribbble-fill',            color: '#EA4C89' },
   'medium':             { icon: 'ri-medium-fill',              color: '#111111' },
+  'google scholar':     { icon: 'ri-graduation-cap-fill',      color: '#111111' },
+  'scopus':             { icon: 'ri-file-list-3-fill',         color: '#111111' },
   'figma':              { icon: 'ri-figma-fill',               color: '#F24E1E' },
   'slack':              { icon: 'ri-slack-fill',               color: '#4A154B' },
   'notion':             { icon: 'ri-notion-fill',              color: '#111111' },
+  'google meet':        { icon: 'ri-video-chat-fill',          color: '#34A853' },
   'spotify':            { icon: 'ri-spotify-fill',             color: '#1DB954' },
   'twitch':             { icon: 'ri-twitch-fill',              color: '#9146FF' },
   'soundcloud':         { icon: 'ri-soundcloud-fill',          color: '#FF7700' },
+  'telda':              { icon: 'ri-wallet-3-fill',            color: '#111111' },
   'paypal':             { icon: 'ri-paypal-fill',              color: '#003087' },
+  'venmo':              { icon: 'ri-bank-card-2-fill',         color: '#3D95CE' },
+  'cash app':           { icon: 'ri-money-dollar-circle-fill', color: '#111111' },
   'email':              { icon: 'ri-mail-fill',                color: '#f59e0b' },
   'gmail':              { icon: 'ri-google-fill',              color: '#EA4335' },
   'phone':              { icon: 'ri-phone-fill',               color: '#10b981' },
@@ -62,12 +69,18 @@ const TITLE_META: Record<string, { icon: string; color: string }> = {
   'location':           { icon: 'ri-map-pin-fill',             color: '#22d3ee' },
   'google maps':        { icon: 'ri-map-pin-2-fill',           color: '#4285F4' },
   'wordpress':          { icon: 'ri-wordpress-fill',           color: '#21759B' },
+  'dev.to':             { icon: 'ri-code-box-fill',            color: '#111111' },
+  'substack':           { icon: 'ri-bookmark-fill',            color: '#111111' },
+  'linktree':           { icon: 'ri-asterisk',                 color: '#111111' },
   'google play':        { icon: 'ri-google-play-fill',         color: '#34A853' },
   'app store':          { icon: 'ri-app-store-fill',           color: '#0A84FF' },
   'instapay':           { icon: 'ri-bank-card-fill',           color: '#5b21b6' },
   'stack overflow':     { icon: 'ri-stack-overflow-fill',      color: '#F48024' },
   'upwork':             { icon: 'ri-briefcase-4-fill',         color: '#14a800' },
   'amazon':             { icon: 'ri-amazon-fill',              color: '#FF9900' },
+  'noon':               { icon: 'ri-shopping-bag-4-fill',      color: '#FEEE00' },
+  'jumia':              { icon: 'ri-shopping-cart-2-fill',     color: '#f59e0b' },
+  'attachment':         { icon: 'ri-attachment-2',             color: '#10b981' },
   'cv':                 { icon: 'ri-file-user-fill',           color: '#10b981' },
   'cv / resume':        { icon: 'ri-file-user-fill',           color: '#10b981' },
   'my team':            { icon: 'ri-team-fill',                color: '#6366f1' },
@@ -75,7 +88,8 @@ const TITLE_META: Record<string, { icon: string; color: string }> = {
 
 function getLinkMeta(link: ProfileLink, primaryColor: string): { icon: string; color: string } {
   // Try title match first (case-insensitive)
-  const byTitle = TITLE_META[link.title.toLowerCase()];
+  const title = link.title.toLowerCase();
+  const byTitle = TITLE_META[title] ?? Object.entries(TITLE_META).find(([key]) => key.length > 2 && title.includes(key))?.[1];
   if (byTitle) return byTitle;
   // Fall back to type
   return {
@@ -226,8 +240,14 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
         </div>
 
         {/* Name & Bio */}
-        <h1 className="text-2xl font-bold text-center mb-1" style={{ color: themeVars.textPrimary }}>
+        <h1 className="text-2xl font-bold text-center mb-1 flex items-center gap-2" style={{ color: themeVars.textPrimary }}>
           {profile.displayName}
+          {profile.isVerified && (
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+              <circle cx="11" cy="11" r="11" fill={primaryColor} />
+              <path d="M6.5 11.5L9.5 14.5L15.5 8.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
         </h1>
         {profile.bio && (
           <p className="text-sm text-center mb-1 leading-relaxed" style={{ color: themeVars.textSecondary }}>

@@ -90,8 +90,8 @@ export async function POST(
     },
   });
 
-  // Invalidate cache
-  await del(profileCacheKey(profile.publicId));
+  // Invalidate cache without delaying the create response.
+  void del(profileCacheKey(profile.publicId));
 
   return NextResponse.json({ data: link, error: null }, { status: 201 });
 }

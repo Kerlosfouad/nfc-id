@@ -103,7 +103,7 @@ export async function PATCH(
     data: parsed.data,
   });
 
-  await del(profileCacheKey(resolved.profile.publicId));
+  void del(profileCacheKey(resolved.profile.publicId));
 
   return NextResponse.json({ data: updated, error: null });
 }
@@ -123,7 +123,7 @@ export async function DELETE(
   if (!resolved.ok) return resolved.response;
 
   await db.link.delete({ where: { id: linkId } });
-  await del(profileCacheKey(resolved.profile.publicId));
+  void del(profileCacheKey(resolved.profile.publicId));
 
   return NextResponse.json({ data: { id: linkId }, error: null });
 }

@@ -153,7 +153,9 @@ export default function ProfileBuilderPage() {
       await fetch(`/api/v1/profiles/${profileId}/links/order`, {
         method: "PUT",
         headers: authHeaders(),
-        body: JSON.stringify({ order: links.map((l) => l.id) }),
+        body: JSON.stringify({
+          links: links.map((link, displayOrder) => ({ id: link.id, displayOrder })),
+        }),
       });
     } catch {
       showToast("Failed to save link order", "error");
