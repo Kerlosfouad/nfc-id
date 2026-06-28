@@ -51,6 +51,12 @@ const UpdateProfileSchema = z.object({
   sensitiveContent: z.boolean().optional(),
 });
 
+const PRIME_THEME_STYLES = new Set(['sunset', 'neon', 'minimal', 'purple-haze', 'retro', 'midnight', 'rose-gold', 'forest']);
+
+function isFuture(date: Date | null): boolean {
+  return !!date && date.getTime() > Date.now();
+}
+
 // ── GET /api/v1/profiles/:id ──────────────────────────────────────────────────
 
 export async function GET(
@@ -109,6 +115,21 @@ export async function PATCH(
       { data: null, error: { code: 'VALIDATION_ERROR', message: 'Validation failed', fields } },
       { status: 400 }
     );
+  }
+
+  if (parsed.data.theme && !isFuture(existing.primeDesignUntil)) {
+    const requestedTheme = parsed.data.theme;
+    const usesPrimeDesign =
+      PRIME_THEME_STYLES.has(requestedTheme.style) ||
+      requestedTheme.linksLayout === 'grid' ||
+      requestedTheme.profileLayout === 'hero';
+
+    if (usesPrimeDesign) {
+      return NextResponse.json(
+        { data: null, error: { code: 'PRIME_REQUIRED', message: 'Prime payment is required to use this design feature' } },
+        { status: 403 }
+      );
+    }
   }
 
   const updated = await db.profile.update({

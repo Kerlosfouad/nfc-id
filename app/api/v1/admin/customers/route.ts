@@ -20,9 +20,24 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           id: true,
           publicId: true,
           displayName: true,
+          bio: true,
+          avatarUrl: true,
           isVerified: true,
+          primeDesignUntil: true,
+          verifiedUntil: true,
           isSuspended: true,
           isActive: true,
+          links: {
+            where: {
+              OR: [
+                { title: { contains: 'phone', mode: 'insensitive' } },
+                { title: { contains: 'whatsapp', mode: 'insensitive' } },
+                { type: 'WHATSAPP' },
+              ],
+            },
+            select: { title: true, url: true },
+            take: 3,
+          },
         },
       },
       _count: {

@@ -98,6 +98,17 @@ function getLinkMeta(link: ProfileLink, primaryColor: string): { icon: string; c
   };
 }
 
+function withAlpha(hexColor: string, alpha: number): string {
+  const normalized = hexColor.replace('#', '');
+  if (!/^[0-9a-fA-F]{6}$/.test(normalized)) return hexColor;
+
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 function isCvLink(link: ProfileLink): boolean {
   const title = link.title.toLowerCase();
   const url = link.url.toLowerCase();
@@ -135,25 +146,25 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
     };
   }
   switch (theme.style) {
-    case 'nature':    return { background: 'radial-gradient(circle at 70% 18%, rgba(134,239,172,0.28), transparent 32%), linear-gradient(150deg,#052e16,#0f5132 48%,#021c12)' };
-    case 'ocean':     return { background: 'radial-gradient(circle at 72% 18%, rgba(34,211,238,0.34), transparent 34%), linear-gradient(150deg,#082f49,#0e7490 50%,#031826)' };
-    case 'sunset':    return { background: 'radial-gradient(circle at 72% 18%, rgba(251,146,60,0.36), transparent 34%), linear-gradient(150deg,#431407,#9a3412 52%,#1f0b05)' };
-    case 'retro':     return { background: 'radial-gradient(circle at 72% 18%, rgba(251,191,36,0.34), transparent 34%), linear-gradient(150deg,#451a03,#92400e 52%,#1c0c03)' };
-    case 'rose-gold': return { background: 'radial-gradient(circle at 72% 18%, rgba(251,113,133,0.34), transparent 34%), linear-gradient(150deg,#4c0519,#be123c 52%,#23040e)' };
-    case 'minimal':   return { background: 'radial-gradient(circle at 72% 18%, rgba(255,255,255,0.16), transparent 34%), linear-gradient(150deg,#18181b,#3f3f46 54%,#09090b)' };
-    case 'neon':      return { background: `radial-gradient(circle at 72% 18%, ${pc}66, transparent 34%), linear-gradient(150deg,#050505,#111827 50%,#020617)` };
-    case 'purple-haze': return { background: 'radial-gradient(circle at 72% 18%, rgba(167,139,250,0.34), transparent 34%), linear-gradient(150deg,#1e1b4b,#6d28d9 54%,#16052e)' };
-    case 'midnight':  return { background: 'radial-gradient(circle at 72% 18%, rgba(56,189,248,0.28), transparent 34%), linear-gradient(150deg,#020617,#1e3a5f 54%,#020617)' };
-    case 'forest':    return { background: 'radial-gradient(circle at 72% 18%, rgba(34,197,94,0.30), transparent 34%), linear-gradient(150deg,#022c22,#166534 52%,#01140d)' };
+    case 'nature':    return { background: 'radial-gradient(circle at 70% 18%, rgba(21,128,61,0.24), transparent 32%), linear-gradient(150deg,#03180d,#0a3f27 48%,#010f09)' };
+    case 'ocean':     return { background: 'radial-gradient(circle at 72% 18%, rgba(8,145,178,0.26), transparent 34%), linear-gradient(150deg,#031926,#075064 50%,#021018)' };
+    case 'sunset':    return { background: 'radial-gradient(circle at 72% 18%, rgba(194,65,12,0.28), transparent 34%), linear-gradient(150deg,#1f0803,#5f1d0b 52%,#120502)' };
+    case 'retro':     return { background: 'radial-gradient(circle at 72% 18%, rgba(180,83,9,0.28), transparent 34%), linear-gradient(150deg,#1c0c03,#5f3512 52%,#100802)' };
+    case 'rose-gold': return { background: 'radial-gradient(circle at 72% 18%, rgba(190,52,85,0.28), transparent 34%), linear-gradient(150deg,#21040c,#7f1d1d 52%,#130207)' };
+    case 'minimal':   return { background: 'radial-gradient(circle at 72% 18%, rgba(161,161,170,0.16), transparent 34%), linear-gradient(150deg,#111113,#27272a 54%,#070708)' };
+    case 'neon':      return { background: `radial-gradient(circle at 72% 18%, ${pc}4d, transparent 34%), linear-gradient(150deg,#030306,#111827 50%,#01030a)` };
+    case 'purple-haze': return { background: 'radial-gradient(circle at 72% 18%, rgba(124,58,237,0.28), transparent 34%), linear-gradient(150deg,#11102f,#3b1d78 54%,#0c071d)' };
+    case 'midnight':  return { background: 'radial-gradient(circle at 72% 18%, rgba(2,132,199,0.24), transparent 34%), linear-gradient(150deg,#020617,#153255 54%,#020617)' };
+    case 'forest':    return { background: 'radial-gradient(circle at 72% 18%, rgba(21,128,61,0.24), transparent 34%), linear-gradient(150deg,#01140d,#064e3b 52%,#010d08)' };
     case 'dark':      return { background: `radial-gradient(circle at 72% 18%, ${pc}44, transparent 34%), linear-gradient(150deg,#030712,#111827 52%,#020617)` };
-    default:          return { background: `radial-gradient(circle at 72% 18%, ${pc}4d, transparent 34%), linear-gradient(150deg,#05131f,#0f2e47 52%,#020617)` };
+    default:          return { background: `radial-gradient(circle at 72% 18%, ${pc}3d, transparent 34%), linear-gradient(150deg,#04111c,#0b2438 52%,#020617)` };
   }
 }
 
 /* ── Link Row ─────────────────────────────────────────────── */
 
-function LinkRow({ link, primaryColor, themeVars, compact = false }: { link: ProfileLink; primaryColor: string; themeVars: ReturnType<typeof getThemeVars>; compact?: boolean }) {
-  const { icon } = getLinkMeta(link, primaryColor);
+function LinkRow({ link, primaryColor, compact = false }: { link: ProfileLink; primaryColor: string; compact?: boolean }) {
+  const { icon, color } = getLinkMeta(link, primaryColor);
 
   return (
     <a
@@ -165,7 +176,7 @@ function LinkRow({ link, primaryColor, themeVars, compact = false }: { link: Pro
       {/* Icon circle — use thumbnailUrl if available, else icon */}
       <div
         className={`${compact ? 'w-12 h-12' : 'w-[52px] h-[52px]'} rounded-full flex items-center justify-center flex-shrink-0 z-10 overflow-hidden`}
-        style={{ backgroundColor: primaryColor, boxShadow: `0 5px 18px ${primaryColor}66` }}
+        style={{ backgroundColor: color, boxShadow: `0 5px 18px ${withAlpha(color, 0.4)}` }}
       >
         {link.thumbnailUrl
           ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
@@ -176,11 +187,11 @@ function LinkRow({ link, primaryColor, themeVars, compact = false }: { link: Pro
       <div
         className={`flex-1 ${compact ? 'h-12 pl-5' : 'h-[52px] pl-6'} flex items-center justify-center -ml-7 rounded-r-[18px] border`}
         style={{
-          backgroundColor: themeVars.glass,
-          borderColor: themeVars.glassBorder,
+          backgroundColor: withAlpha(color, 0.14),
+          borderColor: withAlpha(color, 0.26),
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
+          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(color, 0.08)}`,
         }}
       >
         <span
@@ -194,8 +205,8 @@ function LinkRow({ link, primaryColor, themeVars, compact = false }: { link: Pro
   );
 }
 
-function LinkGridTile({ link, primaryColor, themeVars }: { link: ProfileLink; primaryColor: string; themeVars: ReturnType<typeof getThemeVars> }) {
-  const { icon } = getLinkMeta(link, primaryColor);
+function LinkGridTile({ link, primaryColor }: { link: ProfileLink; primaryColor: string }) {
+  const { icon, color } = getLinkMeta(link, primaryColor);
 
   return (
     <a
@@ -204,16 +215,16 @@ function LinkGridTile({ link, primaryColor, themeVars }: { link: ProfileLink; pr
       rel="noopener noreferrer"
       className="min-h-[102px] rounded-[22px] border p-3 flex flex-col items-center justify-center gap-2 text-center transition-all duration-200 active:scale-[0.98]"
       style={{
-        backgroundColor: themeVars.glass,
-        borderColor: themeVars.glassBorder,
+        backgroundColor: withAlpha(color, 0.14),
+        borderColor: withAlpha(color, 0.26),
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
+        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(color, 0.08)}`,
       }}
     >
       <div
         className="h-11 w-11 rounded-full flex items-center justify-center overflow-hidden"
-        style={{ backgroundColor: primaryColor, boxShadow: `0 5px 18px ${primaryColor}66` }}
+        style={{ backgroundColor: color, boxShadow: `0 5px 18px ${withAlpha(color, 0.4)}` }}
       >
         {link.thumbnailUrl
           ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
@@ -223,6 +234,10 @@ function LinkGridTile({ link, primaryColor, themeVars }: { link: ProfileLink; pr
       <span className="max-w-full truncate text-sm font-semibold text-white">{link.title}</span>
     </a>
   );
+}
+
+function hasActiveVerification(profile: Profile): boolean {
+  return !!profile.verifiedUntil && new Date(profile.verifiedUntil).getTime() > Date.now();
 }
 
 function VerifiedBadge() {
@@ -305,7 +320,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
           {/* Name & Bio */}
           <h1 className="text-[26px] leading-tight font-bold text-center mb-1 flex items-center justify-center gap-2 text-white" style={{ color: '#ffffff' }}>
             {profile.displayName}
-            {profile.isVerified && <VerifiedBadge />}
+            {hasActiveVerification(profile) && <VerifiedBadge />}
           </h1>
           {profile.bio && (
             <p className="text-sm text-center mb-1 leading-relaxed" style={{ color: themeVars.textSecondary }}>
@@ -363,9 +378,9 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
         {/* Links */}
         <div className={`w-full mb-8 ${isGrid ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2'}`}>
           {visibleLinks.map(link => isGrid ? (
-            <LinkGridTile key={link.id} link={link} primaryColor={primaryColor} themeVars={themeVars} />
+            <LinkGridTile key={link.id} link={link} primaryColor={primaryColor} />
           ) : (
-            <LinkRow key={link.id} link={link} primaryColor={primaryColor} themeVars={themeVars} compact={isHero} />
+            <LinkRow key={link.id} link={link} primaryColor={primaryColor} compact={isHero} />
           ))}
         </div>
 

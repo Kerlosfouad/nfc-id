@@ -34,6 +34,8 @@ export interface Profile {
   isActive: boolean;
   isSuspended: boolean;
   isVerified: boolean;
+  primeDesignUntil: Date | null;
+  verifiedUntil: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

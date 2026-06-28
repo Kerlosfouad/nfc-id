@@ -89,6 +89,8 @@ export async function getProfileWithLinks(
 function rehydrateDates(profile: ProfileWithLinks): ProfileWithLinks {
   return {
     ...profile,
+    primeDesignUntil: profile.primeDesignUntil ? new Date(profile.primeDesignUntil) : null,
+    verifiedUntil: profile.verifiedUntil ? new Date(profile.verifiedUntil) : null,
     createdAt: new Date(profile.createdAt),
     updatedAt: new Date(profile.updatedAt),
     links: profile.links.map((link) => ({

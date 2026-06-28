@@ -15,9 +15,14 @@ interface CustomerRow {
     id: string;
     publicId: string;
     displayName: string;
+    bio: string | null;
+    avatarUrl: string | null;
     isVerified: boolean;
+    primeDesignUntil: string | null;
+    verifiedUntil: string | null;
     isSuspended: boolean;
     isActive: boolean;
+    links: { title: string; url: string }[];
   }[];
   _count: { tags: number; profiles: number };
 }
@@ -29,6 +34,7 @@ export default function AdminCustomersPage() {
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [busyProfileId, setBusyProfileId] = useState<string | null>(null);
+  const [durations, setDurations] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const supabase = createClient();
@@ -54,7 +60,28 @@ export default function AdminCustomersPage() {
     });
   }, [router]);
 
-  async function toggleVerification(profileId: string, verified: boolean) {
+  function phoneFromLinks(profile: CustomerRow["profiles"][number]) {
+    const phoneLink = profile.links.find((link) => /phone|whatsapp/i.test(link.title));
+    return phoneLink?.url.replace(/^https?:\/\/(wa\.me|api\.whatsapp\.com)\/(send\?phone=)?/i, "") ?? "No phone";
+  }
+
+  function expiryLabel(value: string | null) {
+    if (!value) return "Inactive";
+    const date = new Date(value);
+    if (date.getTime() <= Date.now()) return "Expired";
+    return `Until ${date.toLocaleDateString()}`;
+  }
+
+  function isActiveUntil(value: string | null) {
+    return !!value && new Date(value).getTime() > Date.now();
+  }
+
+  function untilFromDays(profileId: string) {
+    const days = Math.max(1, Number(durations[profileId] || 30));
+    return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+  }
+
+  async function updateProfileAccess(profileId: string, patch: { verifiedUntil?: string | null; primeDesignUntil?: string | null; verified?: boolean }) {
     if (!authToken) return;
     setBusyProfileId(profileId);
     try {
@@ -65,14 +92,22 @@ export default function AdminCustomersPage() {
           Authorization: `Bearer ${authToken}`,
           "x-user-id": userId ?? "",
         },
-        body: JSON.stringify({ verified }),
+        body: JSON.stringify(patch),
       });
-      if (!res.ok) throw new Error("Failed to update verification");
+      if (!res.ok) throw new Error("Failed to update profile access");
+      const json = await res.json();
       setCustomers((current) =>
         current.map((customer) => ({
           ...customer,
           profiles: customer.profiles.map((profile) =>
-            profile.id === profileId ? { ...profile, isVerified: verified } : profile
+            profile.id === profileId
+              ? {
+                  ...profile,
+                  isVerified: json.data?.isVerified ?? profile.isVerified,
+                  verifiedUntil: json.data?.verifiedUntil ?? profile.verifiedUntil,
+                  primeDesignUntil: json.data?.primeDesignUntil ?? profile.primeDesignUntil,
+                }
+              : profile
           ),
         }))
       );
@@ -89,72 +124,91 @@ export default function AdminCustomersPage() {
         {customers.length === 0 ? (
           <EmptyState icon="ri-user-search-line" title="No customers yet" body="When users sign up, they will appear here automatically." />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[980px] text-sm">
-              <thead className="text-left text-xs uppercase tracking-widest text-white/35">
-                <tr className="border-b border-white/10">
-                  <th className="py-3 font-medium">Email</th>
-                  <th className="py-3 font-medium">Role</th>
-                  <th className="py-3 font-medium">Medals</th>
-                  <th className="py-3 font-medium">Profiles</th>
-                  <th className="py-3 font-medium">Verification</th>
-                  <th className="py-3 font-medium">Joined</th>
-                </tr>
-              </thead>
-              <tbody>
-                {customers.map((customer) => (
-                  <tr key={customer.id} className="border-b border-white/5 text-white/65">
-                    <td className="py-4 font-medium text-white">{customer.email}</td>
-                    <td className="py-4">{customer.role}</td>
-                    <td className="py-4">{customer._count.tags}</td>
-                    <td className="py-4">{customer._count.profiles}</td>
-                    <td className="py-4">
-                      {customer.profiles.length === 0 ? (
-                        <span className="text-white/25">No profiles</span>
-                      ) : (
-                        <div className="space-y-2 pr-4">
-                          {customer.profiles.map((profile) => (
-                            <div key={profile.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="truncate text-xs font-semibold text-white">{profile.displayName}</span>
-                                  {profile.isVerified && (
-                                    <span className="inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-[#1877F2]">
-                                      <i className="ri-check-line text-[11px] leading-none text-white" />
-                                    </span>
-                                  )}
-                                </div>
-                                <a
-                                  href={`/profile/${profile.publicId}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="mt-0.5 block truncate font-mono text-[10px] text-[#03A9F4]"
-                                >
-                                  /profile/{profile.publicId}
-                                </a>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => toggleVerification(profile.id, !profile.isVerified)}
-                                disabled={busyProfileId === profile.id}
-                                className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors disabled:opacity-50 ${
-                                  profile.isVerified
-                                    ? "bg-white/10 text-white/60 hover:bg-white/15"
-                                    : "bg-[#1877F2] text-white hover:bg-[#0A66FF]"
-                                }`}
-                              >
-                                {busyProfileId === profile.id ? "Saving..." : profile.isVerified ? "Unverify" : "Verify"}
-                              </button>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {customers.map((customer) => (
+              <article key={customer.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="truncate text-sm font-bold text-white">{customer.email}</h3>
+                    <p className="mt-1 text-xs text-white/35">
+                      {customer.role} · {customer._count.tags} medals · {customer._count.profiles} profiles
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-white/5 px-2.5 py-1 text-[10px] text-white/40">
+                    {new Date(customer.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+
+                {customer.profiles.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-white/10 py-8 text-center text-sm text-white/30">No profiles</div>
+                ) : (
+                  <div className="space-y-3">
+                    {customer.profiles.map((profile) => (
+                      <div key={profile.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                        <div className="flex gap-3">
+                          {profile.avatarUrl ? (
+                            <div className="h-14 w-14 rounded-xl bg-cover bg-center" style={{ backgroundImage: `url(${profile.avatarUrl})` }} />
+                          ) : (
+                            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#03A9F4]/15 text-lg font-bold text-[#8ddfff]">
+                              {profile.displayName.charAt(0).toUpperCase()}
                             </div>
-                          ))}
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="truncate text-sm font-bold text-white">{profile.displayName}</p>
+                              {isActiveUntil(profile.verifiedUntil) && <i className="ri-verified-badge-fill text-[#1877F2]" />}
+                            </div>
+                            <a href={`/profile/${profile.publicId}`} target="_blank" rel="noopener noreferrer" className="font-mono text-[11px] text-[#03A9F4]">
+                              /profile/{profile.publicId}
+                            </a>
+                            <p className="mt-1 truncate text-xs text-white/35">{profile.bio || "No bio"}</p>
+                            <div className="mt-2 grid gap-1 text-xs text-white/45">
+                              <span>Email: <span className="text-white/70">{customer.email}</span></span>
+                              <span>Phone: <span className="text-white/70">{phoneFromLinks(profile)}</span></span>
+                            </div>
+                          </div>
                         </div>
-                      )}
-                    </td>
-                    <td className="py-4 text-white/40">{new Date(customer.createdAt).toLocaleDateString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+                        <div className="mt-3 grid gap-2 rounded-xl bg-black/20 p-3">
+                          <label className="text-[11px] font-semibold uppercase tracking-widest text-white/30">Activation duration</label>
+                          <select
+                            value={durations[profile.id] ?? "30"}
+                            onChange={(event) => setDurations((current) => ({ ...current, [profile.id]: event.target.value }))}
+                            className="rounded-lg border border-white/10 bg-[#0b0a0a] px-3 py-2 text-xs text-white outline-none"
+                          >
+                            <option value="7">7 days</option>
+                            <option value="30">30 days</option>
+                            <option value="90">90 days</option>
+                            <option value="180">180 days</option>
+                            <option value="365">1 year</option>
+                          </select>
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <button
+                              onClick={() => updateProfileAccess(profile.id, { primeDesignUntil: untilFromDays(profile.id) })}
+                              disabled={busyProfileId === profile.id}
+                              className="rounded-lg bg-yellow-400 px-3 py-2 text-xs font-bold text-black disabled:opacity-50"
+                            >
+                              {busyProfileId === profile.id ? "Saving..." : "Activate Theme Pro"}
+                            </button>
+                            <button
+                              onClick={() => updateProfileAccess(profile.id, { verifiedUntil: untilFromDays(profile.id), verified: true })}
+                              disabled={busyProfileId === profile.id}
+                              className="rounded-lg bg-[#1877F2] px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
+                            >
+                              {busyProfileId === profile.id ? "Saving..." : "Activate Verification"}
+                            </button>
+                          </div>
+                          <div className="grid gap-2 text-[11px] text-white/35 sm:grid-cols-2">
+                            <span>Theme Pro: <b className="text-white/65">{expiryLabel(profile.primeDesignUntil)}</b></span>
+                            <span>Verification: <b className="text-white/65">{expiryLabel(profile.verifiedUntil)}</b></span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </article>
+            ))}
           </div>
         )}
       </Panel>

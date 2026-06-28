@@ -7,7 +7,7 @@ import Link from "next/link";
 
 interface LinkItem { id: string; type: string; title: string; url: string; displayOrder: number; activeFrom: string | null; activeTo: string | null; thumbnailUrl: string | null; isActive?: boolean; }
 interface ProfileTheme { style: string; primaryColor: string; fontFamily: string; linksLayout?: "list" | "grid"; profileLayout?: "classic" | "hero"; coverUrl?: string | null; }
-interface ProfileData { id: string; publicId: string; displayName: string; bio: string | null; avatarUrl: string | null; theme: ProfileTheme; passwordProtected: boolean; sensitiveContent: boolean; isActive: boolean; isSuspended: boolean; links: LinkItem[]; }
+interface ProfileData { id: string; publicId: string; displayName: string; bio: string | null; avatarUrl: string | null; theme: ProfileTheme; passwordProtected: boolean; sensitiveContent: boolean; isActive: boolean; isSuspended: boolean; isVerified: boolean; primeDesignUntil: string | null; verifiedUntil: string | null; links: LinkItem[]; }
 
 const LMETA: Record<string, { icon: string; color: string }> = {
   URL: { icon: "ri-link", color: "#03A9F4" }, VCF: { icon: "ri-contacts-line", color: "#8A2BE2" },
@@ -23,8 +23,18 @@ type LinkPickerCategory = "Social" | "Professional" | "Entertainment" | "Payment
 type LinkPickerItem = { label: string; icon: string; color: string; type?: string; placeholder?: string };
 type LinkDraft = { type: string; title: string; url: string };
 type PendingLinks = Record<string, "add" | "update" | "delete" | "toggle">;
+type GoldServiceId = "design" | "verification";
 
 const CLOSED_LINK_TIMESTAMP = "2000-01-01T00:00:00.000Z";
+const COMPANY_WHATSAPP = "201211632456";
+const GOLD_SERVICES: { id: GoldServiceId; name: string; price: number; icon: string; description: string }[] = [
+  { id: "design", name: "Gold Design Themes", price: 250, icon: "ri-palette-line", description: "Premium themes, cover styling, and advanced profile layouts." },
+  { id: "verification", name: "Verified Badge", price: 300, icon: "ri-verified-badge-line", description: "Manual profile verification and the verified mark on your public profile." },
+];
+
+function isFutureDate(value: string | null | undefined): boolean {
+  return !!value && new Date(value).getTime() > Date.now();
+}
 
 function isLinkHidden(link: Pick<LinkItem, "activeTo">): boolean {
   return !!(link.activeTo && new Date(link.activeTo) <= new Date());
@@ -149,18 +159,18 @@ function getLinkMeta(link: Pick<LinkItem, "type" | "title">): { icon: string; co
 }
 
 const PRESET_THEMES = [
-  { id: "default", name: "Default", desc: "NFC blue glass look", colors: ["#05131f", "#0f2e47", "#03A9F4", "#e0f2fe"], premium: false, accent: "#03A9F4" },
-  { id: "dark", name: "Dark Mode", desc: "Sleek blue-black interface", colors: ["#030712", "#111827", "#3b82f6", "#f9fafb"], premium: false, accent: "#3b82f6" },
-  { id: "nature", name: "Nature", desc: "Deep green natural feel", colors: ["#052e16", "#0f5132", "#22c55e", "#dcfce7"], premium: false, accent: "#22c55e" },
-  { id: "ocean", name: "Ocean", desc: "Calming cyan-blue tones", colors: ["#082f49", "#0e7490", "#22d3ee", "#f0f9ff"], premium: false, accent: "#22d3ee" },
-  { id: "sunset", name: "Sunset", desc: "Warm amber glow", colors: ["#431407", "#9a3412", "#fb923c", "#fff7ed"], premium: true, accent: "#fb923c" },
-  { id: "neon", name: "Neon", desc: "Vibrant electric violet", colors: ["#050505", "#111827", "#7c3aed", "#ddd6fe"], premium: true, accent: "#7c3aed" },
-  { id: "minimal", name: "Minimal", desc: "Soft monochrome elegance", colors: ["#fafafa", "#e4e4e7", "#18181b", "#71717a"], premium: true, accent: "#18181b" },
-  { id: "purple-haze", name: "Purple Haze", desc: "Deep purples and lavender", colors: ["#1e1b4b", "#6d28d9", "#a78bfa", "#f3e8ff"], premium: true, accent: "#a78bfa" },
-  { id: "retro", name: "Retro", desc: "Warm vintage gold", colors: ["#451a03", "#92400e", "#f59e0b", "#fffbeb"], premium: true, accent: "#f59e0b" },
-  { id: "midnight", name: "Midnight", desc: "Deep blue night sky", colors: ["#020617", "#1e3a5f", "#38bdf8", "#e2e8f0"], premium: true, accent: "#38bdf8" },
-  { id: "rose-gold", name: "Rose Gold", desc: "Elegant rose glow", colors: ["#4c0519", "#be123c", "#fb7185", "#fff1f2"], premium: true, accent: "#fb7185" },
-  { id: "forest", name: "Forest", desc: "Rich forest greens", colors: ["#022c22", "#166534", "#22c55e", "#bbf7d0"], premium: true, accent: "#22c55e" },
+  { id: "default", name: "Default", desc: "NFC blue glass look", colors: ["#04111c", "#0b2438", "#0476a6", "#b8d7e6"], premium: false, accent: "#0476a6" },
+  { id: "dark", name: "Dark Mode", desc: "Sleek blue-black interface", colors: ["#020617", "#0f172a", "#2563eb", "#dbeafe"], premium: false, accent: "#2563eb" },
+  { id: "nature", name: "Nature", desc: "Deep green natural feel", colors: ["#03180d", "#0a3f27", "#15803d", "#bbf7d0"], premium: false, accent: "#15803d" },
+  { id: "ocean", name: "Ocean", desc: "Calming cyan-blue tones", colors: ["#031926", "#075064", "#0891b2", "#cffafe"], premium: false, accent: "#0891b2" },
+  { id: "sunset", name: "Sunset", desc: "Warm amber glow", colors: ["#1f0803", "#5f1d0b", "#c2410c", "#fed7aa"], premium: true, accent: "#c2410c" },
+  { id: "neon", name: "Neon", desc: "Vibrant electric violet", colors: ["#030306", "#111827", "#5b21b6", "#c4b5fd"], premium: true, accent: "#5b21b6" },
+  { id: "minimal", name: "Minimal", desc: "Soft monochrome elegance", colors: ["#111113", "#27272a", "#a1a1aa", "#e4e4e7"], premium: true, accent: "#a1a1aa" },
+  { id: "purple-haze", name: "Purple Haze", desc: "Deep purples and lavender", colors: ["#11102f", "#3b1d78", "#7c3aed", "#ddd6fe"], premium: true, accent: "#7c3aed" },
+  { id: "retro", name: "Retro", desc: "Warm vintage gold", colors: ["#1c0c03", "#5f3512", "#b45309", "#fde68a"], premium: true, accent: "#b45309" },
+  { id: "midnight", name: "Midnight", desc: "Deep blue night sky", colors: ["#020617", "#153255", "#0284c7", "#bae6fd"], premium: true, accent: "#0284c7" },
+  { id: "rose-gold", name: "Rose Gold", desc: "Elegant rose glow", colors: ["#21040c", "#7f1d1d", "#be3455", "#fecdd3"], premium: true, accent: "#be3455" },
+  { id: "forest", name: "Forest", desc: "Rich forest greens", colors: ["#01140d", "#064e3b", "#15803d", "#bbf7d0"], premium: true, accent: "#15803d" },
 ];
 function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { profile: ProfileData; saving: boolean; onSave: (p: Record<string, unknown>) => void; onClose: () => void; onAddLink?: (d: LinkDraft) => void }) {
   const [name, setName] = useState(profile.displayName);
@@ -1344,7 +1354,7 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
   );
 }
 
-function SettingsTab({ profile, token, uid }: { profile: ProfileData; token: string; uid: string }) {
+function SettingsTab({ profile, token, uid, onRequestGold }: { profile: ProfileData; token: string; uid: string; onRequestGold: (service?: GoldServiceId) => void }) {
   const [exporting, setExporting] = useState(false);
 
   async function exportLeads() {
@@ -1371,6 +1381,26 @@ function SettingsTab({ profile, token, uid }: { profile: ProfileData; token: str
   return (
     <div className="space-y-4 max-w-lg">
       <h2 className="font-bold text-lg">Settings</h2>
+      <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-5">
+        <div className="flex items-start gap-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-yellow-400/10 text-yellow-400">
+            <i className="ri-verified-badge-line text-xl" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-sm font-bold">Prime Verification</h3>
+              <span className="rounded-full bg-yellow-400/15 px-2 py-0.5 text-[10px] font-bold text-yellow-400">300 EGP</span>
+              {isFutureDate(profile.verifiedUntil) && <span className="rounded-full bg-green-400/15 px-2 py-0.5 text-[10px] font-bold text-green-300">Active</span>}
+            </div>
+            <p className="mt-1 text-xs leading-relaxed text-white/40">Verification is a paid Prime service. After payment review, the verified badge appears on the public profile.</p>
+          </div>
+        </div>
+        {!isFutureDate(profile.verifiedUntil) && (
+          <button onClick={() => onRequestGold("verification")} className="mt-4 w-full rounded-xl bg-yellow-400 px-4 py-2.5 text-sm font-bold text-black hover:bg-yellow-300">
+            Request Verification
+          </button>
+        )}
+      </div>
       <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl divide-y divide-white/5">
         <button onClick={exportLeads} disabled={exporting} className="w-full flex items-center gap-4 px-5 py-4 hover:bg-white/5 group text-left disabled:opacity-50">
           <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10">
@@ -1397,16 +1427,106 @@ function SettingsTab({ profile, token, uid }: { profile: ProfileData; token: str
   );
 }
 
-function DesignTab({ profile, saving, onSave }: { profile: ProfileData; saving: boolean; onSave: (t: ProfileTheme) => void }) {
+function GoldUpgradeModal({ profile, email, initialService, onClose }: { profile: ProfileData | null; email: string; initialService?: GoldServiceId; onClose: () => void }) {
+  const [serviceId, setServiceId] = useState<GoldServiceId>(initialService ?? "design");
+  const [name, setName] = useState(profile?.displayName ?? "");
+  const [customerEmail, setCustomerEmail] = useState(email);
+  const [phone, setPhone] = useState("");
+  const [receiptName, setReceiptName] = useState("");
+  const service = GOLD_SERVICES.find(item => item.id === serviceId) ?? GOLD_SERVICES[0];
+
+  function submit() {
+    const message = [
+      "Gold service request",
+      `Service: ${service.name}`,
+      `Price: ${service.price} EGP`,
+      `Name: ${name}`,
+      `Email: ${customerEmail}`,
+      `Phone: ${phone}`,
+      `Profile: ${profile ? `/profile/${profile.publicId}` : "Not selected"}`,
+      `Payment screenshot: ${receiptName || "Customer will attach it in WhatsApp"}`,
+      "",
+      "Please review the payment screenshot and activate the service.",
+    ].join("\n");
+    window.open(`https://wa.me/${COMPANY_WHATSAPP}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+    onClose();
+  }
+
+  const canSubmit = name.trim() && customerEmail.trim() && phone.trim();
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 p-3 backdrop-blur-sm sm:items-center" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-3xl border border-yellow-500/20 bg-[#111] p-5 text-white shadow-2xl sm:p-6" onClick={e => e.stopPropagation()}>
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-yellow-400">Gold Services</p>
+            <h2 className="mt-1 text-xl font-bold">Request Prime Access</h2>
+            <p className="mt-1 text-sm text-white/45">Choose the service, fill your details, then send the request with your payment screenshot on WhatsApp.</p>
+          </div>
+          <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/50 hover:text-white">
+            <i className="ri-close-line text-lg" />
+          </button>
+        </div>
+
+        <div className="mb-5 grid gap-3 sm:grid-cols-2">
+          {GOLD_SERVICES.map(item => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setServiceId(item.id)}
+              className={`rounded-2xl border p-4 text-left transition-all ${serviceId === item.id ? "border-yellow-400/60 bg-yellow-400/10" : "border-white/10 bg-white/[0.03] hover:border-white/20"}`}
+            >
+              <div className="mb-3 flex items-center justify-between">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-yellow-400/10 text-yellow-400"><i className={item.icon} /></span>
+                <span className="rounded-full bg-yellow-400 px-2.5 py-1 text-xs font-bold text-black">{item.price} EGP</span>
+              </div>
+              <p className="text-sm font-bold">{item.name}</p>
+              <p className="mt-1 text-xs leading-relaxed text-white/40">{item.description}</p>
+            </button>
+          ))}
+        </div>
+
+        <div className="grid gap-3">
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="Full name" className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-yellow-400/50" />
+          <input value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} placeholder="Email" type="email" className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-yellow-400/50" />
+          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Phone number" className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-yellow-400/50" />
+          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-white/15 bg-white/[0.03] px-4 py-3 text-sm text-white/55 hover:border-yellow-400/40">
+            <span className="truncate">{receiptName || "Upload payment screenshot"}</span>
+            <i className="ri-upload-cloud-2-line text-lg text-yellow-400" />
+            <input type="file" accept="image/*" className="hidden" onChange={e => setReceiptName(e.target.files?.[0]?.name ?? "")} />
+          </label>
+          <p className="text-xs leading-relaxed text-white/35">The screenshot file cannot be attached automatically through WhatsApp web links, so attach it in the WhatsApp chat after it opens.</p>
+        </div>
+
+        <button
+          type="button"
+          onClick={submit}
+          disabled={!canSubmit}
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-yellow-400 px-4 py-3 text-sm font-bold text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <i className="ri-whatsapp-line text-lg" />
+          Send Request on WhatsApp
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: ProfileData; saving: boolean; onSave: (t: ProfileTheme) => void; onRequestGold: (service?: GoldServiceId) => void }) {
   const theme = profile.theme ?? { style: "default", primaryColor: "#03A9F4", fontFamily: "Inter" };
   const [style, setStyle] = useState(theme.style || "default");
   const [linksLayout, setLinksLayout] = useState<"list" | "grid">(theme.linksLayout || "list");
   const [profileLayout, setProfileLayout] = useState<"classic" | "hero">(theme.profileLayout || "classic");
   const [filter, setFilter] = useState<"all" | "free" | "premium">("all");
   const [refreshKey, setRefreshKey] = useState(0);
+  const isPrime = isFutureDate(profile.primeDesignUntil);
 
   function applyTheme(themeId: string) {
     const selectedTheme = PRESET_THEMES.find(t => t.id === themeId);
+    if (selectedTheme?.premium && !isPrime) {
+      onRequestGold("design");
+      return;
+    }
     const accent = selectedTheme?.accent ?? theme.primaryColor;
     setStyle(themeId);
     onSave({ style: themeId as ProfileTheme["style"], primaryColor: accent, fontFamily: theme.fontFamily, linksLayout, profileLayout, coverUrl: theme.coverUrl });
@@ -1414,6 +1534,10 @@ function DesignTab({ profile, saving, onSave }: { profile: ProfileData; saving: 
   }
 
   function applyLayout(ll: "list" | "grid", pl: "classic" | "hero") {
+    if (!isPrime && (ll === "grid" || pl === "hero")) {
+      onRequestGold("design");
+      return;
+    }
     setLinksLayout(ll); setProfileLayout(pl);
     onSave({ style: style as ProfileTheme["style"], primaryColor: theme.primaryColor, fontFamily: theme.fontFamily, linksLayout: ll, profileLayout: pl, coverUrl: theme.coverUrl });
     setTimeout(() => setRefreshKey(k => k + 1), 800);
@@ -1434,9 +1558,9 @@ function DesignTab({ profile, saving, onSave }: { profile: ProfileData; saving: 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-yellow-900/40 to-yellow-700/10 border border-yellow-500/20 rounded-2xl px-5 py-3.5">
           <div className="flex items-center gap-3">
             <i className="ri-vip-crown-fill text-yellow-500 text-lg flex-shrink-0" />
-            <span className="text-yellow-400/90 font-semibold text-sm">Upgrade to Pro Plus to access all premium themes</span>
+            <span className="text-yellow-400/90 font-semibold text-sm">{isPrime ? "Prime is active for this profile" : "Gold Design costs 250 EGP and unlocks all Prime themes and layouts"}</span>
           </div>
-          <button className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap">Upgrade Now</button>
+          {!isPrime && <button onClick={() => onRequestGold("design")} className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap">Upgrade Now</button>}
         </div>
 
         {/* Themes header + filter */}
@@ -1457,7 +1581,7 @@ function DesignTab({ profile, saving, onSave }: { profile: ProfileData; saving: 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {filtered.map(t => (
               <div key={t.id} onClick={() => applyTheme(t.id)}
-                className={`cursor-pointer bg-[#141414] border rounded-2xl p-4 transition-all select-none ${style === t.id ? "border-white/60 ring-2 ring-white/10" : "border-white/8 hover:border-white/25"}`}>
+                className={`cursor-pointer bg-[#141414] border rounded-2xl p-4 transition-all select-none ${style === t.id ? "border-white/60 ring-2 ring-white/10" : "border-white/8 hover:border-white/25"} ${t.premium && !isPrime ? "opacity-75" : ""}`}>
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <h4 className="text-sm font-bold text-white leading-tight">{t.name}</h4>
@@ -1465,7 +1589,7 @@ function DesignTab({ profile, saving, onSave }: { profile: ProfileData; saving: 
                   </div>
                   {t.premium && (
                     <span className="text-[9px] font-bold bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded flex items-center gap-0.5 flex-shrink-0 ml-1">
-                      <i className="ri-vip-crown-fill" /> Pro
+                      <i className="ri-vip-crown-fill" /> Prime
                     </span>
                   )}
                 </div>
@@ -1478,6 +1602,11 @@ function DesignTab({ profile, saving, onSave }: { profile: ProfileData; saving: 
                   {style === t.id && (
                     <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-white flex items-center justify-center">
                       <i className="ri-check-line text-[9px] text-black font-bold" />
+                    </div>
+                  )}
+                  {t.premium && !isPrime && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/45">
+                      <span className="rounded-full bg-yellow-400 px-3 py-1 text-[10px] font-bold text-black">Locked</span>
                     </div>
                   )}
                 </div>
@@ -1510,7 +1639,7 @@ function DesignTab({ profile, saving, onSave }: { profile: ProfileData; saving: 
                 </button>
                 <button onClick={() => applyLayout("grid", profileLayout)}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-xs font-semibold transition-all ${linksLayout === "grid" ? "bg-white text-black border-white" : "border-white/10 text-white/40 hover:border-white/20 hover:text-white/70"}`}>
-                  <i className="ri-grid-fill" /> Grid
+                  <i className="ri-grid-fill" /> Grid {!isPrime && <span className="rounded bg-yellow-400/15 px-1 text-[9px] text-yellow-400">Prime</span>}
                 </button>
               </div>
             </div>
@@ -1527,7 +1656,7 @@ function DesignTab({ profile, saving, onSave }: { profile: ProfileData; saving: 
                 </button>
                 <button onClick={() => applyLayout(linksLayout, "hero")}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-xs font-semibold transition-all ${profileLayout === "hero" ? "bg-white/15 text-white border-white/40" : "border-white/10 text-white/40 hover:border-white/20 hover:text-white/70"}`}>
-                  <i className="ri-image-line" /> Hero
+                  <i className="ri-image-line" /> Hero {!isPrime && <span className="rounded bg-yellow-400/15 px-1 text-[9px] text-yellow-400">Prime</span>}
                 </button>
               </div>
             </div>
@@ -1587,6 +1716,7 @@ export default function DashboardPage() {
   const [editLink, setEditLink] = useState<LinkItem | null>(null);
   const [copied, setCopied] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [goldRequest, setGoldRequest] = useState<GoldServiceId | null>(null);
   const tRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const profile = profiles.find(p => p.id === selId) ?? profiles[0] ?? null;
 
@@ -1756,6 +1886,10 @@ export default function DashboardPage() {
               <i className={n.icon + " text-base"} />{n.label}
             </button>
           ))}
+          <button onClick={() => setGoldRequest("design")} className="mt-3 w-full rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-3 py-3 text-left text-sm font-semibold text-yellow-400 hover:bg-yellow-500/15">
+            <span className="flex items-center gap-2"><i className="ri-vip-crown-fill" />Try Pro For Free</span>
+            <span className="mt-1 block text-[10px] font-normal text-yellow-100/45">Gold services and payment review</span>
+          </button>
         </nav>
         <div className="px-2 pb-2 border-t border-white/5 pt-3">
           <p className="text-[10px] text-white/30 uppercase tracking-wider px-3 mb-1.5">Your Profiles</p>
@@ -1785,7 +1919,7 @@ export default function DashboardPage() {
             <img src="/img/logo.png" alt="NFC ID" className="h-8 w-8 object-contain" />
             <span className="hidden font-bold text-sm">NFC<span className="text-[#03A9F4]">·ID</span></span>
           </Link>
-          <button type="button" className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#03A9F4]/40 px-3 text-xs font-semibold text-[#03A9F4]">
+          <button type="button" onClick={() => setGoldRequest("design")} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#03A9F4]/40 px-3 text-xs font-semibold text-[#03A9F4]">
             <i className="ri-sparkling-2-line" />
             Try Pro For Free
           </button>
@@ -1813,13 +1947,22 @@ export default function DashboardPage() {
                   {tab === "home" && <HomeTab profile={profile} saving={saving} pendingLinks={pendingLinks} onPatch={patchProfile} onAddLink={() => setAddOpen(true)} onEditLink={setEditLink} onDeleteLink={deleteLink} onMove={moveLink} onMoveTo={moveLinkTo} editOpen={editOpen} setEditOpen={setEditOpen} addOpen={addOpen} setAddOpen={setAddOpen} editLink={editLink} setEditLink={setEditLink} onUpdateLink={updateLink} onAddLinkSubmit={addLink} />}
                   {tab === "analytics" && <AnalyticsTab profile={profile} token={token} uid={uid} />}
                   {tab === "share" && <ShareTab profile={profile} onCopy={copyLink} copied={copied} />}
-                  {tab === "settings" && <SettingsTab profile={profile} token={token} uid={uid} />}
+                  {tab === "settings" && <SettingsTab profile={profile} token={token} uid={uid} onRequestGold={(service = "design") => setGoldRequest(service)} />}
                 </div>
               )}
-              {tab === "design" && <DesignTab profile={profile} saving={saving} onSave={(t) => patchProfile({ theme: t })} />}
+              {tab === "design" && <DesignTab profile={profile} saving={saving} onSave={(t) => patchProfile({ theme: t })} onRequestGold={(service = "design") => setGoldRequest(service)} />}
             </div>
           )}
         </div>
+
+        {goldRequest && (
+          <GoldUpgradeModal
+            profile={profile}
+            email={email}
+            initialService={goldRequest}
+            onClose={() => setGoldRequest(null)}
+          />
+        )}
 
         {profile && (
           <a

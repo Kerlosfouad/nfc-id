@@ -89,6 +89,8 @@ model Profile {
   isActive         Boolean  @default(true)
   isSuspended      Boolean  @default(false)
   isVerified       Boolean  @default(false)
+  primeDesignUntil DateTime?
+  verifiedUntil     DateTime?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
