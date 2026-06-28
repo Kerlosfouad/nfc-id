@@ -57,6 +57,14 @@ function isFuture(date: Date | null): boolean {
   return !!date && date.getTime() > Date.now();
 }
 
+function themeUsesPrimeDesign(theme: { style?: string; linksLayout?: string; profileLayout?: string }) {
+  return (
+    (theme.style ? PRIME_THEME_STYLES.has(theme.style) : false) ||
+    theme.linksLayout === 'grid' ||
+    theme.profileLayout === 'hero'
+  );
+}
+
 // ── GET /api/v1/profiles/:id ──────────────────────────────────────────────────
 
 export async function GET(
@@ -119,12 +127,14 @@ export async function PATCH(
 
   if (parsed.data.theme && !isFuture(existing.primeDesignUntil)) {
     const requestedTheme = parsed.data.theme;
-    const usesPrimeDesign =
-      PRIME_THEME_STYLES.has(requestedTheme.style) ||
-      requestedTheme.linksLayout === 'grid' ||
-      requestedTheme.profileLayout === 'hero';
+    const currentTheme = (existing.theme ?? {}) as { style?: string; linksLayout?: string; profileLayout?: string };
+    const usesPrimeDesign = themeUsesPrimeDesign(requestedTheme);
+    const changedPrimeDesign =
+      requestedTheme.style !== currentTheme.style ||
+      requestedTheme.linksLayout !== currentTheme.linksLayout ||
+      requestedTheme.profileLayout !== currentTheme.profileLayout;
 
-    if (usesPrimeDesign) {
+    if (usesPrimeDesign && changedPrimeDesign) {
       return NextResponse.json(
         { data: null, error: { code: 'PRIME_REQUIRED', message: 'Prime payment is required to use this design feature' } },
         { status: 403 }

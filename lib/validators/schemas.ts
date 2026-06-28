@@ -87,7 +87,7 @@ export const LeadFormSubmissionSchema = z.object({
 // ── Input / mutation schemas ─────────────────────────────────────────────────
 
 /**
- * XSS-safe URL validator: only allows http and https schemes (Req 4.6).
+ * XSS-safe URL validator: only allows web, email, and phone schemes (Req 4.6).
  * z.string().url() alone accepts javascript:, data:, ftp:, etc.
  */
 const safeUrl = z
@@ -97,12 +97,12 @@ const safeUrl = z
     (val) => {
       try {
         const { protocol } = new URL(val);
-        return protocol === 'http:' || protocol === 'https:';
+        return ['http:', 'https:', 'mailto:', 'tel:'].includes(protocol);
       } catch {
         return false;
       }
     },
-    { message: 'URL must use http or https scheme' }
+    { message: 'URL must use http, https, mailto, or tel scheme' }
   );
 
 /**

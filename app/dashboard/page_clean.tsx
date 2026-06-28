@@ -36,6 +36,25 @@ function isFutureDate(value: string | null | undefined): boolean {
   return !!value && new Date(value).getTime() > Date.now();
 }
 
+function normalizeLinkUrl(rawUrl: string, label: string) {
+  const value = rawUrl.trim();
+  if (!value) return value;
+  if (/^(https?:\/\/|mailto:|tel:)/i.test(value)) return value;
+
+  const normalizedLabel = label.toLowerCase();
+  if (normalizedLabel.includes("email") || normalizedLabel.includes("gmail")) {
+    return value.includes("@") ? `mailto:${value}` : value;
+  }
+  if (normalizedLabel.includes("phone")) {
+    return `tel:${value.replace(/[^\d+]/g, "")}`;
+  }
+  if (normalizedLabel.includes("whatsapp")) {
+    return `https://wa.me/${value.replace(/[^\d]/g, "")}`;
+  }
+
+  return `https://${value}`;
+}
+
 async function readApiJson(response: Response) {
   const text = await response.text();
   if (!text) return {};
@@ -281,7 +300,7 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
     if (!selected || !url.trim() || submitted) return;
     const type = selected.type && LTYPES.includes(selected.type) ? selected.type : "URL";
     setSubmitted(true);
-    onSubmit({ type, title: customTitle.trim() || selected.label, url: url.trim() });
+    onSubmit({ type, title: customTitle.trim() || selected.label, url: normalizeLinkUrl(url, selected.label) });
   }
 
   return (
@@ -408,7 +427,7 @@ function EditLinkForm({ link, saving, onSubmit, onCancel, onDelete }: { link: Li
   const [directLink, setDirectLink] = useState(!!(link as LinkItem & { directLink?: boolean }).directLink);
 
   function handleSave() {
-    const patch: Record<string, unknown> = { title, url };
+    const patch: Record<string, unknown> = { title, url: normalizeLinkUrl(url, title) };
     if (!visible) {
       patch.activeTo = CLOSED_LINK_TIMESTAMP;
     } else {
