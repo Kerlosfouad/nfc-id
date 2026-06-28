@@ -149,18 +149,18 @@ function getLinkMeta(link: Pick<LinkItem, "type" | "title">): { icon: string; co
 }
 
 const PRESET_THEMES = [
-  { id: "default", name: "Default", desc: "Clean and minimal design", colors: ["#ffffff", "#f3f4f6", "#6b7280", "#374151"], premium: false },
-  { id: "dark", name: "Dark Mode", desc: "Sleek dark interface", colors: ["#111827", "#1f2937", "#3b82f6", "#f9fafb"], premium: false },
-  { id: "nature", name: "Nature", desc: "Earthy tones and natural feel", colors: ["#d1fae5", "#6ee7b7", "#10b981", "#064e3b"], premium: false },
-  { id: "ocean", name: "Ocean", desc: "Calming blue tones", colors: ["#eff6ff", "#bfdbfe", "#3b82f6", "#1e3a8a"], premium: false },
-  { id: "sunset", name: "Sunset", desc: "Warm sunset colors", colors: ["#fff7ed", "#fed7aa", "#f97316", "#7c2d12"], premium: true },
-  { id: "neon", name: "Neon", desc: "Vibrant neon colors", colors: ["#0f0f0f", "#1a1a2e", "#7c3aed", "#a78bfa"], premium: true },
-  { id: "minimal", name: "Minimal", desc: "Monochrome and elegant", colors: ["#fafafa", "#e4e4e7", "#18181b", "#71717a"], premium: true },
-  { id: "purple-haze", name: "Purple Haze", desc: "Deep purples and lavender", colors: ["#1e1b2e", "#2d2752", "#7c3aed", "#e9d5ff"], premium: true },
-  { id: "retro", name: "Retro", desc: "Warm vintage vibes", colors: ["#fef3c7", "#fde68a", "#d97706", "#78350f"], premium: true },
-  { id: "midnight", name: "Midnight", desc: "Deep blue night sky", colors: ["#0f172a", "#1e293b", "#38bdf8", "#e2e8f0"], premium: true },
-  { id: "rose-gold", name: "Rose Gold", desc: "Elegant pink and gold", colors: ["#fff1f2", "#fecdd3", "#e11d48", "#f59e0b"], premium: true },
-  { id: "forest", name: "Forest", desc: "Deep forest greens", colors: ["#052e16", "#14532d", "#22c55e", "#bbf7d0"], premium: true },
+  { id: "default", name: "Default", desc: "NFC blue glass look", colors: ["#05131f", "#0f2e47", "#03A9F4", "#e0f2fe"], premium: false, accent: "#03A9F4" },
+  { id: "dark", name: "Dark Mode", desc: "Sleek blue-black interface", colors: ["#030712", "#111827", "#3b82f6", "#f9fafb"], premium: false, accent: "#3b82f6" },
+  { id: "nature", name: "Nature", desc: "Deep green natural feel", colors: ["#052e16", "#0f5132", "#22c55e", "#dcfce7"], premium: false, accent: "#22c55e" },
+  { id: "ocean", name: "Ocean", desc: "Calming cyan-blue tones", colors: ["#082f49", "#0e7490", "#22d3ee", "#f0f9ff"], premium: false, accent: "#22d3ee" },
+  { id: "sunset", name: "Sunset", desc: "Warm amber glow", colors: ["#431407", "#9a3412", "#fb923c", "#fff7ed"], premium: true, accent: "#fb923c" },
+  { id: "neon", name: "Neon", desc: "Vibrant electric violet", colors: ["#050505", "#111827", "#7c3aed", "#ddd6fe"], premium: true, accent: "#7c3aed" },
+  { id: "minimal", name: "Minimal", desc: "Soft monochrome elegance", colors: ["#fafafa", "#e4e4e7", "#18181b", "#71717a"], premium: true, accent: "#18181b" },
+  { id: "purple-haze", name: "Purple Haze", desc: "Deep purples and lavender", colors: ["#1e1b4b", "#6d28d9", "#a78bfa", "#f3e8ff"], premium: true, accent: "#a78bfa" },
+  { id: "retro", name: "Retro", desc: "Warm vintage gold", colors: ["#451a03", "#92400e", "#f59e0b", "#fffbeb"], premium: true, accent: "#f59e0b" },
+  { id: "midnight", name: "Midnight", desc: "Deep blue night sky", colors: ["#020617", "#1e3a5f", "#38bdf8", "#e2e8f0"], premium: true, accent: "#38bdf8" },
+  { id: "rose-gold", name: "Rose Gold", desc: "Elegant rose glow", colors: ["#4c0519", "#be123c", "#fb7185", "#fff1f2"], premium: true, accent: "#fb7185" },
+  { id: "forest", name: "Forest", desc: "Rich forest greens", colors: ["#022c22", "#166534", "#22c55e", "#bbf7d0"], premium: true, accent: "#22c55e" },
 ];
 function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { profile: ProfileData; saving: boolean; onSave: (p: Record<string, unknown>) => void; onClose: () => void; onAddLink?: (d: LinkDraft) => void }) {
   const [name, setName] = useState(profile.displayName);
@@ -1406,8 +1406,10 @@ function DesignTab({ profile, saving, onSave }: { profile: ProfileData; saving: 
   const [refreshKey, setRefreshKey] = useState(0);
 
   function applyTheme(themeId: string) {
+    const selectedTheme = PRESET_THEMES.find(t => t.id === themeId);
+    const accent = selectedTheme?.accent ?? theme.primaryColor;
     setStyle(themeId);
-    onSave({ style: themeId as ProfileTheme["style"], primaryColor: theme.primaryColor, fontFamily: theme.fontFamily, linksLayout, profileLayout, coverUrl: theme.coverUrl });
+    onSave({ style: themeId as ProfileTheme["style"], primaryColor: accent, fontFamily: theme.fontFamily, linksLayout, profileLayout, coverUrl: theme.coverUrl });
     setTimeout(() => setRefreshKey(k => k + 1), 800);
   }
 

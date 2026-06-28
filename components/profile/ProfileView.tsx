@@ -101,22 +101,21 @@ function getLinkMeta(link: ProfileLink, primaryColor: string): { icon: string; c
 /* ── Theme helpers ──────────────────────────────────────────── */
 
 function getThemeVars(theme: ProfileTheme) {
-  const pc = theme.primaryColor || '#03A9F4';
   switch (theme.style) {
-    case 'nature':
-      return { textPrimary: '#14532d', textSecondary: '#4d7c5e', isDark: false };
-    case 'ocean':
-      return { textPrimary: '#164e63', textSecondary: '#4d8997', isDark: false };
-    case 'sunset':
-      return { textPrimary: '#7c2d12', textSecondary: '#a4603b', isDark: false };
-    case 'retro':
-      return { textPrimary: '#78350f', textSecondary: '#a47a3b', isDark: false };
-    case 'rose-gold':
-      return { textPrimary: '#9f1239', textSecondary: '#c44d6a', isDark: false };
     case 'minimal':
-      return { textPrimary: '#18181b', textSecondary: '#71717a', isDark: false };
+      return { textPrimary: '#18181b', textSecondary: '#52525b', isDark: false, glass: 'rgba(255,255,255,0.62)', glassBorder: 'rgba(24,24,27,0.10)' };
+    case 'nature':
+      return { textPrimary: '#ecfdf5', textSecondary: 'rgba(236,253,245,0.72)', isDark: true, glass: 'rgba(6,78,59,0.28)', glassBorder: 'rgba(167,243,208,0.18)' };
+    case 'ocean':
+      return { textPrimary: '#f0f9ff', textSecondary: 'rgba(224,242,254,0.72)', isDark: true, glass: 'rgba(8,47,73,0.30)', glassBorder: 'rgba(125,211,252,0.20)' };
+    case 'sunset':
+      return { textPrimary: '#fff7ed', textSecondary: 'rgba(255,237,213,0.72)', isDark: true, glass: 'rgba(124,45,18,0.26)', glassBorder: 'rgba(253,186,116,0.20)' };
+    case 'retro':
+      return { textPrimary: '#fffbeb', textSecondary: 'rgba(254,243,199,0.72)', isDark: true, glass: 'rgba(120,53,15,0.28)', glassBorder: 'rgba(251,191,36,0.20)' };
+    case 'rose-gold':
+      return { textPrimary: '#fff1f2', textSecondary: 'rgba(255,228,230,0.72)', isDark: true, glass: 'rgba(159,18,57,0.26)', glassBorder: 'rgba(251,113,133,0.20)' };
     default:
-      return { textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.6)', isDark: true };
+      return { textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.64)', isDark: true, glass: 'rgba(255,255,255,0.12)', glassBorder: 'rgba(255,255,255,0.14)' };
   }
 }
 
@@ -130,23 +129,24 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
     };
   }
   switch (theme.style) {
-    case 'nature':    return { background: 'linear-gradient(160deg,#bbf7d0,#4ade80,#166534)' };
-    case 'ocean':     return { background: 'linear-gradient(160deg,#cffafe,#22d3ee,#0e7490)' };
-    case 'sunset':    return { background: 'linear-gradient(160deg,#fed7aa,#fb923c,#9a3412)' };
-    case 'retro':     return { background: 'linear-gradient(160deg,#fef3c7,#fbbf24,#92400e)' };
-    case 'rose-gold': return { background: 'linear-gradient(160deg,#fecdd3,#fb7185,#9f1239)' };
-    case 'minimal':   return { background: '#f4f4f5' };
-    case 'neon':      return { background: `linear-gradient(160deg,#0a0a0a,${pc}40,#0a0a0a)` };
-    case 'purple-haze': return { background: 'linear-gradient(160deg,#1a0533,#7c3aed,#1a0533)' };
-    case 'midnight':  return { background: 'linear-gradient(160deg,#020617,#1e3a5f,#020617)' };
-    case 'forest':    return { background: 'linear-gradient(160deg,#052e16,#166534,#052e16)' };
-    default:          return { background: `linear-gradient(160deg,#0d1117,${pc}30,#0d1117)` };
+    case 'nature':    return { background: 'radial-gradient(circle at 70% 18%, rgba(134,239,172,0.28), transparent 32%), linear-gradient(150deg,#052e16,#0f5132 48%,#021c12)' };
+    case 'ocean':     return { background: 'radial-gradient(circle at 72% 18%, rgba(34,211,238,0.34), transparent 34%), linear-gradient(150deg,#082f49,#0e7490 50%,#031826)' };
+    case 'sunset':    return { background: 'radial-gradient(circle at 72% 18%, rgba(251,146,60,0.36), transparent 34%), linear-gradient(150deg,#431407,#9a3412 52%,#1f0b05)' };
+    case 'retro':     return { background: 'radial-gradient(circle at 72% 18%, rgba(251,191,36,0.34), transparent 34%), linear-gradient(150deg,#451a03,#92400e 52%,#1c0c03)' };
+    case 'rose-gold': return { background: 'radial-gradient(circle at 72% 18%, rgba(251,113,133,0.34), transparent 34%), linear-gradient(150deg,#4c0519,#be123c 52%,#23040e)' };
+    case 'minimal':   return { background: 'linear-gradient(150deg,#fafafa,#e4e4e7 54%,#d4d4d8)' };
+    case 'neon':      return { background: `radial-gradient(circle at 72% 18%, ${pc}66, transparent 34%), linear-gradient(150deg,#050505,#111827 50%,#020617)` };
+    case 'purple-haze': return { background: 'radial-gradient(circle at 72% 18%, rgba(167,139,250,0.34), transparent 34%), linear-gradient(150deg,#1e1b4b,#6d28d9 54%,#16052e)' };
+    case 'midnight':  return { background: 'radial-gradient(circle at 72% 18%, rgba(56,189,248,0.28), transparent 34%), linear-gradient(150deg,#020617,#1e3a5f 54%,#020617)' };
+    case 'forest':    return { background: 'radial-gradient(circle at 72% 18%, rgba(34,197,94,0.30), transparent 34%), linear-gradient(150deg,#022c22,#166534 52%,#01140d)' };
+    case 'dark':      return { background: `radial-gradient(circle at 72% 18%, ${pc}44, transparent 34%), linear-gradient(150deg,#030712,#111827 52%,#020617)` };
+    default:          return { background: `radial-gradient(circle at 72% 18%, ${pc}4d, transparent 34%), linear-gradient(150deg,#05131f,#0f2e47 52%,#020617)` };
   }
 }
 
 /* ── Link Row ─────────────────────────────────────────────── */
 
-function LinkRow({ link, primaryColor, isDark }: { link: ProfileLink; primaryColor: string; isDark: boolean }) {
+function LinkRow({ link, primaryColor, themeVars }: { link: ProfileLink; primaryColor: string; themeVars: ReturnType<typeof getThemeVars> }) {
   const { icon, color } = getLinkMeta(link, primaryColor);
 
   return (
@@ -158,8 +158,8 @@ function LinkRow({ link, primaryColor, isDark }: { link: ProfileLink; primaryCol
     >
       {/* Icon circle — use thumbnailUrl if available, else icon */}
       <div
-        className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 z-10 overflow-hidden"
-        style={{ backgroundColor: color, boxShadow: `0 2px 12px ${color}80` }}
+        className="w-[52px] h-[52px] rounded-full flex items-center justify-center flex-shrink-0 z-10 overflow-hidden"
+        style={{ backgroundColor: color, boxShadow: `0 5px 18px ${color}66` }}
       >
         {link.thumbnailUrl
           ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
@@ -168,16 +168,18 @@ function LinkRow({ link, primaryColor, isDark }: { link: ProfileLink; primaryCol
       </div>
       {/* Pill label */}
       <div
-        className="flex-1 h-14 flex items-center justify-center pl-5 -ml-7 rounded-r-2xl"
+        className="flex-1 h-[52px] flex items-center justify-center pl-6 -ml-7 rounded-r-[18px] border"
         style={{
-          backgroundColor: isDark ? 'rgba(15,30,60,0.28)' : 'rgba(0,0,0,0.10)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
+          backgroundColor: themeVars.glass,
+          borderColor: themeVars.glassBorder,
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.10)',
         }}
       >
         <span
-          className="font-semibold text-sm uppercase tracking-widest"
-          style={{ color: isDark ? '#ffffff' : '#1a1a1a' }}
+          className="font-semibold text-sm"
+          style={{ color: themeVars.isDark ? '#ffffff' : '#1a1a1a' }}
         >
           {link.title}
         </span>
@@ -204,7 +206,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
 
   return (
     <main
-      className="min-h-screen flex flex-col"
+      className="min-h-screen flex flex-col overflow-hidden"
       style={{ ...bgStyle, fontFamily: `${fontFamily}, Inter, sans-serif` }}
     >
       {/* Dark overlay for readability when cover image is set */}
@@ -212,11 +214,11 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
         <div className="fixed inset-0 bg-black/40 z-0" />
       )}
 
-      <div className="relative z-10 flex flex-col items-center w-full max-w-sm mx-auto px-5 pt-24 pb-10">
+      <div className="relative z-10 flex min-h-screen w-full max-w-[390px] flex-col items-center mx-auto px-7 pt-16 pb-8">
 
         {/* Avatar */}
         <div
-          className="w-36 h-36 rounded-full p-[3px] mb-4"
+          className="w-[126px] h-[126px] rounded-full p-[3px] mb-4"
           style={{
             background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
             boxShadow: `0 0 32px ${primaryColor}60`,
@@ -240,7 +242,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
         </div>
 
         {/* Name & Bio */}
-        <h1 className="text-2xl font-bold text-center mb-1 flex items-center gap-2" style={{ color: themeVars.textPrimary }}>
+        <h1 className="text-[26px] leading-tight font-bold text-center mb-1 flex items-center gap-2" style={{ color: themeVars.textPrimary }}>
           {profile.displayName}
           {profile.isVerified && (
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
@@ -254,12 +256,12 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
             {profile.bio}
           </p>
         )}
-        <p className="text-xs font-semibold tracking-widest uppercase mb-5" style={{ color: primaryColor }}>
+        <p className="text-xs font-semibold tracking-widest uppercase mb-6" style={{ color: primaryColor }}>
           NFC ID
         </p>
 
         {/* Save (right) + CV (left) buttons row */}
-        <div className="w-full flex items-center justify-between mb-7 px-1">
+        <div className="w-full flex items-center justify-between mb-5 px-1">
           {/* CV / Resume — left */}
           {cvLink ? (
             <a
@@ -304,7 +306,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
         {/* Links */}
         <div className="w-full flex flex-col gap-2 mb-8">
           {visibleLinks.map(link => (
-            <LinkRow key={link.id} link={link} primaryColor={primaryColor} isDark={themeVars.isDark} />
+            <LinkRow key={link.id} link={link} primaryColor={primaryColor} themeVars={themeVars} />
           ))}
         </div>
 
