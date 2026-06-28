@@ -14,6 +14,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       email: true,
       role: true,
       createdAt: true,
+      profiles: {
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          publicId: true,
+          displayName: true,
+          isVerified: true,
+          isSuspended: true,
+          isActive: true,
+        },
+      },
       _count: {
         select: {
           tags: true,
@@ -25,4 +36,3 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   return NextResponse.json({ data: customers, error: null });
 }
-

@@ -153,7 +153,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
 /* ── Link Row ─────────────────────────────────────────────── */
 
 function LinkRow({ link, primaryColor, themeVars, compact = false }: { link: ProfileLink; primaryColor: string; themeVars: ReturnType<typeof getThemeVars>; compact?: boolean }) {
-  const { icon, color } = getLinkMeta(link, primaryColor);
+  const { icon } = getLinkMeta(link, primaryColor);
 
   return (
     <a
@@ -165,7 +165,7 @@ function LinkRow({ link, primaryColor, themeVars, compact = false }: { link: Pro
       {/* Icon circle — use thumbnailUrl if available, else icon */}
       <div
         className={`${compact ? 'w-12 h-12' : 'w-[52px] h-[52px]'} rounded-full flex items-center justify-center flex-shrink-0 z-10 overflow-hidden`}
-        style={{ backgroundColor: color, boxShadow: `0 5px 18px ${color}66` }}
+        style={{ backgroundColor: primaryColor, boxShadow: `0 5px 18px ${primaryColor}66` }}
       >
         {link.thumbnailUrl
           ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
@@ -195,7 +195,7 @@ function LinkRow({ link, primaryColor, themeVars, compact = false }: { link: Pro
 }
 
 function LinkGridTile({ link, primaryColor, themeVars }: { link: ProfileLink; primaryColor: string; themeVars: ReturnType<typeof getThemeVars> }) {
-  const { icon, color } = getLinkMeta(link, primaryColor);
+  const { icon } = getLinkMeta(link, primaryColor);
 
   return (
     <a
@@ -213,7 +213,7 @@ function LinkGridTile({ link, primaryColor, themeVars }: { link: ProfileLink; pr
     >
       <div
         className="h-11 w-11 rounded-full flex items-center justify-center overflow-hidden"
-        style={{ backgroundColor: color, boxShadow: `0 5px 18px ${color}66` }}
+        style={{ backgroundColor: primaryColor, boxShadow: `0 5px 18px ${primaryColor}66` }}
       >
         {link.thumbnailUrl
           ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
@@ -222,6 +222,22 @@ function LinkGridTile({ link, primaryColor, themeVars }: { link: ProfileLink; pr
       </div>
       <span className="max-w-full truncate text-sm font-semibold text-white">{link.title}</span>
     </a>
+  );
+}
+
+function VerifiedBadge() {
+  return (
+    <span
+      className="inline-flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-full align-middle"
+      style={{
+        background: 'linear-gradient(135deg, #1877F2, #0A66FF)',
+        boxShadow: '0 3px 12px rgba(24,119,242,0.45)',
+      }}
+      aria-label="Verified profile"
+      title="Verified profile"
+    >
+      <i className="ri-check-line text-[15px] font-bold leading-none text-white" />
+    </span>
   );
 }
 
@@ -289,12 +305,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
           {/* Name & Bio */}
           <h1 className="text-[26px] leading-tight font-bold text-center mb-1 flex items-center justify-center gap-2 text-white" style={{ color: '#ffffff' }}>
             {profile.displayName}
-            {profile.isVerified && (
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-                <circle cx="11" cy="11" r="11" fill={primaryColor} />
-                <path d="M6.5 11.5L9.5 14.5L15.5 8.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            )}
+            {profile.isVerified && <VerifiedBadge />}
           </h1>
           {profile.bio && (
             <p className="text-sm text-center mb-1 leading-relaxed" style={{ color: themeVars.textSecondary }}>

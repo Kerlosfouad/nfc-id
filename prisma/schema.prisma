@@ -88,6 +88,7 @@ model Profile {
   sensitiveContent Boolean  @default(false)
   isActive         Boolean  @default(true)
   isSuspended      Boolean  @default(false)
+  isVerified       Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

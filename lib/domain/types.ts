@@ -33,6 +33,7 @@ export interface Profile {
   sensitiveContent: boolean;
   isActive: boolean;
   isSuspended: boolean;
+  isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
