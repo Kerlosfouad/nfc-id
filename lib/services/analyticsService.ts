@@ -13,6 +13,7 @@ import { UAParser } from 'ua-parser-js';
 import {
   get as cacheGet,
   set as cacheSet,
+  del as cacheDel,
   analyticsSummaryCacheKey,
   ANALYTICS_TTL,
 } from '@/lib/services/cacheService';
@@ -42,7 +43,7 @@ export interface AnalyticsSummary {
   activityTimeline: { date: string; views: number; clicks: number }[];
   linkClickDistribution: { title: string; clicks: number; fill: string }[];
   recentScans: { date: string; country: string; os: string; browser: string }[];
-  linkClickDetails: { title: string; clicks: number }[];
+  linkClickDetails: { title: string; url: string; type: string; thumbnailUrl: string | null; clicks: number }[];
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -90,38 +91,58 @@ export async function recordEvent(input: AnalyticsEventInput): Promise<void> {
       browser,
     },
   });
+
+  void Promise.all([7, 14, 30].map(days => cacheDel(`${analyticsSummaryCacheKey(input.profileId)}:${days}`)));
 }
 
 /**
  * Return an aggregated analytics summary for a profile.
  */
-export async function getProfileSummary(profileId: string): Promise<AnalyticsSummary> {
-  const cacheKey = analyticsSummaryCacheKey(profileId);
+export async function getProfileSummary(profileId: string, days = 7): Promise<AnalyticsSummary> {
+  const safeDays = [7, 14, 30].includes(days) ? days : 7;
+  const cacheKey = `${analyticsSummaryCacheKey(profileId)}:${safeDays}`;
 
   const cached = await cacheGet<AnalyticsSummary>(cacheKey);
   if (cached) return cached;
 
-  const totalViews = await db.analyticsEvent.count({
-    where: { profileId, eventType: 'VIEW' },
-  });
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - (safeDays - 1));
+  startDate.setHours(0, 0, 0, 0);
+  const whereBase = { profileId, createdAt: { gte: startDate } };
 
-  const uniqueResult = await db.analyticsEvent.groupBy({
-    by: ['ipHash'],
-    where: { profileId },
-  });
+  const [totalViews, uniqueResult, clickGroups, profileLinks, recentEvents, rangeEvents] = await Promise.all([
+    db.analyticsEvent.count({
+      where: { ...whereBase, eventType: 'VIEW' },
+    }),
+    db.analyticsEvent.groupBy({
+      by: ['ipHash'],
+      where: whereBase,
+    }),
+    db.analyticsEvent.groupBy({
+      by: ['linkId'],
+      where: { ...whereBase, eventType: 'CLICK', linkId: { not: null } },
+      _count: { linkId: true },
+    }),
+    db.link.findMany({
+      where: { profileId },
+      select: { id: true, title: true, type: true, url: true, thumbnailUrl: true },
+    }),
+    db.analyticsEvent.findMany({
+      where: { ...whereBase, eventType: 'VIEW' },
+      orderBy: { createdAt: 'desc' },
+      take: 12,
+      select: { createdAt: true, geoCountry: true, os: true, browser: true },
+    }),
+    db.analyticsEvent.findMany({
+      where: whereBase,
+      select: { eventType: true, createdAt: true },
+    }),
+  ]);
   const uniqueVisitors = uniqueResult.length;
-
-  const clickGroups = await db.analyticsEvent.groupBy({
-    by: ['linkId'],
-    where: { profileId, eventType: 'CLICK', linkId: { not: null } },
-    _count: { linkId: true },
-  });
-
-  const profileLinks = await db.link.findMany({ where: { profileId } });
 
   let totalLinkClicks = 0;
   let contactSaves = 0;
-  const linkClickDetails: { title: string; clicks: number }[] = [];
+  const linkClickDetails: { title: string; url: string; type: string; thumbnailUrl: string | null; clicks: number }[] = [];
   const linkClickDistribution: { title: string; clicks: number; fill: string }[] = [];
   
   const COLORS = ['#03A9F4', '#8A2BE2', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#6366f1'];
@@ -136,7 +157,7 @@ export async function getProfileSummary(profileId: string): Promise<AnalyticsSum
     if (link.type === 'VCF') {
       contactSaves += clicks;
     }
-    linkClickDetails.push({ title: link.title, clicks });
+    linkClickDetails.push({ title: link.title, url: link.url, type: link.type, thumbnailUrl: link.thumbnailUrl, clicks });
     linkClickDistribution.push({ 
       title: link.title, 
       clicks, 
@@ -146,36 +167,21 @@ export async function getProfileSummary(profileId: string): Promise<AnalyticsSum
 
   const linkClickRate = totalViews > 0 ? Math.round((totalLinkClicks / totalViews) * 100) : 0;
 
-  const recentEvents = await db.analyticsEvent.findMany({
-    where: { profileId, eventType: 'VIEW' },
-    orderBy: { createdAt: 'desc' },
-    take: 10,
-  });
-  
   const recentScans = recentEvents.map(e => ({
-    date: e.createdAt.toISOString().split('T')[0],
+    date: e.createdAt.toISOString(),
     country: e.geoCountry || 'Unknown',
     os: e.os || 'Unknown',
     browser: e.browser || 'Unknown'
   }));
 
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
-  sevenDaysAgo.setHours(0,0,0,0);
-  
-  const recentWeekEvents = await db.analyticsEvent.findMany({
-    where: { profileId, createdAt: { gte: sevenDaysAgo } },
-    select: { eventType: true, createdAt: true }
-  });
-
   const timelineMap: Record<string, { views: number; clicks: number }> = {};
-  for(let i = 6; i >= 0; i--) {
+  for(let i = safeDays - 1; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     timelineMap[d.toISOString().split('T')[0]] = { views: 0, clicks: 0 };
   }
 
-  recentWeekEvents.forEach(e => {
+  rangeEvents.forEach(e => {
     const dateKey = e.createdAt.toISOString().split('T')[0];
     if (timelineMap[dateKey]) {
       if (e.eventType === 'VIEW') timelineMap[dateKey].views++;

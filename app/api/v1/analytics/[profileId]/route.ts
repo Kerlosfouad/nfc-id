@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getProfileSummary } from '@/lib/services/analyticsService';
+import { getProfileSummary, recordEvent } from '@/lib/services/analyticsService';
 
 interface RouteParams {
   params: Promise<{ profileId: string }>;
@@ -18,6 +18,7 @@ interface RouteParams {
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   const { profileId } = await params;
+  const days = Number(request.nextUrl.searchParams.get('days') ?? '7');
 
   // Temporary auth: read requesting user from header (replaced by JWT in Task 11)
   const requestingUserId = request.headers.get('x-user-id');
@@ -40,7 +41,57 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 
   // Return summary (max 60s staleness via Redis cache)
-  const summary = await getProfileSummary(profileId);
+  const summary = await getProfileSummary(profileId, days);
 
   return NextResponse.json({ data: summary });
+}
+
+export async function POST(request: NextRequest, { params }: RouteParams) {
+  const { profileId } = await params;
+
+  let body: { linkId?: string } = {};
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+
+  if (!body.linkId) {
+    return NextResponse.json({ error: 'linkId is required' }, { status: 400 });
+  }
+
+  const profile = await db.profile.findUnique({
+    where: { id: profileId },
+    select: { publicId: true },
+  });
+  if (!profile) {
+    return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+  }
+
+  const link = await db.link.findFirst({
+    where: { id: body.linkId, profileId },
+    select: { id: true },
+  });
+  if (!link) {
+    return NextResponse.json({ error: 'Link not found' }, { status: 404 });
+  }
+
+  const forwarded = request.headers.get('x-forwarded-for') ?? '';
+  const rawIp = forwarded ? forwarded.split(',')[0].trim() : '0.0.0.0';
+  const userAgent = request.headers.get('user-agent') ?? '';
+  const referer = request.headers.get('referer') ?? '';
+
+  await recordEvent({
+    profileId,
+    publicId: profile.publicId,
+    eventType: 'CLICK',
+    linkId: link.id,
+    rawIp,
+    userAgent,
+    referralSource: referer ? 'SOCIAL' : 'DIRECT',
+    geoCountry: request.headers.get('x-vercel-ip-country'),
+    geoSubdivision: request.headers.get('x-vercel-ip-country-region'),
+  });
+
+  return NextResponse.json({ data: { ok: true } });
 }

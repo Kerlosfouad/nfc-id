@@ -178,7 +178,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
 
 /* ── Link Row ─────────────────────────────────────────────── */
 
-function LinkRow({ link, primaryColor, compact = false }: { link: ProfileLink; primaryColor: string; compact?: boolean }) {
+function LinkRow({ link, primaryColor, compact = false, onOpen }: { link: ProfileLink; primaryColor: string; compact?: boolean; onOpen?: (link: ProfileLink) => void }) {
   const { icon } = getLinkMeta(link, primaryColor);
   const accentColor = darkenHex(primaryColor || '#03A9F4');
 
@@ -187,6 +187,7 @@ function LinkRow({ link, primaryColor, compact = false }: { link: ProfileLink; p
       href={link.url}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => onOpen?.(link)}
       className="flex items-center gap-0 transition-all duration-200 active:scale-[0.98]"
     >
       {/* Icon circle — use thumbnailUrl if available, else icon */}
@@ -221,7 +222,7 @@ function LinkRow({ link, primaryColor, compact = false }: { link: ProfileLink; p
   );
 }
 
-function LinkGridTile({ link, primaryColor }: { link: ProfileLink; primaryColor: string }) {
+function LinkGridTile({ link, primaryColor, onOpen }: { link: ProfileLink; primaryColor: string; onOpen?: (link: ProfileLink) => void }) {
   const { icon } = getLinkMeta(link, primaryColor);
   const accentColor = darkenHex(primaryColor || '#03A9F4');
 
@@ -230,6 +231,7 @@ function LinkGridTile({ link, primaryColor }: { link: ProfileLink; primaryColor:
       href={link.url}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => onOpen?.(link)}
       className="min-h-[102px] rounded-[22px] border p-3 flex flex-col items-center justify-center gap-2 text-center transition-all duration-200 active:scale-[0.98]"
       style={{
         backgroundColor: withAlpha(accentColor, 0.14),
@@ -292,6 +294,25 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
   const activeLinks = links.filter(link => !isHiddenLink(link));
   const cvLink = activeLinks.find(isCvLink);
   const visibleLinks = activeLinks.filter(l => l !== cvLink);
+
+  function recordLinkClick(link: ProfileLink) {
+    const payload = JSON.stringify({ linkId: link.id });
+    const url = `/api/v1/analytics/${profile.id}`;
+    try {
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(url, new Blob([payload], { type: 'application/json' }));
+        return;
+      }
+    } catch {
+      // Fall back below.
+    }
+    void fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+      keepalive: true,
+    }).catch(() => undefined);
+  }
 
   return (
     <main
@@ -359,6 +380,7 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
               href={cvLink.url}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => recordLinkClick(cvLink)}
               className="flex-1 min-w-0 flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold transition-all active:scale-95"
               style={{
                 backgroundColor: 'rgba(255,255,255,0.12)',
@@ -397,9 +419,9 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
         {/* Links */}
         <div className={`w-full mb-8 ${isGrid ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2'}`}>
           {visibleLinks.map(link => isGrid ? (
-            <LinkGridTile key={link.id} link={link} primaryColor={primaryColor} />
+            <LinkGridTile key={link.id} link={link} primaryColor={primaryColor} onOpen={recordLinkClick} />
           ) : (
-            <LinkRow key={link.id} link={link} primaryColor={primaryColor} compact={isHero} />
+            <LinkRow key={link.id} link={link} primaryColor={primaryColor} compact={isHero} onOpen={recordLinkClick} />
           ))}
         </div>
 

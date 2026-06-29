@@ -996,21 +996,30 @@ interface AnalyticsSummary {
   activityTimeline: { date: string; views: number; clicks: number }[];
   linkClickDistribution: { title: string; clicks: number; fill: string }[];
   recentScans: { date: string; country: string; os: string; browser: string }[];
-  linkClickDetails: { title: string; clicks: number }[];
+  linkClickDetails: { title: string; url: string; type: string; thumbnailUrl: string | null; clicks: number }[];
 }
 
 function MiniBarChart({ data }: { data: { date: string; views: number; clicks: number }[] }) {
+  const [activeIndex, setActiveIndex] = useState(Math.max(data.length - 1, 0));
   const maxVal = Math.max(...data.map(d => Math.max(d.views, d.clicks)), 1);
+  const active = data[activeIndex] ?? data[data.length - 1];
   return (
-    <div className="w-full h-full flex items-end gap-1 px-2 pb-2">
-      {data.map((d, i) => (
-        <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
-          <div className="w-full flex items-end gap-0.5 h-28 sm:h-36">
-            <div className="flex-1 rounded-t-sm bg-[#03A9F4]/70 transition-all" style={{ height: `${(d.views / maxVal) * 100}%`, minHeight: d.views > 0 ? 3 : 0 }} />
-            <div className="flex-1 rounded-t-sm bg-[#8A2BE2]/70 transition-all" style={{ height: `${(d.clicks / maxVal) * 100}%`, minHeight: d.clicks > 0 ? 3 : 0 }} />
-          </div>
-          <span className="text-[9px] text-white/20 hidden sm:block">{d.date}</span>
+    <div className="relative flex h-full w-full items-end gap-1 px-2 pb-8 pt-10">
+      {active && (
+        <div className="absolute left-1/2 top-0 z-10 -translate-x-1/2 rounded-xl border border-white/10 bg-black/80 px-3 py-2 text-xs shadow-xl">
+          <p className="mb-1 font-semibold text-white">{active.date}</p>
+          <p className="flex items-center gap-2 text-white/60"><span className="h-2 w-2 rounded-sm bg-[#2f6be6]" /> Views <b className="ml-auto text-white">{active.views}</b></p>
+          <p className="flex items-center gap-2 text-white/60"><span className="h-2 w-2 rounded-sm bg-[#35c19a]" /> Clicks <b className="ml-auto text-white">{active.clicks}</b></p>
         </div>
+      )}
+      {data.map((d, i) => (
+        <button key={i} type="button" onClick={() => setActiveIndex(i)} className="flex flex-1 flex-col items-center gap-1 outline-none">
+          <div className={`flex h-36 w-full items-end gap-1 rounded-sm px-0.5 transition-colors ${activeIndex === i ? "bg-white/[0.05]" : ""}`}>
+            <div className="flex-1 rounded-t-md bg-[#2f6be6] transition-all" style={{ height: `${(d.views / maxVal) * 100}%`, minHeight: d.views > 0 ? 5 : 0 }} />
+            <div className="flex-1 rounded-t-md bg-[#35c19a] transition-all" style={{ height: `${(d.clicks / maxVal) * 100}%`, minHeight: d.clicks > 0 ? 5 : 0 }} />
+          </div>
+          <span className="text-[10px] text-white/30">{d.date}</span>
+        </button>
       ))}
     </div>
   );
@@ -1057,105 +1066,112 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
   const [range, setRange] = useState<7 | 14 | 30>(7);
 
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
-    fetch("/api/v1/analytics/" + profile.id, {
+    fetch(`/api/v1/analytics/${profile.id}?days=${range}`, {
+      headers: { Authorization: "Bearer " + token, "x-user-id": uid }
+    })
+      .then(r => r.json())
+      .then(j => { if (!cancelled) setData(j.data ?? null); })
+      .catch(() => { if (!cancelled) setData(null); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [profile.id, token, uid, range]);
+
+  function refresh() {
+    setLoading(true);
+    fetch(`/api/v1/analytics/${profile.id}?days=${range}&t=${Date.now()}`, {
       headers: { Authorization: "Bearer " + token, "x-user-id": uid }
     }).then(r => r.json()).then(j => setData(j.data ?? null)).catch(() => setData(null)).finally(() => setLoading(false));
-  }, [profile.id, token, uid]);
+  }
 
   const stats = [
-    { label: "Views", value: data?.totalViews ?? 0, icon: "ri-eye-line", color: "#03A9F4", badge: null },
-    { label: "Link Clicks", value: data?.totalLinkClicks ?? 0, icon: "ri-cursor-line", color: "#8A2BE2", badge: "New" },
-    { label: "Link Click Rate", value: data ? `${data.linkClickRate}%` : "0%", icon: "ri-percent-line", color: "#10b981", badge: "New" },
-    { label: "Contact Saves", value: data?.contactSaves ?? 0, icon: "ri-file-user-line", color: "#f59e0b", badge: "New" },
+    { label: "Views", value: data?.totalViews ?? 0, icon: "ri-eye-line", color: "#2f6be6", badge: null },
+    { label: "Link Clicks", value: data?.totalLinkClicks ?? 0, icon: "ri-cursor-line", color: "#35c19a", badge: "Live" },
+    { label: "Link Click Rate", value: data ? `${data.linkClickRate}%` : "0%", icon: "ri-percent-line", color: "#f6b93b", badge: "Live" },
+    { label: "Contact Saves", value: data?.contactSaves ?? 0, icon: "ri-file-user-line", color: "#8b7cf6", badge: "Live" },
   ];
 
   return (
-    <div className="space-y-4 sm:space-y-5">
+    <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 className="font-bold text-lg sm:text-xl">Insights</h2>
-        <div className="flex items-center gap-2">
-          <div className="flex bg-[#1a1a1a] border border-white/10 rounded-xl p-1 gap-0.5">
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1 rounded-full border border-white/10 bg-[#111] p-1">
+          <div className="grid grid-cols-3 gap-1">
             {([7, 14, 30] as const).map(r => (
               <button key={r} onClick={() => setRange(r)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${range === r ? "bg-white/10 text-white" : "text-white/30 hover:text-white/60"}`}>
-                Last {r} days
+                className={`rounded-full px-2 py-2 text-xs font-bold transition-all ${range === r ? "bg-white text-black" : "text-white/40 hover:text-white"}`}>
+                {r === 7 ? "Last 7 days" : r === 14 ? "14 days" : "30 days"}
               </button>
             ))}
           </div>
-          <button onClick={() => { setLoading(true); fetch("/api/v1/analytics/" + profile.id, { headers: { Authorization: "Bearer " + token, "x-user-id": uid } }).then(r => r.json()).then(j => setData(j.data ?? null)).finally(() => setLoading(false)); }}
-            className="w-8 h-8 flex items-center justify-center bg-[#1a1a1a] border border-white/10 rounded-xl text-white/40 hover:text-white transition-colors">
-            <i className={`ri-refresh-line text-sm ${loading ? "animate-spin" : ""}`} />
-          </button>
         </div>
+        <button onClick={refresh}
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform active:scale-95">
+          <i className={`ri-refresh-line text-xl ${loading ? "animate-spin" : ""}`} />
+        </button>
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {stats.map((s, i) => (
-          <div key={i} className="bg-[#161616] border border-white/8 rounded-2xl p-4 relative overflow-hidden">
+          <div key={i} className="relative min-h-[142px] overflow-hidden rounded-[28px] border border-white/10 bg-[#111] p-5">
             {s.badge && (
-              <span className="absolute top-2.5 right-2.5 text-[9px] font-bold bg-[#03A9F4]/15 text-[#03A9F4] px-1.5 py-0.5 rounded-md">New</span>
+              <span className="absolute right-4 top-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-black">{s.badge}</span>
             )}
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: s.color + "20" }}>
-                <i className={`${s.icon} text-sm`} style={{ color: s.color }} />
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.07]">
+                <i className={`${s.icon} text-xl text-white`} />
               </div>
-              <span className="text-xs text-white/40">{s.label}</span>
+              <span className="text-sm font-semibold text-white/85">{s.label}</span>
             </div>
             {loading
-              ? <div className="h-8 w-16 bg-white/5 rounded-lg animate-pulse" />
-              : <p className="text-2xl sm:text-3xl font-bold text-white">{String(s.value)}</p>
+              ? <div className="h-12 w-24 animate-pulse rounded-xl bg-white/5" />
+              : <p className="text-4xl font-semibold leading-none text-white">{String(s.value)}</p>
             }
           </div>
         ))}
       </div>
 
-      {/* Activity + Distribution */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Activity chart */}
-        <div className="bg-[#161616] border border-white/8 rounded-2xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold">Activity</h3>
-            <div className="flex items-center gap-3 text-xs text-white/30">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#03A9F4]/70 inline-block" />Views</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#8A2BE2]/70 inline-block" />Clicks</span>
-            </div>
+      <div className="rounded-[28px] border border-white/10 bg-[#111] p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-bold">Activity</h3>
+          <div className="flex items-center gap-3 text-xs text-white/45">
+            <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-[#2f6be6]" />Views</span>
+            <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-[#35c19a]" />Clicks</span>
           </div>
-          {loading
-            ? <div className="h-36 flex items-center justify-center"><i className="ri-loader-4-line animate-spin text-white/20 text-2xl" /></div>
-            : !data || data.activityTimeline.every(d => d.views === 0 && d.clicks === 0)
-              ? <div className="h-36 flex items-center justify-center text-white/20 text-sm">No data available</div>
-              : <div className="h-36"><MiniBarChart data={data.activityTimeline} /></div>
-          }
         </div>
+        {loading
+          ? <div className="flex h-56 items-center justify-center"><i className="ri-loader-4-line animate-spin text-3xl text-white/20" /></div>
+          : !data || data.activityTimeline.every(d => d.views === 0 && d.clicks === 0)
+            ? <div className="flex h-56 items-center justify-center text-sm text-white/25">No activity yet</div>
+            : <div className="h-64"><MiniBarChart data={data.activityTimeline} /></div>
+        }
+      </div>
 
-        {/* Donut chart */}
-        <div className="bg-[#161616] border border-white/8 rounded-2xl p-4">
-          <h3 className="text-sm font-semibold mb-3">Link Click Distribution</h3>
-          {loading
-            ? <div className="h-36 flex items-center justify-center"><i className="ri-loader-4-line animate-spin text-white/20 text-2xl" /></div>
-            : <div className="h-36 flex items-center"><DonutChart data={data?.linkClickDistribution ?? []} /></div>
-          }
-        </div>
+      <div className="rounded-[28px] border border-white/10 bg-[#111] p-5">
+        <h3 className="mb-5 text-lg font-bold">Link Click Distribution</h3>
+        {loading
+          ? <div className="flex h-56 items-center justify-center"><i className="ri-loader-4-line animate-spin text-3xl text-white/20" /></div>
+          : <div className="flex min-h-56 items-center"><DonutChart data={data?.linkClickDistribution ?? []} /></div>
+        }
       </div>
 
       {/* Scan Details + Link Click Details */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Recent Scans */}
-        <div className="bg-[#161616] border border-white/8 rounded-2xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-white/5">
-            <h3 className="text-sm font-semibold">Scan Details</h3>
+        <div className="overflow-hidden rounded-[28px] border border-white/10 bg-[#111]">
+          <div className="border-b border-white/10 px-5 py-4">
+            <h3 className="text-lg font-bold">Scan Details</h3>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
+          <div className="max-h-[360px] overflow-auto">
+            <table className="w-full min-w-[520px] text-sm">
               <thead>
                 <tr className="border-b border-white/5">
-                  <th className="text-left px-4 py-2.5 text-white/30 font-medium">Date</th>
-                  <th className="text-left px-4 py-2.5 text-white/30 font-medium">Country</th>
-                  <th className="text-left px-4 py-2.5 text-white/30 font-medium hidden sm:table-cell">OS</th>
-                  <th className="text-left px-4 py-2.5 text-white/30 font-medium hidden sm:table-cell">Browser</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/45">Date</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/45">Country</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/45">OS</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/45">Browser</th>
                 </tr>
               </thead>
               <tbody>
@@ -1164,11 +1180,11 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
                     <tr key={i}><td colSpan={4} className="px-4 py-2.5"><div className="h-4 bg-white/5 rounded animate-pulse" /></td></tr>
                   ))
                 ) : !data || data.recentScans.length === 0 ? (
-                  <tr><td colSpan={4} className="px-4 py-6 text-center text-white/20">No data available</td></tr>
+                  <tr><td colSpan={4} className="px-4 py-8 text-center text-white/25">No scans yet</td></tr>
                 ) : (
                   data.recentScans.map((s, i) => (
-                    <tr key={i} className="border-b border-white/5 last:border-0 hover:bg-white/3">
-                      <td className="px-4 py-2.5 text-white/50">{s.date}</td>
+                    <tr key={i} className="border-b border-white/10 last:border-0">
+                      <td className="px-4 py-4 text-white/80">{new Date(s.date).toLocaleString(undefined, { month: "numeric", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}</td>
                       <td className="px-4 py-2.5 text-white/70">{s.country === "Unknown" ? "—" : s.country}</td>
                       <td className="px-4 py-2.5 text-white/50 hidden sm:table-cell">{s.os}</td>
                       <td className="px-4 py-2.5 text-white/50 hidden sm:table-cell">{s.browser}</td>
@@ -1181,16 +1197,16 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
         </div>
 
         {/* Link Click Details */}
-        <div className="bg-[#161616] border border-white/8 rounded-2xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-white/5">
-            <h3 className="text-sm font-semibold">Link Click Details</h3>
+        <div className="overflow-hidden rounded-[28px] border border-white/10 bg-[#111]">
+          <div className="border-b border-white/10 px-5 py-4">
+            <h3 className="text-lg font-bold">Link Click Details</h3>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
+          <div className="p-5">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/5">
-                  <th className="text-left px-4 py-2.5 text-white/30 font-medium">Link</th>
-                  <th className="text-right px-4 py-2.5 text-white/30 font-medium">Clicks</th>
+                  <th className="pb-4 text-left font-semibold text-white/45">Link</th>
+                  <th className="pb-4 text-right font-semibold text-white/45">Clicks</th>
                 </tr>
               </thead>
               <tbody>
@@ -1199,21 +1215,27 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
                     <tr key={i}><td colSpan={2} className="px-4 py-2.5"><div className="h-4 bg-white/5 rounded animate-pulse" /></td></tr>
                   ))
                 ) : !data || data.linkClickDetails.length === 0 ? (
-                  <tr><td colSpan={2} className="px-4 py-6 text-center text-white/20">No data available</td></tr>
+                  <tr><td colSpan={2} className="py-10 text-center text-white/25">No link clicks yet</td></tr>
                 ) : (
                   data.linkClickDetails.map((l, i) => {
                     const maxClicks = Math.max(...data.linkClickDetails.map(x => x.clicks));
                     return (
-                      <tr key={i} className="border-b border-white/5 last:border-0 hover:bg-white/3">
-                        <td className="px-4 py-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="text-white/70 truncate max-w-[150px]">{l.title}</span>
+                      <tr key={i} className="border-b border-white/10 last:border-0">
+                        <td className="py-4 pr-3">
+                          <div className="flex items-center gap-3">
+                            <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/[0.07]">
+                              {l.thumbnailUrl ? <img src={l.thumbnailUrl} alt="" className="h-full w-full object-cover" /> : <i className={`${(LMETA[l.type] ?? LMETA.URL).icon} text-3xl`} style={{ color: (LMETA[l.type] ?? LMETA.URL).color }} />}
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block truncate text-base font-semibold text-white">{l.title}</span>
+                              <span className="block truncate text-sm text-white/35">{l.url.replace(/^https?:\/\//, "")}</span>
+                            </span>
                           </div>
                           <div className="mt-1 h-1 bg-white/5 rounded-full overflow-hidden">
                             <div className="h-full bg-[#03A9F4]/60 rounded-full transition-all" style={{ width: `${(l.clicks / maxClicks) * 100}%` }} />
                           </div>
                         </td>
-                        <td className="px-4 py-2.5 text-right font-bold text-white">{l.clicks}</td>
+                        <td className="py-4 text-right text-xl font-semibold text-white">{l.clicks}</td>
                       </tr>
                     );
                   })
