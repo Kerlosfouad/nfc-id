@@ -19,6 +19,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { claimTag, NotFoundError, ConflictError, QuotaExceededError } from '@/lib/use-cases/claimTag';
+import { createClient } from '@supabase/supabase-js';
+import { db } from '@/lib/db';
 
 export async function POST(
   request: NextRequest,
@@ -36,6 +38,26 @@ export async function POST(
   const { publicId } = await params;
 
   try {
+    const authHeader = request.headers.get('authorization');
+    let email = '';
+    if (authHeader?.startsWith('Bearer ')) {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (supabaseUrl && anonKey) {
+        const supabase = createClient(supabaseUrl, anonKey, {
+          auth: { autoRefreshToken: false, persistSession: false },
+        });
+        const { data } = await supabase.auth.getUser(authHeader.slice(7));
+        email = data.user?.email ?? '';
+      }
+    }
+
+    await db.user.upsert({
+      where: { id: ownerId },
+      update: email ? { email } : {},
+      create: { id: ownerId, email: email || `${ownerId}@placeholder.local`, role: 'USER' },
+    });
+
     const result = await claimTag(ownerId, publicId);
     return NextResponse.json({ data: result, error: null }, { status: 200 });
   } catch (err) {
