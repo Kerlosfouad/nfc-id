@@ -1,6 +1,7 @@
 "use client";
 export const dynamic = 'force-dynamic';
 import { useEffect, useState, useRef } from "react";
+import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -1423,15 +1424,26 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
   );
 }
 
-function SettingsTab({ profile, email, token, uid, onRequestGold, onDeleted }: { profile: ProfileData; email: string; token: string; uid: string; onRequestGold: (service?: GoldServiceId) => void; onDeleted: (profileId: string) => void }) {
+function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDeleted }: { profile: ProfileData; email: string; token: string; uid: string; onPatch: (patch: Record<string, unknown>) => Promise<void>; onRequestGold: (service?: GoldServiceId) => void; onDeleted: (profileId: string) => void }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
-  const [panel, setPanel] = useState<"main" | "products" | "subscription">("main");
+  const [panel, setPanel] = useState<"main" | "products" | "subscription" | "security">("main");
+  const [securityName, setSecurityName] = useState(profile.displayName);
+  const [securityBio, setSecurityBio] = useState(profile.bio ?? "");
+  const [savingSecurity, setSavingSecurity] = useState(false);
+  const [passwords, setPasswords] = useState({ current: "", next: "", confirm: "" });
+  const [changingPassword, setChangingPassword] = useState(false);
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/${profile.publicId}` : `/${profile.publicId}`;
   const designActive = isFutureDate(profile.primeDesignUntil);
   const verifiedActive = isFutureDate(profile.verifiedUntil);
   const activeLinks = profile.links.filter(link => !isLinkHidden(link)).length;
   const hiddenLinks = profile.links.length - activeLinks;
+
+  useEffect(() => {
+    setSecurityName(profile.displayName);
+    setSecurityBio(profile.bio ?? "");
+    setPasswords({ current: "", next: "", confirm: "" });
+  }, [profile.id, profile.displayName, profile.bio]);
 
   function daysLeft(value: string | null) {
     if (!value) return null;
@@ -1465,6 +1477,41 @@ function SettingsTab({ profile, email, token, uid, onRequestGold, onDeleted }: {
       alert(e instanceof Error ? e.message : "Delete failed");
     } finally {
       setDeleting(false);
+    }
+  }
+
+  async function saveSecurityProfile() {
+    if (savingSecurity) return;
+    setSavingSecurity(true);
+    try {
+      await onPatch({ displayName: securityName.trim() || profile.displayName, bio: securityBio.trim() || null });
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Failed to save profile");
+    } finally {
+      setSavingSecurity(false);
+    }
+  }
+
+  async function changePassword() {
+    if (changingPassword) return;
+    if (passwords.next.length < 6) {
+      alert("New password must be at least 6 characters");
+      return;
+    }
+    if (passwords.next !== passwords.confirm) {
+      alert("Passwords do not match");
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const { error } = await createClient().auth.updateUser({ password: passwords.next });
+      if (error) throw error;
+      setPasswords({ current: "", next: "", confirm: "" });
+      alert("Password changed");
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Failed to change password");
+    } finally {
+      setChangingPassword(false);
     }
   }
 
@@ -1522,6 +1569,12 @@ function SettingsTab({ profile, email, token, uid, onRequestGold, onDeleted }: {
       </div>
     );
   }
+
+  function FieldLabel({ children }: { children: ReactNode }) {
+    return <label className="mb-2 block text-sm font-bold text-white">{children}</label>;
+  }
+
+  const fieldClass = "w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-white/25 focus:border-[#03A9F4]/60";
 
   if (panel === "products") {
     return (
@@ -1625,6 +1678,120 @@ function SettingsTab({ profile, email, token, uid, onRequestGold, onDeleted }: {
     );
   }
 
+  if (panel === "security") {
+    return (
+      <div className="mx-auto w-full max-w-md pb-4">
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
+          <BackHeader title="Profile & Security" subtitle="Personal account and password settings" />
+
+          <div className="p-4">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-base font-bold text-white">Personal Information</p>
+                  <p className="mt-1 text-xs leading-relaxed text-white/45">Update the public information visitors see on your NFC profile.</p>
+                </div>
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#03A9F4]/12 text-[#03A9F4]">
+                  <i className="ri-user-settings-line text-xl" />
+                </span>
+              </div>
+
+              <div className="mt-5 space-y-4">
+                <div>
+                  <FieldLabel>Username</FieldLabel>
+                  <input value={profile.publicId} readOnly className={`${fieldClass} font-mono text-[#03A9F4]/85`} />
+                </div>
+                <div>
+                  <FieldLabel>Email</FieldLabel>
+                  <input value={email} readOnly className={`${fieldClass} text-white/55`} />
+                </div>
+                <div>
+                  <FieldLabel>Full Name</FieldLabel>
+                  <input value={securityName} onChange={e => setSecurityName(e.target.value)} placeholder="Full Name" className={fieldClass} />
+                </div>
+                <div>
+                  <FieldLabel>Bio</FieldLabel>
+                  <textarea value={securityBio} onChange={e => setSecurityBio(e.target.value)} maxLength={500} rows={4} placeholder="About you" className={`${fieldClass} resize-none`} />
+                  <p className="mt-1 text-right text-[11px] text-white/30">{securityBio.length}/500</p>
+                </div>
+                <button type="button" onClick={saveSecurityProfile} disabled={savingSecurity} className="ml-auto flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-black disabled:opacity-60">
+                  <i className={savingSecurity ? "ri-loader-4-line animate-spin" : "ri-save-3-line"} />
+                  {savingSecurity ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-4 pb-4">
+            <div className="rounded-2xl border border-[#03A9F4]/20 bg-[#03A9F4]/10 p-4">
+              <div className="flex items-start gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#03A9F4]/15 text-[#03A9F4]">
+                  <i className="ri-verified-badge-line text-xl" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-white">Verification</p>
+                  <p className="mt-1 text-xs leading-relaxed text-white/45">{verifiedActive ? "Your profile has the verified badge enabled." : "Request manual review to show the verified badge on your public profile."}</p>
+                  {!verifiedActive && (
+                    <button type="button" onClick={() => onRequestGold("verification")} className="mt-3 rounded-xl border border-[#03A9F4]/30 bg-[#03A9F4]/10 px-3 py-2 text-xs font-bold text-[#03A9F4]">
+                      Request Verification
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-4 pb-4">
+            <div className="rounded-2xl border border-red-500/40 bg-red-500/[0.06] p-4">
+              <div className="flex items-start gap-3">
+                <i className="ri-delete-bin-line mt-0.5 text-2xl text-red-400" />
+                <div>
+                  <p className="text-base font-bold text-red-400">Delete Profile</p>
+                  <p className="mt-2 text-sm leading-relaxed text-white/45">Permanently delete this profile, its links, and release the medal code for another claim.</p>
+                  <button type="button" onClick={deleteProfile} disabled={deleting} className="mt-4 flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-red-600 px-4 text-sm font-bold text-white disabled:opacity-60">
+                    <i className={deleting ? "ri-loader-4-line animate-spin" : "ri-delete-bin-line"} />
+                    {deleting ? "Deleting..." : "Delete My Profile"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 pt-0">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-base font-bold text-white">Security</p>
+                  <p className="mt-1 text-xs leading-relaxed text-white/45">Manage your password and security settings.</p>
+                </div>
+                <i className="ri-shield-check-line text-2xl text-white/75" />
+              </div>
+
+              <div className="mt-5 space-y-4">
+                <div>
+                  <FieldLabel>Current Password</FieldLabel>
+                  <input type="password" value={passwords.current} onChange={e => setPasswords(prev => ({ ...prev, current: e.target.value }))} placeholder="Optional" className={fieldClass} />
+                </div>
+                <div>
+                  <FieldLabel>New Password</FieldLabel>
+                  <input type="password" value={passwords.next} onChange={e => setPasswords(prev => ({ ...prev, next: e.target.value }))} className={fieldClass} />
+                </div>
+                <div>
+                  <FieldLabel>Confirm New Password</FieldLabel>
+                  <input type="password" value={passwords.confirm} onChange={e => setPasswords(prev => ({ ...prev, confirm: e.target.value }))} className={fieldClass} />
+                </div>
+                <button type="button" onClick={changePassword} disabled={changingPassword} className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-black disabled:opacity-60">
+                  <i className={changingPassword ? "ri-loader-4-line animate-spin" : "ri-lock-password-line"} />
+                  {changingPassword ? "Changing..." : "Change Password"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-md pb-4">
       <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
@@ -1648,7 +1815,7 @@ function SettingsTab({ profile, email, token, uid, onRequestGold, onDeleted }: {
         </div>
         <SettingsRow icon="ri-qr-code-line" label="Products & Profiles" value={`${profile.links.length} links`} onClick={() => setPanel("products")} />
         <SettingsRow icon="ri-bank-card-line" label="Subscription" value={designActive || verifiedActive ? "Prime" : "Free"} onClick={() => setPanel("subscription")} />
-        <SettingsRow icon="ri-user-line" label="Profile & Security" value={isFutureDate(profile.verifiedUntil) ? "Verified" : "Not verified"} active onClick={() => onRequestGold("verification")} />
+        <SettingsRow icon="ri-user-line" label="Profile & Security" value={isFutureDate(profile.verifiedUntil) ? "Verified" : "Security"} active onClick={() => setPanel("security")} />
 
         <div className="px-4 pb-2 pt-5">
           <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">App Settings</p>
@@ -2294,6 +2461,7 @@ export default function DashboardPage() {
                       email={email}
                       token={token}
                       uid={uid}
+                      onPatch={patchProfile}
                       onRequestGold={(service = "design") => setGoldRequest(service)}
                       onDeleted={removeProfile}
                     />
