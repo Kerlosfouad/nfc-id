@@ -781,8 +781,8 @@ function SortableLinks({ links, onMoveTo, onEditLink, onUpdateLink, onDeleteLink
   );
 }
 
-function HomeTab({ profile, saving, pendingLinks, onPatch, onAddLink, onEditLink, onDeleteLink, onMove, onMoveTo, editOpen, setEditOpen, addOpen, setAddOpen, editLink, setEditLink, onUpdateLink, onAddLinkSubmit }: {
-  profile: ProfileData; saving: boolean; onPatch: (p: Record<string, unknown>) => void; onAddLink: () => void; onEditLink: (l: LinkItem) => void; onDeleteLink: (id: string) => void; onMove: (i: number, d: "up" | "down") => void; onMoveTo: (from: number, to: number) => void;
+function HomeTab({ profile, saving, pendingLinks, onPatch, onAddLink, onEditLink, onDeleteLink, onMove, onMoveTo, onPreview, editOpen, setEditOpen, addOpen, setAddOpen, editLink, setEditLink, onUpdateLink, onAddLinkSubmit }: {
+  profile: ProfileData; saving: boolean; onPatch: (p: Record<string, unknown>) => void; onAddLink: () => void; onEditLink: (l: LinkItem) => void; onDeleteLink: (id: string) => void; onMove: (i: number, d: "up" | "down") => void; onMoveTo: (from: number, to: number) => void; onPreview: () => void;
   pendingLinks: PendingLinks;
   editOpen: boolean; setEditOpen: (v: boolean) => void; addOpen: boolean; setAddOpen: (v: boolean) => void; editLink: LinkItem | null; setEditLink: (l: LinkItem | null) => void;
   onUpdateLink: (id: string, p: Record<string, unknown>) => void; onAddLinkSubmit: (d: LinkDraft) => void;
@@ -945,10 +945,10 @@ function HomeTab({ profile, saving, pendingLinks, onPatch, onAddLink, onEditLink
       </div>
       <div className="hidden lg:block w-full lg:w-52 flex-shrink-0">
         <div className="grid grid-cols-3 lg:grid-cols-1 gap-2 lg:gap-3">
-          <a href={"/profile/" + profile.publicId} target="_blank" rel="noopener noreferrer" className="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3 bg-[#1a1a1a] border border-white/10 rounded-xl px-3 lg:px-4 py-3 lg:py-3.5 hover:bg-white/5 hover:border-white/20 group">
+          <button type="button" onClick={onPreview} className="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3 bg-[#1a1a1a] border border-white/10 rounded-xl px-3 lg:px-4 py-3 lg:py-3.5 hover:bg-white/5 hover:border-white/20 group">
             <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10"><i className="ri-eye-line text-white/60 group-hover:text-white text-sm lg:text-base" /></div>
             <div className="text-center lg:text-left"><p className="text-xs lg:text-sm font-semibold">Preview</p><p className="text-[10px] lg:text-xs text-white/40 hidden lg:block">View Profile</p></div>
-          </a>
+          </button>
           <button onClick={() => setEditOpen(!editOpen)} className="w-full flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3 bg-[#1a1a1a] border border-white/10 rounded-xl px-3 lg:px-4 py-3 lg:py-3.5 hover:bg-white/5 hover:border-white/20 group">
             <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10"><i className="ri-pencil-line text-white/60 group-hover:text-white text-sm lg:text-base" /></div>
             <div className="text-center lg:text-left"><p className="text-xs lg:text-sm font-semibold">Edit</p><p className="text-[10px] lg:text-xs text-white/40 hidden lg:block">Name, bio, avatar</p></div>
@@ -1542,6 +1542,42 @@ function GoldUpgradeModal({ profile, email, initialService, onClose }: { profile
   );
 }
 
+function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/75 backdrop-blur-sm md:items-center" onClick={onClose}>
+      <div
+        className="flex h-[88svh] w-full flex-col overflow-hidden rounded-t-[28px] border border-white/10 bg-[#111] text-white shadow-2xl md:h-[760px] md:max-w-[430px] md:rounded-[28px]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="mx-auto mt-3 h-1.5 w-28 rounded-full bg-white/10" />
+        <div className="shrink-0 px-5 pb-4 pt-8">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold">Preview NFC ID</h2>
+              <p className="mt-1 text-sm text-white/45">See how your profile will look</p>
+            </div>
+            <button onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/50 hover:text-white" aria-label="Close preview">
+              <i className="ri-close-line text-xl" />
+            </button>
+          </div>
+        </div>
+        <div className="min-h-0 flex-1 overflow-hidden border-y border-white/10 bg-black">
+          <iframe
+            src={`/profile/${profile.publicId}?preview=true`}
+            className="h-full w-full border-0"
+            title="Profile Preview"
+          />
+        </div>
+        <div className="shrink-0 p-5">
+          <button onClick={onClose} className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.03] text-base font-bold text-white hover:bg-white/[0.06]">
+            Continue Editing
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: ProfileData; saving: boolean; onSave: (t: ProfileTheme) => void; onRequestGold: (service?: GoldServiceId) => void }) {
   const theme = profile.theme ?? { style: "default", primaryColor: "#03A9F4", fontFamily: "Inter" };
   const [style, setStyle] = useState(theme.style || "default");
@@ -1747,6 +1783,7 @@ export default function DashboardPage() {
   const [copied, setCopied] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [goldRequest, setGoldRequest] = useState<GoldServiceId | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const tRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const profile = profiles.find(p => p.id === selId) ?? profiles[0] ?? null;
 
@@ -1978,7 +2015,7 @@ export default function DashboardPage() {
                     </div>
                     <button onClick={copyLink} className="text-xs text-white/40 hover:text-white flex items-center gap-1 flex-shrink-0 ml-2"><i className={copied ? "ri-check-line text-green-400" : "ri-file-copy-line"} />{copied ? "Copied!" : "Copy"}</button>
                   </div>
-                  {tab === "home" && <HomeTab profile={profile} saving={saving} pendingLinks={pendingLinks} onPatch={patchProfile} onAddLink={() => setAddOpen(true)} onEditLink={setEditLink} onDeleteLink={deleteLink} onMove={moveLink} onMoveTo={moveLinkTo} editOpen={editOpen} setEditOpen={setEditOpen} addOpen={addOpen} setAddOpen={setAddOpen} editLink={editLink} setEditLink={setEditLink} onUpdateLink={updateLink} onAddLinkSubmit={addLink} />}
+                  {tab === "home" && <HomeTab profile={profile} saving={saving} pendingLinks={pendingLinks} onPatch={patchProfile} onAddLink={() => setAddOpen(true)} onEditLink={setEditLink} onDeleteLink={deleteLink} onMove={moveLink} onMoveTo={moveLinkTo} onPreview={() => setPreviewOpen(true)} editOpen={editOpen} setEditOpen={setEditOpen} addOpen={addOpen} setAddOpen={setAddOpen} editLink={editLink} setEditLink={setEditLink} onUpdateLink={updateLink} onAddLinkSubmit={addLink} />}
                   {tab === "analytics" && <AnalyticsTab profile={profile} token={token} uid={uid} />}
                   {tab === "share" && <ShareTab profile={profile} onCopy={copyLink} copied={copied} />}
                   {tab === "settings" && <SettingsTab profile={profile} token={token} uid={uid} onRequestGold={(service = "design") => setGoldRequest(service)} />}
@@ -1998,16 +2035,19 @@ export default function DashboardPage() {
           />
         )}
 
+        {profile && previewOpen && (
+          <ProfilePreviewModal profile={profile} onClose={() => setPreviewOpen(false)} />
+        )}
+
         {profile && (
-          <a
-            href={`/profile/${profile.publicId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="fixed bottom-[76px] left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#181818]/95 px-5 py-3 text-sm font-bold text-white shadow-xl backdrop-blur-xl md:hidden"
+          <button
+            type="button"
+            onClick={() => setPreviewOpen(true)}
+            className="fixed bottom-[78px] left-1/2 z-50 flex h-11 min-w-[190px] -translate-x-1/2 items-center justify-center gap-2 rounded-full border border-white/10 bg-[#181818]/95 px-8 text-sm font-bold text-white shadow-xl backdrop-blur-xl md:hidden"
           >
             <i className="ri-eye-line text-lg" />
             Preview
-          </a>
+          </button>
         )}
 
         {/* Mobile bottom nav */}

@@ -243,15 +243,15 @@ function hasActiveVerification(profile: Profile): boolean {
 function VerifiedBadge() {
   return (
     <span
-      className="inline-flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-full align-middle"
+      className="relative inline-flex h-[24px] w-[24px] flex-shrink-0 items-center justify-center align-middle"
       style={{
-        background: 'linear-gradient(135deg, #1877F2, #0A66FF)',
-        boxShadow: '0 3px 12px rgba(24,119,242,0.45)',
+        filter: 'drop-shadow(0 3px 10px rgba(24,119,242,0.45))',
       }}
       aria-label="Verified profile"
       title="Verified profile"
     >
-      <i className="ri-check-line text-[15px] font-bold leading-none text-white" />
+      <i className="ri-verified-badge-fill text-[24px] leading-none text-[#1877F2]" />
+      <i className="ri-check-line absolute text-[13px] font-bold leading-none text-white" />
     </span>
   );
 }
