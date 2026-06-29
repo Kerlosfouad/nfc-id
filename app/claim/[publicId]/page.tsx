@@ -19,6 +19,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { isOwnerEmail } from "@/lib/config/ownerAccess";
 
 interface ClaimPageProps {
   params: Promise<{ publicId: string }>;
@@ -32,6 +33,7 @@ export default function ClaimPage({ params }: ClaimPageProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string>("");
 
   // Resolve params
   useEffect(() => {
@@ -46,9 +48,20 @@ export default function ClaimPage({ params }: ClaimPageProps) {
         setIsAuthenticated(true);
         setAuthToken(session.access_token);
         setUserId(session.user.id);
+        setUserEmail(session.user.email ?? "");
       }
     });
   }, []);
+
+  async function switchAccount() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setIsAuthenticated(false);
+    setAuthToken(null);
+    setUserId(null);
+    setUserEmail("");
+    router.push(`/signup?redirect=/claim/${publicId}`);
+  }
 
   async function handleClaim(uid: string) {
     if (!publicId || !authToken) return;
@@ -152,7 +165,30 @@ export default function ClaimPage({ params }: ClaimPageProps) {
           )}
 
           {/* Authenticated — show claim button */}
-          {isAuthenticated && status !== "success" && (
+          {isAuthenticated && status !== "success" && isOwnerEmail(userEmail) && (
+            <div className="space-y-3">
+              <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-center">
+                <p className="text-xs text-white/35">Signed in as</p>
+                <p className="mt-1 truncate text-sm font-semibold text-white/70">{userEmail}</p>
+              </div>
+              <div className="rounded-xl border border-yellow-400/20 bg-yellow-400/10 px-4 py-3">
+                <p className="text-sm font-semibold text-yellow-200">This is the admin account.</p>
+                <p className="mt-1 text-xs leading-relaxed text-yellow-100/65">
+                  Switch to the customer account before claiming this medal.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={switchAccount}
+                className="w-full py-3 rounded-xl bg-[#03A9F4] text-white font-bold text-sm uppercase tracking-wider hover:bg-[#03A9F4]/80 transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <i className="ri-user-shared-line" />
+                Use Customer Account
+              </button>
+            </div>
+          )}
+
+          {isAuthenticated && status !== "success" && !isOwnerEmail(userEmail) && (
             <button
               onClick={() => handleClaim(userId ?? "")}
               disabled={status === "claiming"}

@@ -24,6 +24,10 @@ function SignupContent() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
+      if (data.user && redirectTo.startsWith("/claim/")) {
+        supabase.auth.signOut();
+        return;
+      }
       if (data.user) router.replace(redirectTo);
     });
   }, []);

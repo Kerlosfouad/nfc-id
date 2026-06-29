@@ -36,9 +36,13 @@ function LoginContent() {
     }
 
     supabase.auth.getUser().then(({ data }) => {
+      if (data.user && redirectTo.startsWith("/claim/")) {
+        supabase.auth.signOut();
+        return;
+      }
       if (data.user) router.replace(resolveRedirect(data.user.email));
     });
-  }, [callbackError, resolveRedirect, router, supabase]);
+  }, [callbackError, redirectTo, resolveRedirect, router, supabase]);
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
