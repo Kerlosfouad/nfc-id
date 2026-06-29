@@ -49,14 +49,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function POST(request: NextRequest, { params }: RouteParams) {
   const { profileId } = await params;
 
-  let body: { linkId?: string } = {};
+  let body: { eventType?: 'VIEW' | 'CLICK'; linkId?: string } = {};
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  if (!body.linkId) {
+  const eventType = body.eventType ?? 'CLICK';
+
+  if (eventType === 'CLICK' && !body.linkId) {
     return NextResponse.json({ error: 'linkId is required' }, { status: 400 });
   }
 
@@ -68,12 +70,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
   }
 
-  const link = await db.link.findFirst({
-    where: { id: body.linkId, profileId },
-    select: { id: true },
-  });
-  if (!link) {
-    return NextResponse.json({ error: 'Link not found' }, { status: 404 });
+  let linkId: string | null = null;
+  if (eventType === 'CLICK') {
+    const link = await db.link.findFirst({
+      where: { id: body.linkId, profileId },
+      select: { id: true },
+    });
+    if (!link) {
+      return NextResponse.json({ error: 'Link not found' }, { status: 404 });
+    }
+    linkId = link.id;
   }
 
   const forwarded = request.headers.get('x-forwarded-for') ?? '';
@@ -84,8 +90,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   await recordEvent({
     profileId,
     publicId: profile.publicId,
-    eventType: 'CLICK',
-    linkId: link.id,
+    eventType,
+    linkId,
     rawIp,
     userAgent,
     referralSource: referer ? 'SOCIAL' : 'DIRECT',

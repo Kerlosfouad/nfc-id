@@ -5,6 +5,7 @@
 "use client";
 
 import Link from 'next/link';
+import { useEffect } from 'react';
 import type { Profile, Link as ProfileLink, ProfileTheme } from '@/lib/domain/types';
 import LeadForm from './LeadForm';
 
@@ -295,8 +296,27 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
   const cvLink = activeLinks.find(isCvLink);
   const visibleLinks = activeLinks.filter(l => l !== cvLink);
 
+  useEffect(() => {
+    const payload = JSON.stringify({ eventType: 'VIEW' });
+    const url = `/api/v1/analytics/${profile.id}`;
+    try {
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(url, new Blob([payload], { type: 'application/json' }));
+        return;
+      }
+    } catch {
+      // Fall back below.
+    }
+    void fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+      keepalive: true,
+    }).catch(() => undefined);
+  }, [profile.id]);
+
   function recordLinkClick(link: ProfileLink) {
-    const payload = JSON.stringify({ linkId: link.id });
+    const payload = JSON.stringify({ eventType: 'CLICK', linkId: link.id });
     const url = `/api/v1/analytics/${profile.id}`;
     try {
       if (navigator.sendBeacon) {
