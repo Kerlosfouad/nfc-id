@@ -1386,74 +1386,76 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
   );
 }
 
-function SettingsTab({ profile, token, uid, onRequestGold }: { profile: ProfileData; token: string; uid: string; onRequestGold: (service?: GoldServiceId) => void }) {
-  const [exporting, setExporting] = useState(false);
+function SettingsTab({ profile, email, onRequestGold }: { profile: ProfileData; email: string; onRequestGold: (service?: GoldServiceId) => void }) {
+  const router = useRouter();
 
-  async function exportLeads() {
-    setExporting(true);
-    try {
-      const res = await fetch(`/api/v1/profiles/${profile.id}/leads/export`, {
-        headers: { Authorization: "Bearer " + token, "x-user-id": uid },
-      });
-      if (!res.ok) throw new Error("Failed");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `leads-${profile.publicId}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      alert("Export failed");
-    } finally {
-      setExporting(false);
-    }
+  async function signOut() {
+    await createClient().auth.signOut();
+    router.push("/login");
+  }
+
+  function SettingsRow({
+    icon,
+    label,
+    value,
+    danger = false,
+    active = false,
+    onClick,
+  }: {
+    icon: string;
+    label: string;
+    value?: string;
+    danger?: boolean;
+    active?: boolean;
+    onClick?: () => void;
+  }) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={`flex min-h-[64px] w-full items-center gap-4 border-t border-white/10 px-5 text-left transition-colors first:border-t-0 ${active ? "bg-white/[0.055]" : "hover:bg-white/[0.035]"} ${danger ? "text-red-400" : "text-white"}`}
+      >
+        <i className={`${icon} w-9 shrink-0 text-[28px] ${danger ? "text-red-400" : "text-white/60"}`} />
+        <span className="min-w-0 flex-1 text-[17px] font-medium tracking-[-0.01em]">{label}</span>
+        {value ? (
+          <span className="text-[15px] text-white/50">{value}</span>
+        ) : danger ? null : (
+          <i className="ri-arrow-right-s-line text-[28px] text-white/45" />
+        )}
+      </button>
+    );
   }
 
   return (
-    <div className="space-y-4 max-w-lg">
-      <h2 className="font-bold text-lg">Settings</h2>
-      <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-5">
-        <div className="flex items-start gap-4">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-yellow-400/10 text-yellow-400">
-            <i className="ri-verified-badge-line text-xl" />
+    <div className="mx-auto w-full max-w-lg pb-4">
+      <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[#111]/95 shadow-2xl shadow-black/20">
+        <div className="px-5 pb-6 pt-8">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/[0.075]">
+            <i className="ri-user-line text-[38px] text-white/60" />
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-sm font-bold">Prime Verification</h3>
-              <span className="rounded-full bg-yellow-400/15 px-2 py-0.5 text-[10px] font-bold text-yellow-400">300 EGP</span>
-              {isFutureDate(profile.verifiedUntil) && <span className="rounded-full bg-green-400/15 px-2 py-0.5 text-[10px] font-bold text-green-300">Active</span>}
-            </div>
-            <p className="mt-1 text-xs leading-relaxed text-white/40">Verification is a paid Prime service. After payment review, the verified badge appears on the public profile.</p>
-          </div>
+          <p className="mt-6 truncate text-[18px] text-white/50">{email}</p>
         </div>
-        {!isFutureDate(profile.verifiedUntil) && (
-          <button onClick={() => onRequestGold("verification")} className="mt-4 w-full rounded-xl bg-yellow-400 px-4 py-2.5 text-sm font-bold text-black hover:bg-yellow-300">
-            Request Verification
-          </button>
-        )}
-      </div>
-      <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl divide-y divide-white/5">
-        <button onClick={exportLeads} disabled={exporting} className="w-full flex items-center gap-4 px-5 py-4 hover:bg-white/5 group text-left disabled:opacity-50">
-          <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10">
-            <i className={`${exporting ? "ri-loader-4-line animate-spin" : "ri-download-line"} text-white/50 group-hover:text-white`} />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium">{exporting ? "Exporting..." : "Export Leads CSV"}</p>
-            <p className="text-xs text-white/40">Download lead submissions</p>
-          </div>
-          <i className="ri-arrow-right-s-line text-white/20 group-hover:text-white/50" />
-        </button>
-        <Link href="/admin" className="flex items-center gap-4 px-5 py-4 hover:bg-white/5 group">
-          <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10">
-            <i className="ri-shield-line text-white/50 group-hover:text-white" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium">Admin Panel</p>
-            <p className="text-xs text-white/40">Manage tags & moderation</p>
-          </div>
-          <i className="ri-arrow-right-s-line text-white/20 group-hover:text-white/50" />
-        </Link>
+
+        <div className="px-5 pb-4 pt-1">
+          <p className="text-[15px] font-bold uppercase tracking-[0.12em] text-white/50">Account</p>
+        </div>
+        <SettingsRow icon="ri-qr-code-line" label="Products & Profiles" />
+        <SettingsRow icon="ri-bank-card-line" label="Subscription" value={isFutureDate(profile.primeDesignUntil) ? "Active" : undefined} onClick={() => onRequestGold("design")} />
+        <SettingsRow icon="ri-user-line" label="Profile & Security" value={isFutureDate(profile.verifiedUntil) ? "Verified" : undefined} active onClick={() => onRequestGold("verification")} />
+
+        <div className="px-5 pb-4 pt-7">
+          <p className="text-[15px] font-bold uppercase tracking-[0.12em] text-white/50">App Settings</p>
+        </div>
+        <SettingsRow icon="ri-moon-line" label="Appearance" value="Dark" />
+        <SettingsRow icon="ri-global-line" label="Language" value="English" />
+
+        <div className="px-5 pb-4 pt-7">
+          <p className="text-[15px] font-bold uppercase tracking-[0.12em] text-white/50">Help & Support</p>
+        </div>
+        <SettingsRow icon="ri-shield-check-line" label="Privacy Policy & Terms" />
+        <SettingsRow icon="ri-phone-line" label="Contact & Support" />
+        <SettingsRow icon="ri-logout-box-r-line" label="Sign Out" danger onClick={signOut} />
+        <SettingsRow icon="ri-delete-bin-line" label="Delete Account" danger />
       </div>
     </div>
   );
@@ -2054,7 +2056,7 @@ export default function DashboardPage() {
                   {tab === "home" && <HomeTab profile={profile} saving={saving} pendingLinks={pendingLinks} onPatch={patchProfile} onAddLink={() => setAddOpen(true)} onEditLink={setEditLink} onDeleteLink={deleteLink} onMove={moveLink} onMoveTo={moveLinkTo} onPreview={() => setPreviewOpen(true)} editOpen={editOpen} setEditOpen={setEditOpen} addOpen={addOpen} setAddOpen={setAddOpen} editLink={editLink} setEditLink={setEditLink} onUpdateLink={updateLink} onAddLinkSubmit={addLink} />}
                   {tab === "analytics" && <AnalyticsTab profile={profile} token={token} uid={uid} />}
                   {tab === "share" && <ShareTab profile={profile} onCopy={copyLink} copied={copied} />}
-                  {tab === "settings" && <SettingsTab profile={profile} token={token} uid={uid} onRequestGold={(service = "design") => setGoldRequest(service)} />}
+                  {tab === "settings" && <SettingsTab profile={profile} email={email} onRequestGold={(service = "design") => setGoldRequest(service)} />}
                 </div>
               )}
               {tab === "design" && <DesignTab profile={profile} saving={saving} onSave={(t) => patchProfile({ theme: t })} onRequestGold={(service = "design") => setGoldRequest(service)} />}
