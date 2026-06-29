@@ -30,8 +30,8 @@ type GoldServiceId = "design" | "verification";
 const CLOSED_LINK_TIMESTAMP = "2000-01-01T00:00:00.000Z";
 const COMPANY_WHATSAPP = "201211632456";
 const GOLD_SERVICES: { id: GoldServiceId; name: string; price: number; icon: string; description: string }[] = [
-  { id: "design", name: "Gold Design Themes", price: 250, icon: "ri-palette-line", description: "Premium themes, cover styling, and advanced profile layouts." },
-  { id: "verification", name: "Verified Badge", price: 300, icon: "ri-verified-badge-line", description: "Manual profile verification and the verified mark on your public profile." },
+  { id: "design", name: "Gold Design Themes", price: 150, icon: "ri-palette-line", description: "Premium themes, cover styling, and advanced profile layouts." },
+  { id: "verification", name: "Verified Badge", price: 200, icon: "ri-verified-badge-line", description: "Manual profile verification and the verified mark on your public profile." },
 ];
 
 const analyticsMemoryCache = new Map<string, AnalyticsSummary>();
@@ -1540,6 +1540,7 @@ function GoldUpgradeModal({ profile, email, initialService, onClose }: { profile
   const [phone, setPhone] = useState("");
   const [receiptName, setReceiptName] = useState("");
   const service = GOLD_SERVICES.find(item => item.id === serviceId) ?? GOLD_SERVICES[0];
+  const paymentNumber = "01030732613";
 
   function submit() {
     const message = [
@@ -1549,6 +1550,7 @@ function GoldUpgradeModal({ profile, email, initialService, onClose }: { profile
       `Name: ${name}`,
       `Email: ${customerEmail}`,
       `Phone: ${phone}`,
+      `Payment method: Vodafone Cash ${paymentNumber}`,
       `Profile: ${profile ? `/profile/${profile.publicId}` : "Not selected"}`,
       `Payment screenshot: ${receiptName || "Customer will attach it in WhatsApp"}`,
       "",
@@ -1562,29 +1564,29 @@ function GoldUpgradeModal({ profile, email, initialService, onClose }: { profile
 
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 p-3 backdrop-blur-sm sm:items-center" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-3xl border border-yellow-500/20 bg-[#111] p-5 text-white shadow-2xl sm:p-6" onClick={e => e.stopPropagation()}>
-        <div className="mb-5 flex items-start justify-between gap-4">
+      <div className="relative max-h-[88svh] w-full max-w-md overflow-y-auto rounded-3xl border border-[#03A9F4]/20 bg-[#111] p-4 text-white shadow-2xl sm:p-5" onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/50 hover:text-white" aria-label="Close">
+          <i className="ri-close-line text-lg" />
+        </button>
+        <div className="mb-4 flex items-start justify-between gap-4 pr-10">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-yellow-400">Gold Services</p>
-            <h2 className="mt-1 text-xl font-bold">Request Prime Access</h2>
-            <p className="mt-1 text-sm text-white/45">Choose the service, fill your details, then send the request with your payment screenshot on WhatsApp.</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-[#03A9F4]">Prime Services</p>
+            <h2 className="mt-1 text-lg font-bold">Request Prime Access</h2>
+            <p className="mt-1 text-xs leading-relaxed text-white/45">Choose the service, pay with Vodafone Cash, then send the request on WhatsApp.</p>
           </div>
-          <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/50 hover:text-white">
-            <i className="ri-close-line text-lg" />
-          </button>
         </div>
 
-        <div className="mb-5 grid gap-3 sm:grid-cols-2">
+        <div className="mb-4 grid gap-2">
           {GOLD_SERVICES.map(item => (
             <button
               key={item.id}
               type="button"
               onClick={() => setServiceId(item.id)}
-              className={`rounded-2xl border p-4 text-left transition-all ${serviceId === item.id ? "border-yellow-400/60 bg-yellow-400/10" : "border-white/10 bg-white/[0.03] hover:border-white/20"}`}
+              className={`rounded-2xl border p-3 text-left transition-all ${serviceId === item.id ? "border-[#03A9F4]/65 bg-[#03A9F4]/10" : "border-white/10 bg-white/[0.03] hover:border-white/20"}`}
             >
-              <div className="mb-3 flex items-center justify-between">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-yellow-400/10 text-yellow-400"><i className={item.icon} /></span>
-                <span className="rounded-full bg-yellow-400 px-2.5 py-1 text-xs font-bold text-black">{item.price} EGP</span>
+              <div className="mb-2 flex items-center justify-between">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#03A9F4]/10 text-[#03A9F4]"><i className={item.icon} /></span>
+                <span className="rounded-full bg-[#03A9F4] px-2.5 py-1 text-xs font-bold text-white">{item.price} EGP</span>
               </div>
               <p className="text-sm font-bold">{item.name}</p>
               <p className="mt-1 text-xs leading-relaxed text-white/40">{item.description}</p>
@@ -1592,13 +1594,25 @@ function GoldUpgradeModal({ profile, email, initialService, onClose }: { profile
           ))}
         </div>
 
+        <div className="mb-3 rounded-2xl border border-[#03A9F4]/35 bg-[#03A9F4]/10 p-3">
+          <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#03A9F4]/15 text-[#03A9F4]">
+              <i className="ri-checkbox-circle-fill text-lg" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-white">Vodafone Cash</p>
+              <p className="font-mono text-sm font-bold text-[#03A9F4]">{paymentNumber}</p>
+            </div>
+          </div>
+        </div>
+
         <div className="grid gap-3">
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="Full name" className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-yellow-400/50" />
-          <input value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} placeholder="Email" type="email" className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-yellow-400/50" />
-          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Phone number" className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-yellow-400/50" />
-          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-white/15 bg-white/[0.03] px-4 py-3 text-sm text-white/55 hover:border-yellow-400/40">
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="Full name" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-[#03A9F4]/60" />
+          <input value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} placeholder="Email" type="email" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-[#03A9F4]/60" />
+          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Phone number" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-[#03A9F4]/60" />
+          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-white/15 bg-white/[0.03] px-4 py-2.5 text-sm text-white/55 hover:border-[#03A9F4]/45">
             <span className="truncate">{receiptName || "Upload payment screenshot"}</span>
-            <i className="ri-upload-cloud-2-line text-lg text-yellow-400" />
+            <i className="ri-upload-cloud-2-line text-lg text-[#03A9F4]" />
             <input type="file" accept="image/*" className="hidden" onChange={e => setReceiptName(e.target.files?.[0]?.name ?? "")} />
           </label>
           <p className="text-xs leading-relaxed text-white/35">The screenshot file cannot be attached automatically through WhatsApp web links, so attach it in the WhatsApp chat after it opens.</p>
@@ -1608,7 +1622,7 @@ function GoldUpgradeModal({ profile, email, initialService, onClose }: { profile
           type="button"
           onClick={submit}
           disabled={!canSubmit}
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-yellow-400 px-4 py-3 text-sm font-bold text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-40"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#03A9F4] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#139fe0] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <i className="ri-whatsapp-line text-lg" />
           Send Request on WhatsApp
@@ -1731,12 +1745,12 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
         <h2 className="font-bold text-lg sm:text-xl">Appearance</h2>
 
         {/* Pro banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-yellow-900/40 to-yellow-700/10 border border-yellow-500/20 rounded-2xl px-5 py-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-[#03A9F4]/15 to-[#03A9F4]/5 border border-[#03A9F4]/20 rounded-2xl px-5 py-3.5">
           <div className="flex items-center gap-3">
-            <i className="ri-vip-crown-fill text-yellow-500 text-lg flex-shrink-0" />
-            <span className="text-yellow-400/90 font-semibold text-sm">{isPrime ? "Prime is active for this profile" : "Gold Design costs 250 EGP and unlocks all Prime themes and layouts"}</span>
+            <i className="ri-vip-crown-fill text-[#03A9F4] text-lg flex-shrink-0" />
+            <span className="text-[#03A9F4] font-semibold text-sm">{isPrime ? "Prime is active for this profile" : "Prime Design costs 150 EGP and unlocks all Prime themes and layouts"}</span>
           </div>
-          {!isPrime && <button onClick={() => onRequestGold("design")} className="bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap">Upgrade Now</button>}
+          {!isPrime && <button onClick={() => onRequestGold("design")} className="bg-[#03A9F4]/15 text-[#03A9F4] hover:bg-[#03A9F4]/25 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap">Upgrade Now</button>}
         </div>
 
         {/* Themes header + filter */}
@@ -1764,7 +1778,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
                     <p className="text-[10px] text-white/35 mt-0.5 leading-tight">{t.desc}</p>
                   </div>
                   {t.premium && (
-                    <span className="text-[9px] font-bold bg-yellow-500/15 text-yellow-400 px-1.5 py-0.5 rounded flex items-center gap-0.5 flex-shrink-0 ml-1">
+                    <span className="text-[9px] font-bold bg-[#03A9F4]/15 text-[#03A9F4] px-1.5 py-0.5 rounded flex items-center gap-0.5 flex-shrink-0 ml-1">
                       <i className="ri-vip-crown-fill" /> Prime
                     </span>
                   )}
@@ -1782,7 +1796,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
                   )}
                   {t.premium && !isPrime && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/45">
-                      <span className="rounded-full bg-yellow-400 px-3 py-1 text-[10px] font-bold text-black">Locked</span>
+                      <span className="rounded-full bg-[#03A9F4] px-3 py-1 text-[10px] font-bold text-white">Locked</span>
                     </div>
                   )}
                 </div>
@@ -1815,7 +1829,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
                 </button>
                 <button onClick={() => applyLayout("grid", profileLayout)}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-xs font-semibold transition-all ${linksLayout === "grid" ? "bg-white text-black border-white" : "border-white/10 text-white/40 hover:border-white/20 hover:text-white/70"}`}>
-                  <i className="ri-grid-fill" /> Grid {!isPrime && <span className="rounded bg-yellow-400/15 px-1 text-[9px] text-yellow-400">Prime</span>}
+                  <i className="ri-grid-fill" /> Grid {!isPrime && <span className="rounded bg-[#03A9F4]/15 px-1 text-[9px] text-[#03A9F4]">Prime</span>}
                 </button>
               </div>
             </div>
@@ -1832,7 +1846,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
                 </button>
                 <button onClick={() => applyLayout(linksLayout, "hero")}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-xs font-semibold transition-all ${profileLayout === "hero" ? "bg-white/15 text-white border-white/40" : "border-white/10 text-white/40 hover:border-white/20 hover:text-white/70"}`}>
-                  <i className="ri-image-line" /> Hero {!isPrime && <span className="rounded bg-yellow-400/15 px-1 text-[9px] text-yellow-400">Prime</span>}
+                  <i className="ri-image-line" /> Hero {!isPrime && <span className="rounded bg-[#03A9F4]/15 px-1 text-[9px] text-[#03A9F4]">Prime</span>}
                 </button>
               </div>
             </div>
@@ -2078,9 +2092,9 @@ export default function DashboardPage() {
               <i className={n.icon + " text-base"} />{n.label}
             </button>
           ))}
-          <button onClick={() => setGoldRequest("design")} className="mt-3 w-full rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-3 py-3 text-left text-sm font-semibold text-yellow-400 hover:bg-yellow-500/15">
+          <button onClick={() => setGoldRequest("design")} className="mt-3 w-full rounded-xl border border-[#03A9F4]/20 bg-[#03A9F4]/10 px-3 py-3 text-left text-sm font-semibold text-[#03A9F4] hover:bg-[#03A9F4]/15">
             <span className="flex items-center gap-2"><i className="ri-vip-crown-fill" />Try Pro For Free</span>
-            <span className="mt-1 block text-[10px] font-normal text-yellow-100/45">Gold services and payment review</span>
+            <span className="mt-1 block text-[10px] font-normal text-white/45">Prime services and payment review</span>
           </button>
         </nav>
         <div className="px-2 pb-2 border-t border-white/5 pt-3">
