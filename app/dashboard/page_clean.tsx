@@ -1427,12 +1427,13 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
 function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDeleted }: { profile: ProfileData; email: string; token: string; uid: string; onPatch: (patch: Record<string, unknown>) => Promise<void>; onRequestGold: (service?: GoldServiceId) => void; onDeleted: (profileId: string) => void }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
-  const [panel, setPanel] = useState<"main" | "products" | "subscription" | "security">("main");
+  const [panel, setPanel] = useState<"main" | "products" | "subscription" | "security" | "support">("main");
   const [securityName, setSecurityName] = useState(profile.displayName);
   const [securityBio, setSecurityBio] = useState(profile.bio ?? "");
   const [savingSecurity, setSavingSecurity] = useState(false);
   const [passwords, setPasswords] = useState({ current: "", next: "", confirm: "" });
   const [changingPassword, setChangingPassword] = useState(false);
+  const [supportForm, setSupportForm] = useState({ name: profile.displayName, email, subject: "", message: "" });
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/${profile.publicId}` : `/${profile.publicId}`;
   const designActive = isFutureDate(profile.primeDesignUntil);
   const verifiedActive = isFutureDate(profile.verifiedUntil);
@@ -1443,7 +1444,8 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
     setSecurityName(profile.displayName);
     setSecurityBio(profile.bio ?? "");
     setPasswords({ current: "", next: "", confirm: "" });
-  }, [profile.id, profile.displayName, profile.bio]);
+    setSupportForm(prev => ({ ...prev, name: profile.displayName, email }));
+  }, [profile.id, profile.displayName, profile.bio, email]);
 
   function daysLeft(value: string | null) {
     if (!value) return null;
@@ -1513,6 +1515,27 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
     } finally {
       setChangingPassword(false);
     }
+  }
+
+  function sendSupportMessage() {
+    const name = supportForm.name.trim() || profile.displayName;
+    const contactEmail = supportForm.email.trim() || email;
+    const subject = supportForm.subject.trim() || "Support request";
+    const messageText = supportForm.message.trim();
+    if (!messageText) {
+      alert("Please write your message");
+      return;
+    }
+    const message = [
+      "NFC ID support request",
+      `Name: ${name}`,
+      `Email: ${contactEmail}`,
+      `Profile: /${profile.publicId}`,
+      `Subject: ${subject}`,
+      "",
+      messageText,
+    ].join("\n");
+    window.open(`https://wa.me/${COMPANY_WHATSAPP}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   }
 
   function SettingsRow({
@@ -1792,6 +1815,88 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
     );
   }
 
+  if (panel === "support") {
+    const supportItems = [
+      { icon: "ri-map-pin-line", title: "Address", lines: ["Ismailia City", "Ismailia Government, Egypt"] },
+      { icon: "ri-phone-line", title: "Phone", lines: ["+20 121 163 2456"] },
+      { icon: "ri-mail-line", title: "Email", lines: ["contact@nfc-id.app"] },
+    ];
+
+    return (
+      <div className="mx-auto w-full max-w-md pb-4">
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
+          <BackHeader title="Contact & Support" subtitle="Talk to NFC ID support" />
+
+          <div className="p-4">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <p className="text-base font-bold text-white">Contact Information</p>
+              <p className="mt-1 text-xs text-white/45">We are here to answer your questions.</p>
+              <div className="mt-5 space-y-4">
+                {supportItems.map(item => (
+                  <div key={item.title} className="flex gap-3">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#03A9F4]/15 text-[#03A9F4]">
+                      <i className={`${item.icon} text-2xl`} />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-white">{item.title}</p>
+                      {item.lines.map(line => <p key={line} className="mt-0.5 truncate text-sm text-white/45">{line}</p>)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="px-4 pb-4">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <p className="text-base font-bold text-white">Business Hours</p>
+              <div className="mt-4 space-y-3 text-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-white/45">Saturday - Thursday</span>
+                  <span className="font-semibold text-white">10:00 AM - 10:00 PM</span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-white/45">Friday</span>
+                  <span className="font-semibold text-white/45">Closed</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 pt-0">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <p className="text-base font-bold text-white">Send Us a Message</p>
+              <p className="mt-1 text-xs leading-relaxed text-white/45">Fill out the form below and we will get back to you as soon as possible.</p>
+
+              <div className="mt-5 space-y-4">
+                <div>
+                  <FieldLabel>Name</FieldLabel>
+                  <input value={supportForm.name} onChange={e => setSupportForm(prev => ({ ...prev, name: e.target.value }))} placeholder="Full Name" className={fieldClass} />
+                </div>
+                <div>
+                  <FieldLabel>Email</FieldLabel>
+                  <input type="email" value={supportForm.email} onChange={e => setSupportForm(prev => ({ ...prev, email: e.target.value }))} placeholder="Your Email" className={fieldClass} />
+                </div>
+                <div>
+                  <FieldLabel>Subject</FieldLabel>
+                  <input value={supportForm.subject} onChange={e => setSupportForm(prev => ({ ...prev, subject: e.target.value }))} placeholder="Subject of your message" className={fieldClass} />
+                </div>
+                <div>
+                  <FieldLabel>Message</FieldLabel>
+                  <textarea value={supportForm.message} onChange={e => setSupportForm(prev => ({ ...prev, message: e.target.value }))} rows={5} placeholder="Type your message here" className={`${fieldClass} resize-none`} />
+                </div>
+                <button type="button" onClick={sendSupportMessage} className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 text-sm font-bold text-black">
+                  <i className="ri-whatsapp-line text-lg" />
+                  Send Message
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-md pb-4">
       <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
@@ -1827,7 +1932,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
           <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Help & Support</p>
         </div>
         <SettingsRow icon="ri-shield-check-line" label="Privacy Policy & Terms" onClick={() => router.push("/terms")} />
-        <SettingsRow icon="ri-phone-line" label="Contact & Support" onClick={() => window.open("https://wa.me/201211632456", "_blank", "noopener,noreferrer")} />
+        <SettingsRow icon="ri-phone-line" label="Contact & Support" onClick={() => setPanel("support")} />
         <SettingsRow icon="ri-logout-box-r-line" label="Sign Out" danger onClick={signOut} />
         <SettingsRow icon={deleting ? "ri-loader-4-line animate-spin" : "ri-delete-bin-line"} label={deleting ? "Deleting..." : "Delete Profile"} danger onClick={deleteProfile} />
       </div>
