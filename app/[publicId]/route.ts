@@ -18,7 +18,7 @@ export async function GET(
   const cachedState = await cacheService.get<TagState>(cacheKey);
 
   if (cachedState) {
-    return NextResponse.rewrite(
+    return NextResponse.redirect(
       new URL(resolveDestination(cachedState, publicId), request.url),
     );
   }
@@ -37,7 +37,7 @@ export async function GET(
 
   await cacheService.set(cacheKey, tag.state, cacheService.TAG_TTL);
 
-  return NextResponse.rewrite(
+  return NextResponse.redirect(
     new URL(resolveDestination(tag.state as TagState, publicId), request.url),
   );
 }
