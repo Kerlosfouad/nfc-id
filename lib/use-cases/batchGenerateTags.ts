@@ -8,12 +8,23 @@
  * Requirements: 8.1, 8.2, 8.3
  */
 
-import { nanoid } from 'nanoid';
 import { db } from '../db';
 
 export interface BatchGenerateResult {
   ids: string[];
   csv: string;
+}
+
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const DIGITS = '0123456789';
+
+function randomFrom(alphabet: string): string {
+  return alphabet[Math.floor(Math.random() * alphabet.length)];
+}
+
+function generatePublicId(): string {
+  return Array.from({ length: 3 }, () => randomFrom(LETTERS)).join('')
+    + Array.from({ length: 3 }, () => randomFrom(DIGITS)).join('');
 }
 
 /**
@@ -31,14 +42,14 @@ function toCSV(ids: string[]): string {
  * @returns Object containing the generated IDs array and CSV string
  */
 export async function batchGenerateTags(quantity: number): Promise<BatchGenerateResult> {
-  // Generate initial set of IDs (9-character NanoID, URL-safe alphabet)
-  let ids = Array.from({ length: quantity }, () => nanoid(9));
+  // Generate initial set of IDs: 3 uppercase letters + 3 digits, e.g. ABC123.
+  let ids = Array.from({ length: quantity }, generatePublicId);
 
   // Deduplicate within the batch itself (handle internal collisions)
   let uniqueIds = Array.from(new Set(ids));
   while (uniqueIds.length < quantity) {
     const needed = quantity - uniqueIds.length;
-    const extra = Array.from({ length: needed }, () => nanoid(9));
+    const extra = Array.from({ length: needed }, generatePublicId);
     uniqueIds = Array.from(new Set([...uniqueIds, ...extra]));
   }
   ids = uniqueIds.slice(0, quantity);
@@ -62,7 +73,7 @@ export async function batchGenerateTags(quantity: number): Promise<BatchGenerate
     // Regenerate colliding IDs
     const regenerated: string[] = [];
     for (let i = 0; i < collisions.length; i++) {
-      regenerated.push(nanoid(9));
+      regenerated.push(generatePublicId());
     }
 
     // Replace collisions with regenerated IDs, ensuring no new internal duplicates
@@ -71,7 +82,7 @@ export async function batchGenerateTags(quantity: number): Promise<BatchGenerate
 
     // If we still don't have enough unique IDs, generate more
     while (combined.length < quantity) {
-      combined.push(nanoid(9));
+      combined.push(generatePublicId());
     }
 
     finalIds = Array.from(new Set(combined)).slice(0, quantity);

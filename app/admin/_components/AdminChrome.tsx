@@ -11,8 +11,7 @@ const navItems = [
   { href: "/admin/customers", icon: "ri-user-smile-line", label: "Customers" },
   { href: "/admin/products", icon: "ri-shopping-bag-3-line", label: "Products" },
   { href: "/admin/orders", icon: "ri-archive-stack-line", label: "Orders" },
-  { href: "/admin/geo", icon: "ri-map-pin-line", label: "Geo Map" },
-  { href: "/admin/tags", icon: "ri-nfc-line", label: "NFC Tags" },
+  { href: "/admin/tags", icon: "ri-nfc-line", label: "Generate NFC" },
   { href: "/admin/moderation", icon: "ri-shield-check-line", label: "Moderation" },
 ];
 
@@ -81,7 +80,7 @@ export function AdminChrome({ children }: { title: string; subtitle: string; chi
 
         <div className="m-3 rounded-xl border border-[#03A9F4]/20 bg-[#03A9F4]/5 p-3">
           <p className="text-xs uppercase tracking-widest text-white/35">Medal scan link</p>
-          <p className="mt-2 truncate font-mono text-xs text-[#03A9F4]">/scan/{"{medalId}"}</p>
+          <p className="mt-2 truncate font-mono text-xs text-[#03A9F4]">/{"{code}"}</p>
         </div>
       </aside>
 

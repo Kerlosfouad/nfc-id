@@ -40,6 +40,11 @@ export default function AdminTagsPage() {
   const [error, setError] = useState<string | null>(null);
   const [pendingStates, setPendingStates] = useState<Record<string, TagState>>({});
   const [saving, setSaving] = useState<Record<string, boolean>>({});
+  const [generateQuantity, setGenerateQuantity] = useState(1);
+  const [generating, setGenerating] = useState(false);
+  const [generatedIds, setGeneratedIds] = useState<string[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [usedIds, setUsedIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   function showToast(message: string, type: "success" | "error" = "success") {
@@ -127,12 +132,76 @@ export default function AdminTagsPage() {
     }
   }
 
+  async function generateTags() {
+    if (!authToken) return;
+    setGenerating(true);
+    try {
+      const res = await fetch("/api/v1/admin/tags/batch", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+          "x-user-id": userId ?? "",
+        },
+        body: JSON.stringify({ quantity: generateQuantity }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => null);
+        throw new Error(json?.error?.message ?? "Generate failed");
+      }
+      const csv = await res.text();
+      const ids = csv.split(/\r?\n/).slice(1).map((id) => id.trim()).filter(Boolean);
+      setGeneratedIds(ids);
+      setUsedIds(new Set());
+      showToast(`Generated ${ids.length} NFC code${ids.length === 1 ? "" : "s"}`);
+      await searchTags();
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : "Generate failed", "error");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function copyNfcLink(publicId: string) {
+    const baseUrl = window.location.origin;
+    await navigator.clipboard.writeText(`${baseUrl}/${publicId}`);
+    setCopiedId(publicId);
+    setTimeout(() => setCopiedId(null), 1600);
+  }
+
+  async function markGeneratedUsed(publicId: string) {
+    if (!authToken) return;
+    setSaving((s) => ({ ...s, [publicId]: true }));
+    try {
+      const res = await fetch(`/api/v1/admin/tags/${publicId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+          "x-user-id": userId ?? "",
+        },
+        body: JSON.stringify({ state: "SOLD" }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error?.message ?? "Update failed");
+      }
+      setTags((prev) => prev.map((tag) => (tag.publicId === publicId ? { ...tag, state: "SOLD" } : tag)));
+      setUsedIds((prev) => new Set(prev).add(publicId));
+      showToast(`Code ${publicId} marked as used`);
+    } catch (e: unknown) {
+      showToast(e instanceof Error ? e.message : "Update failed", "error");
+    } finally {
+      setSaving((s) => ({ ...s, [publicId]: false }));
+    }
+  }
+
   if (checking) {
     return <AdminLoadingScreen />;
   }
 
   return (
-    <AdminChrome title="NFC Tags" subtitle="Search medals and manage lifecycle states.">
+    <AdminChrome title="Generate NFC" subtitle="Create medal links and mark printed codes as used.">
       {toast && (
         <div className={`fixed right-4 top-4 z-50 rounded-lg border px-4 py-3 text-sm ${
           toast.type === "success" ? "border-green-500/40 bg-green-500/10 text-green-300" : "border-red-500/40 bg-red-500/10 text-red-300"
@@ -141,6 +210,68 @@ export default function AdminTagsPage() {
         </div>
       )}
 
+      <Panel title="Generate NFC Codes">
+        <div className="grid gap-3 md:grid-cols-[180px_1fr]">
+          <div>
+            <label className="mb-2 block text-xs uppercase tracking-widest text-white/35">Quantity</label>
+            <input
+              type="number"
+              min={1}
+              max={10000}
+              value={generateQuantity}
+              onChange={(e) => setGenerateQuantity(Math.max(1, Math.min(10000, Number(e.target.value) || 1)))}
+              className="custom-input"
+            />
+          </div>
+          <div className="flex items-end">
+            <button onClick={generateTags} disabled={generating} className="boton-elegante boton-tow w-full md:w-auto">
+              {generating ? "Generating..." : "Generate NFC"}
+            </button>
+          </div>
+        </div>
+
+        {generatedIds.length > 0 && (
+          <div className="mt-5 space-y-2">
+            {generatedIds.map((publicId) => {
+              const link = typeof window !== "undefined" ? `${window.location.origin}/${publicId}` : `/${publicId}`;
+              const used = usedIds.has(publicId);
+              return (
+                <div key={publicId} className="flex flex-col gap-3 rounded-xl border border-white/10 bg-black/25 px-4 py-3 sm:flex-row sm:items-center">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-mono text-sm font-semibold text-white">{publicId}</p>
+                    <p className="mt-1 truncate font-mono text-xs text-[#03A9F4]">{link}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => copyNfcLink(publicId)}
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/65 transition-colors hover:text-white"
+                      title="Copy link"
+                    >
+                      <i className={copiedId === publicId ? "ri-check-line text-green-300" : "ri-file-copy-line"} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => markGeneratedUsed(publicId)}
+                      disabled={saving[publicId] || used}
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-colors ${
+                        used
+                          ? "border-green-400/30 bg-green-400/15 text-green-300"
+                          : "border-white/10 bg-white/[0.04] text-white/65 hover:text-green-300"
+                      } disabled:opacity-70`}
+                      title="Mark as used"
+                    >
+                      <i className={saving[publicId] ? "ri-loader-4-line animate-spin" : "ri-check-double-line"} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Panel>
+
+      <div className="mt-6">
       <Panel title="Search Tags">
         <div className="grid gap-3 md:grid-cols-4">
           <input value={filterPublicId} onChange={(e) => setFilterPublicId(e.target.value)} placeholder="Public ID" className="custom-input" />
@@ -154,6 +285,8 @@ export default function AdminTagsPage() {
           </button>
         </div>
       </Panel>
+
+      </div>
 
       <div className="mt-6">
         <Panel title="Tag Results">
