@@ -191,18 +191,18 @@ function getLinkMeta(link: Pick<LinkItem, "type" | "title">): { icon: string; co
 }
 
 const PRESET_THEMES = [
-  { id: "default", name: "Default", desc: "NFC blue glass look", colors: ["#04111c", "#0b2438", "#0476a6", "#b8d7e6"], premium: false, accent: "#0476a6" },
-  { id: "dark", name: "Dark Mode", desc: "Sleek blue-black interface", colors: ["#020617", "#0f172a", "#2563eb", "#dbeafe"], premium: false, accent: "#2563eb" },
-  { id: "nature", name: "Nature", desc: "Deep green natural feel", colors: ["#03180d", "#0a3f27", "#15803d", "#bbf7d0"], premium: false, accent: "#15803d" },
-  { id: "ocean", name: "Ocean", desc: "Calming cyan-blue tones", colors: ["#031926", "#075064", "#0891b2", "#cffafe"], premium: false, accent: "#0891b2" },
-  { id: "sunset", name: "Sunset", desc: "Warm amber glow", colors: ["#1f0803", "#5f1d0b", "#c2410c", "#fed7aa"], premium: true, accent: "#c2410c" },
-  { id: "neon", name: "Neon", desc: "Vibrant electric violet", colors: ["#030306", "#111827", "#5b21b6", "#c4b5fd"], premium: true, accent: "#5b21b6" },
-  { id: "minimal", name: "Minimal", desc: "Soft monochrome elegance", colors: ["#111113", "#27272a", "#a1a1aa", "#e4e4e7"], premium: true, accent: "#a1a1aa" },
-  { id: "purple-haze", name: "Purple Haze", desc: "Deep purples and lavender", colors: ["#11102f", "#3b1d78", "#7c3aed", "#ddd6fe"], premium: true, accent: "#7c3aed" },
-  { id: "retro", name: "Retro", desc: "Warm vintage gold", colors: ["#1c0c03", "#5f3512", "#b45309", "#fde68a"], premium: true, accent: "#b45309" },
-  { id: "midnight", name: "Midnight", desc: "Deep blue night sky", colors: ["#020617", "#153255", "#0284c7", "#bae6fd"], premium: true, accent: "#0284c7" },
-  { id: "rose-gold", name: "Rose Gold", desc: "Elegant rose glow", colors: ["#21040c", "#7f1d1d", "#be3455", "#fecdd3"], premium: true, accent: "#be3455" },
-  { id: "forest", name: "Forest", desc: "Rich forest greens", colors: ["#01140d", "#064e3b", "#15803d", "#bbf7d0"], premium: true, accent: "#15803d" },
+  { id: "default", name: "Default", desc: "NFC blue glass look", colors: ["#04111c", "#0b2438", "#036083", "#b8d7e6"], premium: false, accent: "#036083" },
+  { id: "dark", name: "Dark Mode", desc: "Sleek blue-black interface", colors: ["#020617", "#0f172a", "#1d4ed8", "#dbeafe"], premium: false, accent: "#1d4ed8" },
+  { id: "nature", name: "Nature", desc: "Deep green natural feel", colors: ["#03180d", "#0a3f27", "#166534", "#bbf7d0"], premium: false, accent: "#166534" },
+  { id: "ocean", name: "Ocean", desc: "Calming cyan-blue tones", colors: ["#031926", "#075064", "#0e7490", "#cffafe"], premium: false, accent: "#0e7490" },
+  { id: "sunset", name: "Sunset", desc: "Warm amber glow", colors: ["#1f0803", "#5f1d0b", "#9a3412", "#fed7aa"], premium: true, accent: "#9a3412" },
+  { id: "neon", name: "Neon", desc: "Vibrant electric violet", colors: ["#030306", "#111827", "#4c1d95", "#c4b5fd"], premium: true, accent: "#4c1d95" },
+  { id: "minimal", name: "Minimal", desc: "Soft monochrome elegance", colors: ["#111113", "#27272a", "#71717a", "#e4e4e7"], premium: true, accent: "#71717a" },
+  { id: "purple-haze", name: "Purple Haze", desc: "Deep purples and lavender", colors: ["#11102f", "#3b1d78", "#5b21b6", "#ddd6fe"], premium: true, accent: "#5b21b6" },
+  { id: "retro", name: "Retro", desc: "Warm vintage gold", colors: ["#1c0c03", "#5f3512", "#92400e", "#fde68a"], premium: true, accent: "#92400e" },
+  { id: "midnight", name: "Midnight", desc: "Deep blue night sky", colors: ["#020617", "#153255", "#0369a1", "#bae6fd"], premium: true, accent: "#0369a1" },
+  { id: "rose-gold", name: "Rose Gold", desc: "Elegant rose glow", colors: ["#21040c", "#7f1d1d", "#9f1239", "#fecdd3"], premium: true, accent: "#9f1239" },
+  { id: "forest", name: "Forest", desc: "Rich forest greens", colors: ["#01140d", "#064e3b", "#166534", "#bbf7d0"], premium: true, accent: "#166534" },
 ];
 function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { profile: ProfileData; saving: boolean; onSave: (p: Record<string, unknown>) => void; onClose: () => void; onAddLink?: (d: LinkDraft) => void }) {
   const [name, setName] = useState(profile.displayName);
@@ -1554,7 +1554,7 @@ function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClo
 
   function closePreview() {
     setVisible(false);
-    window.setTimeout(onClose, 180);
+    window.setTimeout(onClose, 300);
   }
 
   const now = new Date();
@@ -1580,15 +1580,15 @@ function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClo
 
   return (
     <div
-      className={`fixed inset-0 z-[90] flex items-end justify-center bg-black/75 backdrop-blur-sm transition-opacity duration-200 md:items-center ${visible ? "opacity-100" : "opacity-0"}`}
+      className={`fixed inset-0 z-[90] flex items-end justify-center bg-black/75 backdrop-blur-sm transition-opacity duration-300 md:items-center ${visible ? "opacity-100" : "opacity-0"}`}
       onClick={closePreview}
     >
       <div
-        className={`flex h-[88svh] w-full flex-col overflow-hidden rounded-t-[28px] border border-white/10 bg-[#111] text-white shadow-2xl transition-all duration-200 ease-out md:h-[760px] md:max-w-[430px] md:rounded-[28px] ${visible ? "translate-y-0 scale-100 opacity-100" : "translate-y-5 scale-[0.98] opacity-0 md:translate-y-3"}`}
+        className={`isolate flex h-[88svh] w-full flex-col overflow-hidden rounded-t-[28px] border border-white/10 bg-[#111] text-white shadow-2xl transition-all duration-300 ease-out md:h-[760px] md:max-w-[430px] md:rounded-[28px] ${visible ? "translate-y-0 scale-100 opacity-100" : "translate-y-8 scale-[0.985] opacity-0 md:translate-y-4"}`}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mx-auto mt-3 h-1.5 w-28 rounded-full bg-white/10" />
-        <div className="shrink-0 px-5 pb-4 pt-8">
+        <div className="relative z-20 shrink-0 px-5 pb-4 pt-8">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-2xl font-bold">Preview NFC ID</h2>
@@ -1599,12 +1599,12 @@ function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClo
             </button>
           </div>
         </div>
-        <div className="min-h-0 flex-1 overflow-hidden border-y border-white/10 bg-black">
+        <div className="relative z-0 min-h-0 flex-1 overflow-hidden border-y border-white/10 bg-black">
           <div className="h-full overflow-y-auto">
             <ProfileView profile={previewProfile} links={previewLinks} />
           </div>
         </div>
-        <div className="shrink-0 p-5">
+        <div className="relative z-20 shrink-0 p-5">
           <button onClick={closePreview} className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.03] text-base font-bold text-white hover:bg-white/[0.06]">
             Continue Editing
           </button>

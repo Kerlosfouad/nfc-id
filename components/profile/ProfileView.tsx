@@ -109,6 +109,17 @@ function withAlpha(hexColor: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+function darkenHex(hexColor: string, amount = 0.78): string {
+  const normalized = hexColor.replace('#', '');
+  if (!/^[0-9a-fA-F]{6}$/.test(normalized)) return hexColor;
+
+  const r = Math.round(parseInt(normalized.slice(0, 2), 16) * amount);
+  const g = Math.round(parseInt(normalized.slice(2, 4), 16) * amount);
+  const b = Math.round(parseInt(normalized.slice(4, 6), 16) * amount);
+
+  return `#${[r, g, b].map(value => value.toString(16).padStart(2, '0')).join('')}`;
+}
+
 function isCvLink(link: ProfileLink): boolean {
   const title = link.title.toLowerCase();
   const url = link.url.toLowerCase();
@@ -165,7 +176,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
 
 function LinkRow({ link, primaryColor, compact = false }: { link: ProfileLink; primaryColor: string; compact?: boolean }) {
   const { icon } = getLinkMeta(link, primaryColor);
-  const accentColor = primaryColor || '#03A9F4';
+  const accentColor = darkenHex(primaryColor || '#03A9F4');
 
   return (
     <a
@@ -208,7 +219,7 @@ function LinkRow({ link, primaryColor, compact = false }: { link: ProfileLink; p
 
 function LinkGridTile({ link, primaryColor }: { link: ProfileLink; primaryColor: string }) {
   const { icon } = getLinkMeta(link, primaryColor);
-  const accentColor = primaryColor || '#03A9F4';
+  const accentColor = darkenHex(primaryColor || '#03A9F4');
 
   return (
     <a
@@ -267,7 +278,8 @@ interface ProfileViewProps {
 }
 
 export default function ProfileView({ profile, links, showLeadForm = false }: ProfileViewProps) {
-  const { primaryColor = '#03A9F4', fontFamily } = profile.theme;
+  const { primaryColor: rawPrimaryColor = '#03A9F4', fontFamily } = profile.theme;
+  const primaryColor = darkenHex(rawPrimaryColor);
   const themeVars = getThemeVars(profile.theme);
   const bgStyle = getBgStyle(profile.theme);
   const isGrid = profile.theme.linksLayout === 'grid';
