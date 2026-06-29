@@ -1386,12 +1386,39 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
   );
 }
 
-function SettingsTab({ profile, email, onRequestGold }: { profile: ProfileData; email: string; onRequestGold: (service?: GoldServiceId) => void }) {
+function SettingsTab({ profile, email, token, uid, onRequestGold, onDeleted }: { profile: ProfileData; email: string; token: string; uid: string; onRequestGold: (service?: GoldServiceId) => void; onDeleted: (profileId: string) => void }) {
   const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
+  const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/${profile.publicId}` : `/${profile.publicId}`;
 
   async function signOut() {
     await createClient().auth.signOut();
     router.push("/login");
+  }
+
+  async function copyProfileLink() {
+    await navigator.clipboard.writeText(publicUrl);
+  }
+
+  async function deleteProfile() {
+    if (deleting) return;
+    const ok = window.confirm(`Delete ${profile.displayName}? This will remove its links and free the medal code for a new claim.`);
+    if (!ok) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/v1/profiles/${profile.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}`, "x-user-id": uid },
+      });
+      const json = await readApiJson(res);
+      if (!res.ok) throw new Error(json.error?.message ?? "Delete failed");
+      onDeleted(profile.id);
+      router.push("/dashboard");
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : "Delete failed");
+    } finally {
+      setDeleting(false);
+    }
   }
 
   function SettingsRow({
@@ -1413,49 +1440,57 @@ function SettingsTab({ profile, email, onRequestGold }: { profile: ProfileData; 
       <button
         type="button"
         onClick={onClick}
-        className={`flex min-h-[64px] w-full items-center gap-4 border-t border-white/10 px-5 text-left transition-colors first:border-t-0 ${active ? "bg-white/[0.055]" : "hover:bg-white/[0.035]"} ${danger ? "text-red-400" : "text-white"}`}
+        className={`flex min-h-[52px] w-full items-center gap-3 border-t border-white/10 px-4 text-left transition-colors first:border-t-0 ${active ? "bg-white/[0.045]" : "hover:bg-white/[0.035]"} ${danger ? "text-red-400" : "text-white"}`}
       >
-        <i className={`${icon} w-9 shrink-0 text-[28px] ${danger ? "text-red-400" : "text-white/60"}`} />
-        <span className="min-w-0 flex-1 text-[17px] font-medium tracking-[-0.01em]">{label}</span>
+        <i className={`${icon} w-7 shrink-0 text-xl ${danger ? "text-red-400" : "text-white/50"}`} />
+        <span className="min-w-0 flex-1 text-sm font-medium">{label}</span>
         {value ? (
-          <span className="text-[15px] text-white/50">{value}</span>
+          <span className="max-w-[130px] truncate text-xs text-white/45">{value}</span>
         ) : danger ? null : (
-          <i className="ri-arrow-right-s-line text-[28px] text-white/45" />
+          <i className="ri-arrow-right-s-line text-xl text-white/35" />
         )}
       </button>
     );
   }
 
   return (
-    <div className="mx-auto w-full max-w-lg pb-4">
-      <div className="overflow-hidden rounded-[24px] border border-white/10 bg-[#111]/95 shadow-2xl shadow-black/20">
-        <div className="px-5 pb-6 pt-8">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/[0.075]">
-            <i className="ri-user-line text-[38px] text-white/60" />
+    <div className="mx-auto w-full max-w-md pb-4">
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
+        <div className="flex items-center gap-3 px-4 py-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/[0.07]">
+            {profile.avatarUrl ? (
+              <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <i className="ri-user-line text-2xl text-white/50" />
+            )}
           </div>
-          <p className="mt-6 truncate text-[18px] text-white/50">{email}</p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-white">{profile.displayName}</p>
+            <p className="mt-0.5 truncate text-xs text-white/40">{profile.bio || email}</p>
+            <p className="mt-1 truncate font-mono text-[11px] text-[#03A9F4]">/{profile.publicId}</p>
+          </div>
         </div>
 
-        <div className="px-5 pb-4 pt-1">
-          <p className="text-[15px] font-bold uppercase tracking-[0.12em] text-white/50">Account</p>
+        <div className="px-4 pb-2 pt-3">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Account</p>
         </div>
-        <SettingsRow icon="ri-qr-code-line" label="Products & Profiles" />
-        <SettingsRow icon="ri-bank-card-line" label="Subscription" value={isFutureDate(profile.primeDesignUntil) ? "Active" : undefined} onClick={() => onRequestGold("design")} />
-        <SettingsRow icon="ri-user-line" label="Profile & Security" value={isFutureDate(profile.verifiedUntil) ? "Verified" : undefined} active onClick={() => onRequestGold("verification")} />
+        <SettingsRow icon="ri-qr-code-line" label="Products & Profiles" value={`${profile.links.length} links`} onClick={copyProfileLink} />
+        <SettingsRow icon="ri-bank-card-line" label="Subscription" value={isFutureDate(profile.primeDesignUntil) ? "Design Active" : "Free"} onClick={() => onRequestGold("design")} />
+        <SettingsRow icon="ri-user-line" label="Profile & Security" value={isFutureDate(profile.verifiedUntil) ? "Verified" : "Not verified"} active onClick={() => onRequestGold("verification")} />
 
-        <div className="px-5 pb-4 pt-7">
-          <p className="text-[15px] font-bold uppercase tracking-[0.12em] text-white/50">App Settings</p>
+        <div className="px-4 pb-2 pt-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">App Settings</p>
         </div>
         <SettingsRow icon="ri-moon-line" label="Appearance" value="Dark" />
         <SettingsRow icon="ri-global-line" label="Language" value="English" />
 
-        <div className="px-5 pb-4 pt-7">
-          <p className="text-[15px] font-bold uppercase tracking-[0.12em] text-white/50">Help & Support</p>
+        <div className="px-4 pb-2 pt-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Help & Support</p>
         </div>
-        <SettingsRow icon="ri-shield-check-line" label="Privacy Policy & Terms" />
-        <SettingsRow icon="ri-phone-line" label="Contact & Support" />
+        <SettingsRow icon="ri-shield-check-line" label="Privacy Policy & Terms" onClick={() => router.push("/terms")} />
+        <SettingsRow icon="ri-phone-line" label="Contact & Support" onClick={() => window.open("https://wa.me/201211632456", "_blank", "noopener,noreferrer")} />
         <SettingsRow icon="ri-logout-box-r-line" label="Sign Out" danger onClick={signOut} />
-        <SettingsRow icon="ri-delete-bin-line" label="Delete Account" danger />
+        <SettingsRow icon={deleting ? "ri-loader-4-line animate-spin" : "ri-delete-bin-line"} label={deleting ? "Deleting..." : "Delete Profile"} danger onClick={deleteProfile} />
       </div>
     </div>
   );
@@ -1827,6 +1862,14 @@ export default function DashboardPage() {
 
   function showToast(msg: string, ok = true) { setToast({ msg, ok }); if (tRef.current) clearTimeout(tRef.current); tRef.current = setTimeout(() => setToast(null), 3000); }
   function hdrs() { return { "Content-Type": "application/json", Authorization: "Bearer " + token, "x-user-id": uid }; }
+  function removeProfile(profileId: string) {
+    setProfiles(prev => {
+      const next = prev.filter(p => p.id !== profileId);
+      setSelId(current => current === profileId ? (next[0]?.id ?? null) : current);
+      return next;
+    });
+    showToast("Profile deleted");
+  }
   function setLinkPending(linkId: string, state: PendingLinks[string] | null) {
     setPendingLinks(prev => {
       const next = { ...prev };
@@ -2059,7 +2102,16 @@ export default function DashboardPage() {
                   {tab === "home" && <HomeTab profile={profile} saving={saving} pendingLinks={pendingLinks} onPatch={patchProfile} onAddLink={() => setAddOpen(true)} onEditLink={setEditLink} onDeleteLink={deleteLink} onMove={moveLink} onMoveTo={moveLinkTo} onPreview={() => setPreviewOpen(true)} editOpen={editOpen} setEditOpen={setEditOpen} addOpen={addOpen} setAddOpen={setAddOpen} editLink={editLink} setEditLink={setEditLink} onUpdateLink={updateLink} onAddLinkSubmit={addLink} />}
                   {tab === "analytics" && <AnalyticsTab profile={profile} token={token} uid={uid} />}
                   {tab === "share" && <ShareTab profile={profile} onCopy={copyLink} copied={copied} />}
-                  {tab === "settings" && <SettingsTab profile={profile} email={email} onRequestGold={(service = "design") => setGoldRequest(service)} />}
+                  {tab === "settings" && (
+                    <SettingsTab
+                      profile={profile}
+                      email={email}
+                      token={token}
+                      uid={uid}
+                      onRequestGold={(service = "design") => setGoldRequest(service)}
+                      onDeleted={removeProfile}
+                    />
+                  )}
                 </div>
               )}
               {tab === "design" && <DesignTab profile={profile} saving={saving} onSave={(t) => patchProfile({ theme: t })} onRequestGold={(service = "design") => setGoldRequest(service)} />}

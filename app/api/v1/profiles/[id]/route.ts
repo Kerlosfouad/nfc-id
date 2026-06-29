@@ -153,3 +153,31 @@ export async function PATCH(
 
   return NextResponse.json({ data: updated, error: null });
 }
+
+// DELETE /api/v1/profiles/:id
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const userId = getUserId(request);
+  if (!userId) return unauthorized();
+
+  const { id } = await params;
+
+  const existing = await db.profile.findUnique({ where: { id } });
+  if (!existing) return notFound();
+  if (existing.ownerId !== userId) return forbidden();
+
+  await db.$transaction(async (tx) => {
+    await tx.profile.delete({ where: { id } });
+    await tx.tag.updateMany({
+      where: { publicId: existing.publicId, ownerId: userId },
+      data: { ownerId: null, state: 'SOLD' },
+    });
+  });
+
+  void del(profileCacheKey(existing.publicId));
+
+  return NextResponse.json({ data: { id, publicId: existing.publicId }, error: null });
+}
