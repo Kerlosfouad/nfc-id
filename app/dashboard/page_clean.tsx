@@ -34,6 +34,8 @@ const GOLD_SERVICES: { id: GoldServiceId; name: string; price: number; icon: str
   { id: "verification", name: "Verified Badge", price: 300, icon: "ri-verified-badge-line", description: "Manual profile verification and the verified mark on your public profile." },
 ];
 
+const analyticsMemoryCache = new Map<string, AnalyticsSummary>();
+
 function isFutureDate(value: string | null | undefined): boolean {
   return !!value && new Date(value).getTime() > Date.now();
 }
@@ -947,6 +949,10 @@ function HomeTab({ profile, saving, pendingLinks, onPatch, onAddLink, onEditLink
       </div>
       <div className="hidden lg:block w-full lg:w-52 flex-shrink-0">
         <div className="grid grid-cols-3 lg:grid-cols-1 gap-2 lg:gap-3">
+          <button type="button" onClick={onPreview} className="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3 bg-[#1a1a1a] border border-white/10 rounded-xl px-3 lg:px-4 py-3 lg:py-3.5 hover:bg-white/5 hover:border-white/20 group">
+            <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10"><i className="ri-eye-line text-white/60 group-hover:text-white text-sm lg:text-base" /></div>
+            <div className="text-center lg:text-left"><p className="text-xs lg:text-sm font-semibold">Preview</p><p className="text-[10px] lg:text-xs text-white/40 hidden lg:block">View Profile</p></div>
+          </button>
           <button onClick={() => setEditOpen(!editOpen)} className="w-full flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3 bg-[#1a1a1a] border border-white/10 rounded-xl px-3 lg:px-4 py-3 lg:py-3.5 hover:bg-white/5 hover:border-white/20 group">
             <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10"><i className="ri-pencil-line text-white/60 group-hover:text-white text-sm lg:text-base" /></div>
             <div className="text-center lg:text-left"><p className="text-xs lg:text-sm font-semibold">Edit</p><p className="text-[10px] lg:text-xs text-white/40 hidden lg:block">Name, bio, avatar</p></div>
@@ -1062,22 +1068,39 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    const cacheKey = `${profile.id}:${range}`;
+    const cached = analyticsMemoryCache.get(cacheKey);
+    if (cached) {
+      setData(cached);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     fetch(`/api/v1/analytics/${profile.id}?days=${range}`, {
       headers: { Authorization: "Bearer " + token, "x-user-id": uid }
     })
       .then(r => r.json())
-      .then(j => { if (!cancelled) setData(j.data ?? null); })
+      .then(j => {
+        if (cancelled) return;
+        const next = j.data ?? null;
+        if (next) analyticsMemoryCache.set(cacheKey, next);
+        setData(next);
+      })
       .catch(() => { if (!cancelled) setData(null); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [profile.id, token, uid, range]);
 
   function refresh() {
-    setLoading(true);
+    const cacheKey = `${profile.id}:${range}`;
+    if (!data) setLoading(true);
     fetch(`/api/v1/analytics/${profile.id}?days=${range}&t=${Date.now()}`, {
       headers: { Authorization: "Bearer " + token, "x-user-id": uid }
-    }).then(r => r.json()).then(j => setData(j.data ?? null)).catch(() => setData(null)).finally(() => setLoading(false));
+    }).then(r => r.json()).then(j => {
+      const next = j.data ?? null;
+      if (next) analyticsMemoryCache.set(cacheKey, next);
+      setData(next);
+    }).catch(() => setData(null)).finally(() => setLoading(false));
   }
 
   const stats = [
@@ -1209,12 +1232,13 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
                   <tr><td colSpan={2} className="py-10 text-center text-white/25">No link clicks yet</td></tr>
                 ) : (
                   data.linkClickDetails.map((l, i) => {
+                    const meta = getLinkMeta({ title: l.title, type: l.type });
                     return (
                       <tr key={i}>
                         <td className="py-4 pr-3">
                           <div className="flex items-center gap-3">
                             <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/[0.07]">
-                              {l.thumbnailUrl ? <img src={l.thumbnailUrl} alt="" className="h-full w-full object-cover" /> : <i className={`${(LMETA[l.type] ?? LMETA.URL).icon} text-3xl`} style={{ color: (LMETA[l.type] ?? LMETA.URL).color }} />}
+                              {l.thumbnailUrl ? <img src={l.thumbnailUrl} alt="" className="h-full w-full object-cover" /> : <i className={`${meta.icon} text-3xl`} style={{ color: meta.color }} />}
                             </span>
                             <span className="min-w-0">
                               <span className="block truncate text-base font-semibold text-white">{l.title}</span>
@@ -1286,6 +1310,14 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
     setTimeout(() => setCopied(false), 2000);
   }
 
+  async function shareUrl() {
+    if (navigator.share) {
+      await navigator.share({ title: profile.displayName, text: "My NFC ID profile", url });
+      return;
+    }
+    copyUrl();
+  }
+
   const dotStyles: { id: "square" | "dots" | "rounded"; label: string }[] = [
     { id: "square", label: "Square" },
     { id: "dots", label: "Dots" },
@@ -1309,24 +1341,20 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
           </div>
 
           {/* Action buttons */}
-          <div className="flex gap-2 w-full max-w-xs">
+          <div className="grid w-full max-w-sm grid-cols-3 gap-2">
             <button onClick={download}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white text-black text-sm font-bold hover:bg-white/90 active:scale-[0.98] transition-all">
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-white px-2 py-2.5 text-xs font-bold text-black transition-all hover:bg-white/90 active:scale-[0.98]">
               <i className="ri-download-line" /> Download
             </button>
             <button onClick={copyUrl}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-semibold hover:bg-white/10 transition-all">
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2 py-2.5 text-xs font-semibold text-white transition-all hover:bg-white/10">
               <i className={copied ? "ri-check-line text-green-400" : "ri-link"} />
-              {copied ? "Copied!" : "Copy Link"}
+              {copied ? "Copied" : "Copy"}
             </button>
-            <a href={"https://wa.me/?text=" + encodeURIComponent(url)} target="_blank" rel="noopener noreferrer"
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] hover:bg-[#25D366]/20 transition-all flex-shrink-0">
-              <i className="ri-whatsapp-line text-lg" />
-            </a>
-            <a href={"https://twitter.com/intent/tweet?url=" + encodeURIComponent(url)} target="_blank" rel="noopener noreferrer"
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 transition-all flex-shrink-0">
-              <i className="ri-twitter-x-line text-lg" />
-            </a>
+            <button onClick={shareUrl}
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-[#03A9F4]/30 bg-[#03A9F4]/15 px-2 py-2.5 text-xs font-bold text-[#03A9F4] transition-all hover:bg-[#03A9F4]/20">
+              <i className="ri-share-forward-line" /> Share
+            </button>
           </div>
 
           {/* URL bar */}
@@ -2141,7 +2169,7 @@ export default function DashboardPage() {
           <ProfilePreviewModal profile={profile} onClose={() => setPreviewOpen(false)} />
         )}
 
-        {profile && tab === "design" && (
+        {profile && (tab === "home" || tab === "design") && (
           <button
             type="button"
             onClick={() => setPreviewOpen(true)}
