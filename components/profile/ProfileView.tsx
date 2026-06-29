@@ -164,7 +164,8 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
 /* ── Link Row ─────────────────────────────────────────────── */
 
 function LinkRow({ link, primaryColor, compact = false }: { link: ProfileLink; primaryColor: string; compact?: boolean }) {
-  const { icon, color } = getLinkMeta(link, primaryColor);
+  const { icon } = getLinkMeta(link, primaryColor);
+  const accentColor = primaryColor || '#03A9F4';
 
   return (
     <a
@@ -176,7 +177,7 @@ function LinkRow({ link, primaryColor, compact = false }: { link: ProfileLink; p
       {/* Icon circle — use thumbnailUrl if available, else icon */}
       <div
         className={`${compact ? 'w-12 h-12' : 'w-[52px] h-[52px]'} rounded-full flex items-center justify-center flex-shrink-0 z-10 overflow-hidden`}
-        style={{ backgroundColor: color, boxShadow: `0 5px 18px ${withAlpha(color, 0.4)}` }}
+        style={{ backgroundColor: accentColor, boxShadow: `0 5px 18px ${withAlpha(accentColor, 0.4)}` }}
       >
         {link.thumbnailUrl
           ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
@@ -187,11 +188,11 @@ function LinkRow({ link, primaryColor, compact = false }: { link: ProfileLink; p
       <div
         className={`flex-1 ${compact ? 'h-12 pl-5' : 'h-[52px] pl-6'} flex items-center justify-center -ml-7 rounded-r-[18px] border`}
         style={{
-          backgroundColor: withAlpha(color, 0.14),
-          borderColor: withAlpha(color, 0.26),
+          backgroundColor: withAlpha(accentColor, 0.14),
+          borderColor: withAlpha(accentColor, 0.26),
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
-          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(color, 0.08)}`,
+          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
         }}
       >
         <span
@@ -206,7 +207,8 @@ function LinkRow({ link, primaryColor, compact = false }: { link: ProfileLink; p
 }
 
 function LinkGridTile({ link, primaryColor }: { link: ProfileLink; primaryColor: string }) {
-  const { icon, color } = getLinkMeta(link, primaryColor);
+  const { icon } = getLinkMeta(link, primaryColor);
+  const accentColor = primaryColor || '#03A9F4';
 
   return (
     <a
@@ -215,16 +217,16 @@ function LinkGridTile({ link, primaryColor }: { link: ProfileLink; primaryColor:
       rel="noopener noreferrer"
       className="min-h-[102px] rounded-[22px] border p-3 flex flex-col items-center justify-center gap-2 text-center transition-all duration-200 active:scale-[0.98]"
       style={{
-        backgroundColor: withAlpha(color, 0.14),
-        borderColor: withAlpha(color, 0.26),
+        backgroundColor: withAlpha(accentColor, 0.14),
+        borderColor: withAlpha(accentColor, 0.26),
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
-        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(color, 0.08)}`,
+        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
       }}
     >
       <div
         className="h-11 w-11 rounded-full flex items-center justify-center overflow-hidden"
-        style={{ backgroundColor: color, boxShadow: `0 5px 18px ${withAlpha(color, 0.4)}` }}
+        style={{ backgroundColor: accentColor, boxShadow: `0 5px 18px ${withAlpha(accentColor, 0.4)}` }}
       >
         {link.thumbnailUrl
           ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />

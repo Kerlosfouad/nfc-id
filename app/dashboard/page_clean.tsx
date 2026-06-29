@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ProfileView from "@/components/profile/ProfileView";
+import type { Link as PublicLink, Profile as PublicProfile, ProfileTheme as PublicProfileTheme } from "@/lib/domain/types";
 
 interface LinkItem { id: string; type: string; title: string; url: string; displayOrder: number; activeFrom: string | null; activeTo: string | null; thumbnailUrl: string | null; isActive?: boolean; }
 interface ProfileTheme { style: string; primaryColor: string; fontFamily: string; linksLayout?: "list" | "grid"; profileLayout?: "classic" | "hero"; coverUrl?: string | null; }
@@ -1543,10 +1545,46 @@ function GoldUpgradeModal({ profile, email, initialService, onClose }: { profile
 }
 
 function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClose: () => void }) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setVisible(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  function closePreview() {
+    setVisible(false);
+    window.setTimeout(onClose, 180);
+  }
+
+  const now = new Date();
+  const previewProfile: PublicProfile = {
+    ...profile,
+    ownerId: "",
+    pinHash: null,
+    theme: profile.theme as PublicProfileTheme,
+    primeDesignUntil: profile.primeDesignUntil ? new Date(profile.primeDesignUntil) : null,
+    verifiedUntil: profile.verifiedUntil ? new Date(profile.verifiedUntil) : null,
+    createdAt: now,
+    updatedAt: now,
+  };
+  const previewLinks: PublicLink[] = profile.links.map(link => ({
+    ...link,
+    profileId: profile.id,
+    type: link.type as PublicLink["type"],
+    activeFrom: link.activeFrom ? new Date(link.activeFrom) : null,
+    activeTo: link.activeTo ? new Date(link.activeTo) : null,
+    createdAt: now,
+    updatedAt: now,
+  }));
+
   return (
-    <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/75 backdrop-blur-sm md:items-center" onClick={onClose}>
+    <div
+      className={`fixed inset-0 z-[90] flex items-end justify-center bg-black/75 backdrop-blur-sm transition-opacity duration-200 md:items-center ${visible ? "opacity-100" : "opacity-0"}`}
+      onClick={closePreview}
+    >
       <div
-        className="flex h-[88svh] w-full flex-col overflow-hidden rounded-t-[28px] border border-white/10 bg-[#111] text-white shadow-2xl md:h-[760px] md:max-w-[430px] md:rounded-[28px]"
+        className={`flex h-[88svh] w-full flex-col overflow-hidden rounded-t-[28px] border border-white/10 bg-[#111] text-white shadow-2xl transition-all duration-200 ease-out md:h-[760px] md:max-w-[430px] md:rounded-[28px] ${visible ? "translate-y-0 scale-100 opacity-100" : "translate-y-5 scale-[0.98] opacity-0 md:translate-y-3"}`}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mx-auto mt-3 h-1.5 w-28 rounded-full bg-white/10" />
@@ -1556,20 +1594,18 @@ function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClo
               <h2 className="text-2xl font-bold">Preview NFC ID</h2>
               <p className="mt-1 text-sm text-white/45">See how your profile will look</p>
             </div>
-            <button onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/50 hover:text-white" aria-label="Close preview">
+            <button onClick={closePreview} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/50 hover:text-white" aria-label="Close preview">
               <i className="ri-close-line text-xl" />
             </button>
           </div>
         </div>
         <div className="min-h-0 flex-1 overflow-hidden border-y border-white/10 bg-black">
-          <iframe
-            src={`/profile/${profile.publicId}?preview=true`}
-            className="h-full w-full border-0"
-            title="Profile Preview"
-          />
+          <div className="h-full overflow-y-auto">
+            <ProfileView profile={previewProfile} links={previewLinks} />
+          </div>
         </div>
         <div className="shrink-0 p-5">
-          <button onClick={onClose} className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.03] text-base font-bold text-white hover:bg-white/[0.06]">
+          <button onClick={closePreview} className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.03] text-base font-bold text-white hover:bg-white/[0.06]">
             Continue Editing
           </button>
         </div>
