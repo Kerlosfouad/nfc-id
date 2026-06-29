@@ -1771,17 +1771,21 @@ export default function DashboardPage() {
         // 1. Get profiles list
         const listRes = await fetch("/api/v1/profiles", { headers: { Authorization: "Bearer " + tok, "x-user-id": uid } });
         const listJson = await readApiJson(listRes);
+        if (!listRes.ok) throw new Error(listJson.error?.message ?? "Failed to load profiles");
         const list: ProfileData[] = listJson.data ?? [];
         // 2. Fetch full data (with links + theme) for each profile in parallel
         const full = await Promise.all(list.map(async (p) => {
+          if (p.theme && Array.isArray(p.links)) return p;
           try {
             const r = await fetch("/api/v1/profiles/" + p.id, { headers: { Authorization: "Bearer " + tok, "x-user-id": uid } });
             const j = await readApiJson(r);
             return j.data ? { ...j.data, links: j.data.links ?? [] } : { ...p, links: [] };
-          } catch { return { ...p, links: [] }; }
+          } catch { return p; }
         }));
         setProfiles(full);
-      } catch {/* ignore */ } finally { setLoading(false); }
+      } catch (e) {
+        showToast(e instanceof Error ? e.message : "Failed to load profiles", false);
+      } finally { setLoading(false); }
     }).catch(() => router.push("/login"));
   }, [router]);
 
