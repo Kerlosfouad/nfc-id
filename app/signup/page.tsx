@@ -14,7 +14,6 @@ function SignupContent() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
@@ -47,21 +46,29 @@ function SignupContent() {
 
     setLoading(true);
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName },
-          emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
-        },
+      const signupRes = await fetch("/api/v1/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, fullName }),
       });
 
-      if (signUpError) {
-        setError(signUpError.message);
+      const signupBody = await signupRes.json();
+      if (!signupRes.ok) {
+        setError(signupBody?.error?.message ?? "Could not create account.");
         return;
       }
 
-      setSuccess(true);
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
+      if (signInError) {
+        setError(signInError.message);
+        return;
+      }
+
+      router.replace(redirectTo);
     } catch {
       setError("An unexpected error occurred.");
     } finally {
@@ -75,28 +82,6 @@ function SignupContent() {
       provider,
       options: { redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}` },
     });
-  }
-
-  if (success) {
-    return (
-      <main className="bg-[#0b0a0a] min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-[#03A9F4]/5 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 w-full max-w-[440px]">
-          <div className="flex justify-center mb-8">
-            <Link href="/" className="flex items-center gap-2 group">
-              <Image src="/img/logo.png" alt="NFC ID" width={40} height={40} className="group-hover:drop-shadow-[0_0_10px_#03A9F4] transition-all" />
-              <span className="text-white font-bold text-xl tracking-wider">NFC <span className="text-[#03A9F4]">ID</span></span>
-            </Link>
-          </div>
-          <div className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-3xl p-8 shadow-[0_20px_60px_rgba(0,0,0,0.6)] text-center">
-            <i className="ri-mail-check-line text-5xl text-[#03A9F4] mb-4 block" />
-            <h2 className="text-white text-2xl font-bold mb-2">Check your email</h2>
-            <p className="text-[#555] text-sm">We sent a confirmation link to <span className="text-[#03A9F4]">{email}</span>. Click it to activate your account.</p>
-            <Link href="/login" className="inline-block mt-6 text-[#03A9F4] text-sm font-semibold hover:text-white transition-colors">Back to sign in</Link>
-          </div>
-        </div>
-      </main>
-    );
   }
 
   return (
