@@ -1426,7 +1426,17 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
 function SettingsTab({ profile, email, token, uid, onRequestGold, onDeleted }: { profile: ProfileData; email: string; token: string; uid: string; onRequestGold: (service?: GoldServiceId) => void; onDeleted: (profileId: string) => void }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
+  const [panel, setPanel] = useState<"main" | "products" | "subscription">("main");
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/${profile.publicId}` : `/${profile.publicId}`;
+  const designActive = isFutureDate(profile.primeDesignUntil);
+  const verifiedActive = isFutureDate(profile.verifiedUntil);
+  const activeLinks = profile.links.filter(link => !isLinkHidden(link)).length;
+  const hiddenLinks = profile.links.length - activeLinks;
+
+  function daysLeft(value: string | null) {
+    if (!value) return null;
+    return Math.max(0, Math.ceil((new Date(value).getTime() - Date.now()) / 86400000));
+  }
 
   async function signOut() {
     await createClient().auth.signOut();
@@ -1490,6 +1500,131 @@ function SettingsTab({ profile, email, token, uid, onRequestGold, onDeleted }: {
     );
   }
 
+  function DetailRow({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
+    return (
+      <div className="flex items-center justify-between gap-3 border-t border-white/10 px-4 py-3 first:border-t-0">
+        <span className="text-xs text-white/40">{label}</span>
+        <span className={`min-w-0 truncate text-right text-sm font-semibold text-white ${mono ? "font-mono text-[#03A9F4]" : ""}`}>{value}</span>
+      </div>
+    );
+  }
+
+  function BackHeader({ title, subtitle }: { title: string; subtitle: string }) {
+    return (
+      <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
+        <button type="button" onClick={() => setPanel("main")} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-white/60 hover:text-white">
+          <i className="ri-arrow-left-line text-lg" />
+        </button>
+        <div className="min-w-0">
+          <h2 className="truncate text-base font-bold text-white">{title}</h2>
+          <p className="truncate text-xs text-white/40">{subtitle}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (panel === "products") {
+    return (
+      <div className="mx-auto w-full max-w-md pb-4">
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
+          <BackHeader title="Products & Profiles" subtitle="Product, customer, and NFC profile details" />
+          <div className="p-4">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/[0.07]">
+                  {profile.avatarUrl ? <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" /> : <i className="ri-qr-code-line text-2xl text-white/55" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-base font-bold text-white">{profile.displayName}</p>
+                  <p className="truncate text-xs text-white/40">{email}</p>
+                  <p className="mt-1 truncate font-mono text-[11px] text-[#03A9F4]">{publicUrl}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-4 pb-2">
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Product</p>
+          </div>
+          <DetailRow label="Product type" value="NFC ID Tag" />
+          <DetailRow label="Tag ID" value={profile.publicId} mono />
+          <DetailRow label="Status" value={profile.isSuspended ? "Suspended" : profile.isActive ? "Active" : "Inactive"} />
+          <DetailRow label="Public profile" value={`/${profile.publicId}`} mono />
+
+          <div className="px-4 pb-2 pt-5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Customer</p>
+          </div>
+          <DetailRow label="Name" value={profile.displayName} />
+          <DetailRow label="Email" value={email || "Not available"} />
+          <DetailRow label="Bio" value={profile.bio || "No bio yet"} />
+
+          <div className="px-4 pb-2 pt-5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Profile Links</p>
+          </div>
+          <DetailRow label="Total links" value={`${profile.links.length}`} />
+          <DetailRow label="Active links" value={`${activeLinks}`} />
+          <DetailRow label="Disabled links" value={`${hiddenLinks}`} />
+          <div className="p-4">
+            <button type="button" onClick={copyProfileLink} className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#03A9F4] px-4 py-3 text-sm font-bold text-white">
+              <i className="ri-file-copy-line" /> Copy profile link
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (panel === "subscription") {
+    const designDays = daysLeft(profile.primeDesignUntil);
+    const verifiedDays = daysLeft(profile.verifiedUntil);
+    const plans = [
+      { id: "design" as GoldServiceId, name: "Prime Design", price: 150, active: designActive, days: designDays, icon: "ri-palette-line", features: ["Premium themes", "Grid links layout", "Hero profile layout", "Cover styling"] },
+      { id: "verification" as GoldServiceId, name: "Verified Badge", price: 200, active: verifiedActive, days: verifiedDays, icon: "ri-verified-badge-line", features: ["Verified mark", "Manual review", "Trusted profile signal"] },
+    ];
+    return (
+      <div className="mx-auto w-full max-w-md pb-4">
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
+          <BackHeader title="Subscription" subtitle="Current access and available Prime services" />
+          <div className="p-4">
+            <div className="rounded-2xl border border-[#03A9F4]/25 bg-[#03A9F4]/10 p-4">
+              <p className="text-sm font-bold text-white">Subscription Status</p>
+              <p className="mt-1 text-xs text-white/45">Details of your current active services.</p>
+              <div className="mt-4 grid gap-3">
+                <div className="flex items-center justify-between"><span className="text-sm text-white/45">Current plan</span><span className="text-sm font-bold text-white">{designActive || verifiedActive ? "Prime" : "Free"}</span></div>
+                <div className="flex items-center justify-between"><span className="text-sm text-white/45">Status</span><span className={`rounded-full px-3 py-1 text-xs font-bold ${designActive || verifiedActive ? "bg-green-500/15 text-green-400" : "bg-white/10 text-white/50"}`}>{designActive || verifiedActive ? "Active" : "Inactive"}</span></div>
+                <div className="flex items-center justify-between"><span className="text-sm text-white/45">Active services</span><span className="text-sm font-bold text-white">{[designActive && "Design", verifiedActive && "Verified"].filter(Boolean).join(" + ") || "None"}</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-4 pb-2">
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Available Services</p>
+          </div>
+          <div className="space-y-3 p-4 pt-0">
+            {plans.map(plan => (
+              <div key={plan.id} className={`rounded-2xl border p-4 ${plan.active ? "border-[#03A9F4]/35 bg-[#03A9F4]/10" : "border-white/10 bg-white/[0.03]"}`}>
+                <div className="flex items-start gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#03A9F4]/15 text-[#03A9F4]"><i className={`${plan.icon} text-xl`} /></span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-bold text-white">{plan.name}</p>
+                      <span className="rounded-full bg-[#03A9F4] px-2.5 py-1 text-xs font-bold text-white">{plan.price} EGP</span>
+                    </div>
+                    <p className="mt-1 text-xs text-white/45">{plan.active ? `Active${plan.days !== null ? ` - ${plan.days} days left` : ""}` : "Available to activate"}</p>
+                    <div className="mt-3 grid gap-1.5">
+                      {plan.features.map(feature => <p key={feature} className="flex items-center gap-2 text-xs text-white/55"><i className="ri-check-line text-[#03A9F4]" />{feature}</p>)}
+                    </div>
+                    {!plan.active && <button type="button" onClick={() => onRequestGold(plan.id)} className="mt-3 w-full rounded-xl border border-[#03A9F4]/25 bg-[#03A9F4]/10 px-3 py-2 text-xs font-bold text-[#03A9F4]">Request activation</button>}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-md pb-4">
       <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
@@ -1511,8 +1646,8 @@ function SettingsTab({ profile, email, token, uid, onRequestGold, onDeleted }: {
         <div className="px-4 pb-2 pt-3">
           <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Account</p>
         </div>
-        <SettingsRow icon="ri-qr-code-line" label="Products & Profiles" value={`${profile.links.length} links`} onClick={copyProfileLink} />
-        <SettingsRow icon="ri-bank-card-line" label="Subscription" value={isFutureDate(profile.primeDesignUntil) ? "Design Active" : "Free"} onClick={() => onRequestGold("design")} />
+        <SettingsRow icon="ri-qr-code-line" label="Products & Profiles" value={`${profile.links.length} links`} onClick={() => setPanel("products")} />
+        <SettingsRow icon="ri-bank-card-line" label="Subscription" value={designActive || verifiedActive ? "Prime" : "Free"} onClick={() => setPanel("subscription")} />
         <SettingsRow icon="ri-user-line" label="Profile & Security" value={isFutureDate(profile.verifiedUntil) ? "Verified" : "Not verified"} active onClick={() => onRequestGold("verification")} />
 
         <div className="px-4 pb-2 pt-5">
