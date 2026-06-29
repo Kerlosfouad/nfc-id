@@ -126,6 +126,10 @@ function isCvLink(link: ProfileLink): boolean {
   return title.includes('cv') || title.includes('resume') || url.endsWith('.pdf') || url.includes('.pdf?');
 }
 
+function isHiddenLink(link: ProfileLink): boolean {
+  return !!(link.activeTo && new Date(link.activeTo) <= new Date());
+}
+
 /* ── Theme helpers ──────────────────────────────────────────── */
 
 function getThemeVars(theme: ProfileTheme) {
@@ -285,8 +289,9 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
   const isGrid = profile.theme.linksLayout === 'grid';
   const isHero = profile.theme.profileLayout === 'hero';
 
-  const cvLink = links.find(isCvLink);
-  const visibleLinks = links.filter(l => l !== cvLink);
+  const activeLinks = links.filter(link => !isHiddenLink(link));
+  const cvLink = activeLinks.find(isCvLink);
+  const visibleLinks = activeLinks.filter(l => l !== cvLink);
 
   return (
     <main

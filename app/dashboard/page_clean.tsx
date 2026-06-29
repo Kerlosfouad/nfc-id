@@ -1910,20 +1910,23 @@ export default function DashboardPage() {
     if (!profile) return;
     const profileId = profile.id;
     const previous = profile.links.find(l => l.id === linkId);
-    setLinkPending(linkId, "activeTo" in patch && Object.keys(patch).length === 1 ? "toggle" : "update");
+    const toggleOnly = "activeTo" in patch && Object.keys(patch).length === 1;
+    if (!toggleOnly) setLinkPending(linkId, "update");
     setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.map(l => l.id === linkId ? { ...l, ...patch } : l) } : p));
     setEditLink(null);
     try {
       const r = await fetch("/api/v1/profiles/" + profileId + "/links/" + linkId, { method: "PATCH", headers: hdrs(), body: JSON.stringify(patch) });
       const j = await readApiJson(r);
       if (!r.ok) throw new Error(j.error?.message ?? "Failed");
-      setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.map(l => l.id === linkId ? j.data : l) } : p));
-      showToast("Saved");
+      if (!toggleOnly) {
+        setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.map(l => l.id === linkId ? j.data : l) } : p));
+        showToast("Saved");
+      }
     } catch (e: unknown) {
       if (previous) setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.map(l => l.id === linkId ? previous : l) } : p));
       showToast(e instanceof Error ? e.message : "Error", false);
     } finally {
-      setLinkPending(linkId, null);
+      if (!toggleOnly) setLinkPending(linkId, null);
     }
   }
   async function deleteLink(linkId: string) {
