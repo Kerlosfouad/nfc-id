@@ -28,6 +28,7 @@ type LinkPickerItem = { label: string; icon: string; color: string; type?: strin
 type LinkDraft = { type: string; title: string; url: string };
 type PendingLinks = Record<string, "add" | "update" | "delete" | "toggle">;
 type GoldServiceId = "design" | "verification";
+type ToastItem = { id: number; msg: string; ok: boolean; visible: boolean };
 
 const CLOSED_LINK_TIMESTAMP = "2000-01-01T00:00:00.000Z";
 const COMPANY_WHATSAPP = "201211632456";
@@ -2386,28 +2387,32 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
   );
 }
 
-function SystemToast({ toast }: { toast: { msg: string; ok: boolean; visible: boolean } }) {
+function SystemToast({ toasts }: { toasts: ToastItem[] }) {
   return (
-    <div className="pointer-events-none fixed left-0 right-0 top-[52px] z-[100] flex justify-center px-4 sm:top-5">
-      <div
-        className={
-          "flex min-h-10 w-full max-w-[330px] items-center gap-2.5 rounded-xl border px-3 py-2 text-[13px] font-medium shadow-[0_14px_36px_rgba(0,0,0,0.22)] transition-all duration-300 ease-out sm:max-w-[380px] sm:text-sm " +
-          (toast.visible ? "translate-y-0 scale-100 opacity-100" : "-translate-y-4 scale-[0.98] opacity-0") +
-          (toast.ok
-            ? " border-[#03A9F4]/60 bg-[#03A9F4] text-white"
-            : " border-red-100 bg-white text-[#20252b]")
-        }
-      >
-        <span
+    <div className="pointer-events-none fixed left-0 right-0 top-[52px] z-[100] flex flex-col items-center gap-2 px-4 sm:top-5">
+      {toasts.map((toast, index) => (
+        <div
+          key={toast.id}
           className={
-            "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-lg " +
-            (toast.ok ? "bg-white text-[#03A9F4]" : "bg-red-500 text-white")
+            "flex min-h-10 w-full max-w-[330px] items-center gap-2.5 rounded-xl border px-3 py-2 text-[13px] font-medium shadow-[0_14px_36px_rgba(0,0,0,0.22)] transition-all duration-300 ease-out sm:max-w-[380px] sm:text-sm " +
+            (toast.visible ? "translate-y-0 scale-100 opacity-100" : "-translate-y-4 scale-[0.98] opacity-0") +
+            (index > 0 ? " -mt-1 scale-[0.98]" : "") +
+            (toast.ok
+              ? " border-[#03A9F4]/60 bg-[#03A9F4] text-white"
+              : " border-red-100 bg-white text-[#20252b]")
           }
         >
-          <i className={toast.ok ? "ri-check-line" : "ri-error-warning-line"} />
-        </span>
-        <span className="min-w-0 flex-1 leading-snug">{toast.msg}</span>
-      </div>
+          <span
+            className={
+              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-lg " +
+              (toast.ok ? "bg-white text-[#03A9F4]" : "bg-red-500 text-white")
+            }
+          >
+            <i className={toast.ok ? "ri-check-line" : "ri-error-warning-line"} />
+          </span>
+          <span className="min-w-0 flex-1 leading-snug">{toast.msg}</span>
+        </div>
+      ))}
     </div>
   );
 }
@@ -2421,7 +2426,7 @@ export default function DashboardPage() {
   const [selId, setSelId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("home");
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState<{ msg: string; ok: boolean; visible: boolean } | null>(null);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [saving, setSaving] = useState(false);
   const [pendingLinks, setPendingLinks] = useState<PendingLinks>({});
   const [editOpen, setEditOpen] = useState(false);
@@ -2431,16 +2436,35 @@ export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [goldRequest, setGoldRequest] = useState<GoldServiceId | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const tRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toastIdRef = useRef(0);
+  const toastTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>[]>>({});
   const profile = profiles.find(p => p.id === selId) ?? profiles[0] ?? null;
 
   function showToast(msg: string, ok = true) {
-    setToast({ msg, ok, visible: true });
-    if (tRef.current) clearTimeout(tRef.current);
-    tRef.current = setTimeout(() => {
-      setToast(current => current ? { ...current, visible: false } : current);
-      window.setTimeout(() => setToast(null), 280);
-    }, 2600);
+    const id = ++toastIdRef.current;
+    const dismissDelay = 2400;
+    const exitDelay = 320;
+
+    function clearToastTimers(toastId: number) {
+      toastTimersRef.current[toastId]?.forEach(clearTimeout);
+      delete toastTimersRef.current[toastId];
+    }
+
+    setToasts(current => {
+      const fading = current.map(item => ({ ...item, visible: false })).slice(-1);
+      return [{ id, msg, ok, visible: true }, ...fading].slice(0, 2);
+    });
+
+    const dismissTimer = setTimeout(() => {
+      setToasts(current => current.map(item => item.id === id ? { ...item, visible: false } : item));
+      const removeTimer = setTimeout(() => {
+        setToasts(current => current.filter(item => item.id !== id));
+        clearToastTimers(id);
+      }, exitDelay);
+      toastTimersRef.current[id] = [...(toastTimersRef.current[id] ?? []), removeTimer];
+    }, dismissDelay);
+
+    toastTimersRef.current[id] = [dismissTimer];
   }
   function hdrs() { return { "Content-Type": "application/json", Authorization: "Bearer " + token, "x-user-id": uid }; }
   function removeProfile(profileId: string) {
@@ -2613,7 +2637,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#111] text-white" style={{ fontFamily: "Inter, sans-serif" }}>
-      {toast && <SystemToast toast={toast} />}
+      {toasts.length > 0 && <SystemToast toasts={toasts} />}
 
       {/* Mobile sidebar overlay */}
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/60 md:hidden" onClick={() => setSidebarOpen(false)} />}
