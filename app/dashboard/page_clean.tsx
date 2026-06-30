@@ -80,6 +80,31 @@ function isCvLink(link: Pick<LinkItem, "type" | "title">): boolean {
   return link.type === "VCF" || title.includes("cv") || title.includes("resume");
 }
 
+function buildPreviewData(profile: ProfileData): { previewProfile: PublicProfile; previewLinks: PublicLink[] } {
+  const now = new Date();
+  const previewProfile: PublicProfile = {
+    ...profile,
+    ownerId: "",
+    pinHash: null,
+    theme: profile.theme as PublicProfileTheme,
+    primeDesignUntil: profile.primeDesignUntil ? new Date(profile.primeDesignUntil) : null,
+    verifiedUntil: profile.verifiedUntil ? new Date(profile.verifiedUntil) : null,
+    createdAt: now,
+    updatedAt: now,
+  };
+  const previewLinks: PublicLink[] = profile.links.map(link => ({
+    ...link,
+    profileId: profile.id,
+    type: link.type as PublicLink["type"],
+    activeFrom: link.activeFrom ? new Date(link.activeFrom) : null,
+    activeTo: link.activeTo ? new Date(link.activeTo) : null,
+    createdAt: now,
+    updatedAt: now,
+  }));
+
+  return { previewProfile, previewLinks };
+}
+
 function reorderPayload(links: LinkItem[]) {
   return {
     links: links.map((link, displayOrder) => ({ id: link.id, displayOrder })),
@@ -1217,7 +1242,11 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
             <h3 className="text-lg font-bold">Link Click Details</h3>
           </div>
           <div className="p-5">
-            <table className="w-full text-sm">
+            <table className="w-full table-fixed text-sm">
+              <colgroup>
+                <col />
+                <col className="w-16 sm:w-20" />
+              </colgroup>
               <thead>
                 <tr className="border-b border-white/5">
                   <th className="pb-4 text-left font-semibold text-white/45">Link</th>
@@ -1236,18 +1265,18 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
                     const meta = getLinkMeta({ title: l.title, type: l.type });
                     return (
                       <tr key={i}>
-                        <td className="py-4 pr-3">
+                        <td className="min-w-0 py-4 pr-3">
                           <div className="flex items-center gap-3">
                             <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/[0.07]">
                               {l.thumbnailUrl ? <img src={l.thumbnailUrl} alt="" className="h-full w-full object-cover" /> : <i className={`${meta.icon} text-3xl`} style={{ color: meta.color }} />}
                             </span>
-                            <span className="min-w-0">
+                            <span className="min-w-0 flex-1 overflow-hidden">
                               <span className="block truncate text-base font-semibold text-white">{l.title}</span>
                               <span className="block truncate text-sm text-white/35">{l.url.replace(/^https?:\/\//, "")}</span>
                             </span>
                           </div>
                         </td>
-                        <td className="py-4 text-right text-xl font-semibold text-white">{l.clicks}</td>
+                        <td className="py-4 text-right text-lg font-semibold text-white sm:text-xl">{l.clicks}</td>
                       </tr>
                     );
                   })
@@ -2052,26 +2081,7 @@ function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClo
     window.setTimeout(onClose, 300);
   }
 
-  const now = new Date();
-  const previewProfile: PublicProfile = {
-    ...profile,
-    ownerId: "",
-    pinHash: null,
-    theme: profile.theme as PublicProfileTheme,
-    primeDesignUntil: profile.primeDesignUntil ? new Date(profile.primeDesignUntil) : null,
-    verifiedUntil: profile.verifiedUntil ? new Date(profile.verifiedUntil) : null,
-    createdAt: now,
-    updatedAt: now,
-  };
-  const previewLinks: PublicLink[] = profile.links.map(link => ({
-    ...link,
-    profileId: profile.id,
-    type: link.type as PublicLink["type"],
-    activeFrom: link.activeFrom ? new Date(link.activeFrom) : null,
-    activeTo: link.activeTo ? new Date(link.activeTo) : null,
-    createdAt: now,
-    updatedAt: now,
-  }));
+  const { previewProfile, previewLinks } = buildPreviewData(profile);
 
   return (
     <div
@@ -2096,7 +2106,7 @@ function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClo
         </div>
         <div className="relative z-0 min-h-0 flex-1 overflow-hidden border-y border-white/10 bg-black">
           <div className="h-full overflow-y-auto">
-            <ProfileView profile={previewProfile} links={previewLinks} />
+            <ProfileView profile={previewProfile} links={previewLinks} disableAnalytics />
           </div>
         </div>
         <div className="relative z-20 shrink-0 p-5">
@@ -2115,8 +2125,8 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
   const [linksLayout, setLinksLayout] = useState<"list" | "grid">(theme.linksLayout || "list");
   const [profileLayout, setProfileLayout] = useState<"classic" | "hero">(theme.profileLayout || "classic");
   const [filter, setFilter] = useState<"all" | "free" | "premium">("all");
-  const [refreshKey, setRefreshKey] = useState(0);
   const isPrime = isFutureDate(profile.primeDesignUntil);
+  const { previewProfile, previewLinks } = buildPreviewData(profile);
 
   function applyTheme(themeId: string) {
     const selectedTheme = PRESET_THEMES.find(t => t.id === themeId);
@@ -2127,7 +2137,6 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
     const accent = selectedTheme?.accent ?? theme.primaryColor;
     setStyle(themeId);
     onSave({ style: themeId as ProfileTheme["style"], primaryColor: accent, fontFamily: theme.fontFamily, linksLayout, profileLayout, coverUrl: theme.coverUrl });
-    setTimeout(() => setRefreshKey(k => k + 1), 800);
   }
 
   function applyLayout(ll: "list" | "grid", pl: "classic" | "hero") {
@@ -2137,7 +2146,6 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
     }
     setLinksLayout(ll); setProfileLayout(pl);
     onSave({ style: style as ProfileTheme["style"], primaryColor: theme.primaryColor, fontFamily: theme.fontFamily, linksLayout: ll, profileLayout: pl, coverUrl: theme.coverUrl });
-    setTimeout(() => setRefreshKey(k => k + 1), 800);
   }
 
   const filtered = PRESET_THEMES.filter(t =>
@@ -2145,10 +2153,10 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
   );
 
   return (
-    <div className="flex h-[calc(100vh-60px)] min-h-[600px] w-full overflow-hidden gap-0">
+    <div className="flex w-full gap-0 overflow-visible lg:h-[calc(100vh-60px)] lg:min-h-[600px] lg:overflow-hidden">
 
       {/* ── Left: scrollable content ── */}
-      <div className="flex-1 overflow-y-auto pr-4 space-y-6 pb-20">
+      <div className="flex-1 space-y-6 overflow-visible pb-32 lg:overflow-y-auto lg:pr-4 lg:pb-20">
         <h2 className="font-bold text-lg sm:text-xl">Appearance</h2>
 
         {/* Pro banner */}
@@ -2273,12 +2281,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
           {/* screen */}
           <div className="absolute inset-[7px] rounded-[2.4rem] overflow-hidden bg-[#111]">
             <div className="w-[375px] h-[812px] origin-top-left" style={{ transform: "scale(0.597)" }}>
-              <iframe
-                key={refreshKey}
-                src={`/profile/${profile.publicId}?preview=true`}
-                className="w-full h-full border-none"
-                title="Profile Preview"
-              />
+              <ProfileView profile={previewProfile} links={previewLinks} disableAnalytics />
             </div>
           </div>
           {/* saving overlay */}
@@ -2296,6 +2299,32 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
   );
 }
 
+function SystemToast({ toast }: { toast: { msg: string; ok: boolean; visible: boolean } }) {
+  return (
+    <div className="pointer-events-none fixed left-0 right-0 top-[88px] z-[100] flex justify-center px-4 sm:top-6">
+      <div
+        className={
+          "flex min-h-14 w-full max-w-[560px] items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xl backdrop-blur-xl transition-all duration-300 ease-out sm:min-h-16 sm:px-5 sm:text-base " +
+          (toast.visible ? "translate-y-0 scale-100 opacity-100" : "-translate-y-5 scale-[0.98] opacity-0") +
+          (toast.ok
+            ? " border-[#03A9F4]/35 bg-[#071923]/95 text-white shadow-[#03A9F4]/15"
+            : " border-red-400/35 bg-[#211015]/95 text-white shadow-red-500/10")
+        }
+      >
+        <span
+          className={
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xl " +
+            (toast.ok ? "bg-[#03A9F4]/18 text-[#03A9F4]" : "bg-red-400/15 text-red-300")
+          }
+        >
+          <i className={toast.ok ? "ri-check-line" : "ri-error-warning-line"} />
+        </span>
+        <span className="min-w-0 flex-1 leading-snug">{toast.msg}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [token, setToken] = useState("");
@@ -2305,7 +2334,7 @@ export default function DashboardPage() {
   const [selId, setSelId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("home");
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [toast, setToast] = useState<{ msg: string; ok: boolean; visible: boolean } | null>(null);
   const [saving, setSaving] = useState(false);
   const [pendingLinks, setPendingLinks] = useState<PendingLinks>({});
   const [editOpen, setEditOpen] = useState(false);
@@ -2318,7 +2347,14 @@ export default function DashboardPage() {
   const tRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const profile = profiles.find(p => p.id === selId) ?? profiles[0] ?? null;
 
-  function showToast(msg: string, ok = true) { setToast({ msg, ok }); if (tRef.current) clearTimeout(tRef.current); tRef.current = setTimeout(() => setToast(null), 3000); }
+  function showToast(msg: string, ok = true) {
+    setToast({ msg, ok, visible: true });
+    if (tRef.current) clearTimeout(tRef.current);
+    tRef.current = setTimeout(() => {
+      setToast(current => current ? { ...current, visible: false } : current);
+      window.setTimeout(() => setToast(null), 280);
+    }, 2600);
+  }
   function hdrs() { return { "Content-Type": "application/json", Authorization: "Bearer " + token, "x-user-id": uid }; }
   function removeProfile(profileId: string) {
     setProfiles(prev => {
@@ -2366,9 +2402,22 @@ export default function DashboardPage() {
   }, [router]);
 
   async function patchProfile(patch: Record<string, unknown>) {
-    if (!profile) return; setSaving(true);
-    try { const r = await fetch("/api/v1/profiles/" + profile.id, { method: "PATCH", headers: hdrs(), body: JSON.stringify(patch) }); const j = await readApiJson(r); if (!r.ok) throw new Error(j.error?.message ?? "Failed"); setProfiles(prev => prev.map(p => p.id === profile.id ? { ...j.data, links: j.data.links ?? p.links ?? [] } : p)); showToast("Saved"); }
-    catch (e: unknown) { showToast(e instanceof Error ? e.message : "Error", false); } finally { setSaving(false); }
+    if (!profile) return;
+    const profileId = profile.id;
+    const previousProfile = profile;
+    setSaving(true);
+    setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, ...patch } : p));
+    try {
+      const r = await fetch("/api/v1/profiles/" + profileId, { method: "PATCH", headers: hdrs(), body: JSON.stringify(patch) });
+      const j = await readApiJson(r);
+      if (!r.ok) throw new Error(j.error?.message ?? "Failed");
+      setProfiles(prev => prev.map(p => p.id === profileId ? { ...j.data, links: j.data.links ?? p.links ?? [] } : p));
+      showToast("Saved");
+    }
+    catch (e: unknown) {
+      setProfiles(prev => prev.map(p => p.id === profileId ? previousProfile : p));
+      showToast(e instanceof Error ? e.message : "Error", false);
+    } finally { setSaving(false); }
   }
   async function addLink(data: LinkDraft) {
     if (!profile) return;
@@ -2476,7 +2525,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#111] text-white" style={{ fontFamily: "Inter, sans-serif" }}>
-      {toast && <div className={"fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 px-4 py-3 rounded-xl text-sm font-medium shadow-xl border " + (toast.ok ? "bg-green-500/20 border-green-500/40 text-green-300" : "bg-red-500/20 border-red-500/40 text-red-300")}>{toast.msg}</div>}
+      {toast && <SystemToast toast={toast} />}
 
       {/* Mobile sidebar overlay */}
       {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/60 md:hidden" onClick={() => setSidebarOpen(false)} />}

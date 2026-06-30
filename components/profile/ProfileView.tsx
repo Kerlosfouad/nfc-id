@@ -282,9 +282,10 @@ interface ProfileViewProps {
   profile: Profile;
   links: ProfileLink[];
   showLeadForm?: boolean;
+  disableAnalytics?: boolean;
 }
 
-export default function ProfileView({ profile, links, showLeadForm = false }: ProfileViewProps) {
+export default function ProfileView({ profile, links, showLeadForm = false, disableAnalytics = false }: ProfileViewProps) {
   const { primaryColor: rawPrimaryColor = '#03A9F4', fontFamily } = profile.theme;
   const primaryColor = darkenHex(rawPrimaryColor);
   const themeVars = getThemeVars(profile.theme);
@@ -297,6 +298,8 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
   const visibleLinks = activeLinks.filter(l => l !== cvLink);
 
   useEffect(() => {
+    if (disableAnalytics) return;
+
     const payload = JSON.stringify({ eventType: 'VIEW' });
     const url = `/api/v1/analytics/${profile.id}`;
     try {
@@ -313,9 +316,11 @@ export default function ProfileView({ profile, links, showLeadForm = false }: Pr
       body: payload,
       keepalive: true,
     }).catch(() => undefined);
-  }, [profile.id]);
+  }, [disableAnalytics, profile.id]);
 
   function recordLinkClick(link: ProfileLink) {
+    if (disableAnalytics) return;
+
     const payload = JSON.stringify({ eventType: 'CLICK', linkId: link.id });
     const url = `/api/v1/analytics/${profile.id}`;
     try {
