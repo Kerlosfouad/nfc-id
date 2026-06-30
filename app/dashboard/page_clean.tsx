@@ -2119,7 +2119,7 @@ function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClo
   );
 }
 
-function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: ProfileData; saving: boolean; onSave: (t: ProfileTheme) => void; onRequestGold: (service?: GoldServiceId) => void }) {
+function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: ProfileData; saving: boolean; onSave: (t: ProfileTheme, message?: string) => void; onRequestGold: (service?: GoldServiceId) => void }) {
   const theme = profile.theme ?? { style: "default", primaryColor: "#03A9F4", fontFamily: "Inter" };
   const [style, setStyle] = useState(theme.style || "default");
   const [linksLayout, setLinksLayout] = useState<"list" | "grid">(theme.linksLayout || "list");
@@ -2136,7 +2136,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
     }
     const accent = selectedTheme?.accent ?? theme.primaryColor;
     setStyle(themeId);
-    onSave({ style: themeId as ProfileTheme["style"], primaryColor: accent, fontFamily: theme.fontFamily, linksLayout, profileLayout, coverUrl: theme.coverUrl });
+    onSave({ style: themeId as ProfileTheme["style"], primaryColor: accent, fontFamily: theme.fontFamily, linksLayout, profileLayout, coverUrl: theme.coverUrl }, "Theme applied successfully");
   }
 
   function applyLayout(ll: "list" | "grid", pl: "classic" | "hero") {
@@ -2145,7 +2145,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
       return;
     }
     setLinksLayout(ll); setProfileLayout(pl);
-    onSave({ style: style as ProfileTheme["style"], primaryColor: theme.primaryColor, fontFamily: theme.fontFamily, linksLayout: ll, profileLayout: pl, coverUrl: theme.coverUrl });
+    onSave({ style: style as ProfileTheme["style"], primaryColor: theme.primaryColor, fontFamily: theme.fontFamily, linksLayout: ll, profileLayout: pl, coverUrl: theme.coverUrl }, "Layout applied successfully");
   }
 
   const filtered = PRESET_THEMES.filter(t =>
@@ -2301,20 +2301,20 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
 
 function SystemToast({ toast }: { toast: { msg: string; ok: boolean; visible: boolean } }) {
   return (
-    <div className="pointer-events-none fixed left-0 right-0 top-[88px] z-[100] flex justify-center px-4 sm:top-6">
+    <div className="pointer-events-none fixed left-0 right-0 top-[78px] z-[100] flex justify-center px-4 sm:top-6">
       <div
         className={
-          "flex min-h-14 w-full max-w-[560px] items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-2xl backdrop-blur-xl transition-all duration-300 ease-out sm:min-h-16 sm:px-5 sm:text-base " +
-          (toast.visible ? "translate-y-0 scale-100 opacity-100" : "-translate-y-5 scale-[0.98] opacity-0") +
+          "flex min-h-12 w-full max-w-[460px] items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium shadow-[0_18px_45px_rgba(0,0,0,0.24)] transition-all duration-300 ease-out sm:min-h-14 sm:text-base " +
+          (toast.visible ? "translate-y-0 scale-100 opacity-100" : "-translate-y-4 scale-[0.98] opacity-0") +
           (toast.ok
-            ? " border-[#03A9F4]/35 bg-[#071923]/95 text-white shadow-[#03A9F4]/15"
-            : " border-red-400/35 bg-[#211015]/95 text-white shadow-red-500/10")
+            ? " border-[#03A9F4]/20 bg-white text-[#20252b]"
+            : " border-red-100 bg-white text-[#20252b]")
         }
       >
         <span
           className={
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xl " +
-            (toast.ok ? "bg-[#03A9F4]/18 text-[#03A9F4]" : "bg-red-400/15 text-red-300")
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xl " +
+            (toast.ok ? "bg-[#03A9F4] text-white" : "bg-red-500 text-white")
           }
         >
           <i className={toast.ok ? "ri-check-line" : "ri-error-warning-line"} />
@@ -2401,18 +2401,19 @@ export default function DashboardPage() {
     }).catch(() => router.push("/login"));
   }, [router]);
 
-  async function patchProfile(patch: Record<string, unknown>) {
+  async function patchProfile(patch: Record<string, unknown>, optimisticMessage?: string) {
     if (!profile) return;
     const profileId = profile.id;
     const previousProfile = profile;
     setSaving(true);
     setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, ...patch } : p));
+    if (optimisticMessage) showToast(optimisticMessage);
     try {
       const r = await fetch("/api/v1/profiles/" + profileId, { method: "PATCH", headers: hdrs(), body: JSON.stringify(patch) });
       const j = await readApiJson(r);
       if (!r.ok) throw new Error(j.error?.message ?? "Failed");
       setProfiles(prev => prev.map(p => p.id === profileId ? { ...j.data, links: j.data.links ?? p.links ?? [] } : p));
-      showToast("Saved");
+      if (!optimisticMessage) showToast("Saved");
     }
     catch (e: unknown) {
       setProfiles(prev => prev.map(p => p.id === profileId ? previousProfile : p));
@@ -2595,7 +2596,7 @@ export default function DashboardPage() {
               <Link href="/admin/tags" className="px-5 py-2.5 rounded-full bg-[#03A9F4] text-white text-sm font-semibold hover:bg-[#03A9F4]/80">Generate a Tag</Link>
             </div>
           ) : (
-            <div className={"h-full " + (tab === "design" ? "overflow-hidden px-3 sm:px-6 py-4 sm:py-6 pb-24 md:pb-6" : "overflow-y-auto")}>
+            <div className={"h-full " + (tab === "design" ? "overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 pb-24 md:pb-6" : "overflow-y-auto")}>
               {tab !== "design" && (
                 <div className="mx-auto max-w-5xl px-3 py-3 pb-24 sm:px-6 sm:py-6 md:pb-6">
                   <div className="hidden items-center justify-between bg-[#03A9F4]/10 border border-[#03A9F4]/20 rounded-xl px-3 sm:px-4 py-2.5 mb-3 sm:mb-5 md:flex">
@@ -2622,7 +2623,7 @@ export default function DashboardPage() {
                   )}
                 </div>
               )}
-              {tab === "design" && <DesignTab profile={profile} saving={saving} onSave={(t) => patchProfile({ theme: t })} onRequestGold={(service = "design") => setGoldRequest(service)} />}
+              {tab === "design" && <DesignTab profile={profile} saving={saving} onSave={(t, message) => patchProfile({ theme: t }, message)} onRequestGold={(service = "design") => setGoldRequest(service)} />}
             </div>
           )}
         </div>
