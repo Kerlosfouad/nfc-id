@@ -1031,63 +1031,96 @@ interface AnalyticsSummary {
 function MiniBarChart({ data }: { data: { date: string; views: number; clicks: number }[] }) {
   const [activeIndex, setActiveIndex] = useState(Math.max(data.length - 1, 0));
   const [ready, setReady] = useState(false);
+  const chartRef = useRef<HTMLDivElement>(null);
   const maxVal = Math.max(...data.map(d => Math.max(d.views, d.clicks)), 1);
+  const innerWidth = Math.max(data.length * 28, 320);
 
   useEffect(() => {
     setReady(false);
-    const frame = requestAnimationFrame(() => setReady(true));
-    return () => cancelAnimationFrame(frame);
+    const node = chartRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        const frame = requestAnimationFrame(() => setReady(true));
+        observer.disconnect();
+        return () => cancelAnimationFrame(frame);
+      },
+      { threshold: 0.25 },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
   }, [data]);
 
   return (
-    <div className="relative flex h-full w-full items-end gap-1 px-1 pb-7 pt-20">
-      {data.map((d, i) => (
-        <button key={i} type="button" onClick={() => setActiveIndex(i)} className="relative flex flex-1 flex-col items-center gap-1 outline-none">
-          {activeIndex === i && (
-            <div className="absolute -top-20 left-1/2 z-10 w-[118px] -translate-x-1/2 rounded-xl border border-white/10 bg-black/85 px-3 py-2 text-xs shadow-xl">
-              <p className="mb-1 font-semibold text-white">{d.date}</p>
-              <p className="flex items-center gap-2 text-white/60"><span className="h-2 w-2 rounded-sm bg-[#2f6be6]" /> Views <b className="ml-auto text-white">{d.views}</b></p>
-              <p className="flex items-center gap-2 text-white/60"><span className="h-2 w-2 rounded-sm bg-[#35c19a]" /> Clicks <b className="ml-auto text-white">{d.clicks}</b></p>
+    <div ref={chartRef} className="h-full w-full overflow-x-auto overflow-y-hidden pb-1">
+      <div className="relative flex h-full items-end gap-1 px-1 pb-7 pt-20" style={{ minWidth: innerWidth }}>
+        {data.map((d, i) => (
+          <button key={i} type="button" onClick={() => setActiveIndex(i)} className="relative flex min-w-[24px] flex-1 flex-col items-center gap-1 outline-none">
+            {activeIndex === i && (
+              <div className="absolute -top-20 left-1/2 z-10 w-[118px] -translate-x-1/2 rounded-xl border border-white/10 bg-black/85 px-3 py-2 text-xs shadow-xl">
+                <p className="mb-1 font-semibold text-white">{d.date}</p>
+                <p className="flex items-center gap-2 text-white/60"><span className="h-2 w-2 rounded-sm bg-[#03A9F4]" /> Views <b className="ml-auto text-white">{d.views}</b></p>
+                <p className="flex items-center gap-2 text-white/60"><span className="h-2 w-2 rounded-sm bg-[#7bdcff]" /> Clicks <b className="ml-auto text-white">{d.clicks}</b></p>
+              </div>
+            )}
+            <div className={`flex h-36 w-full items-end gap-1 rounded-md px-1 transition-colors ${activeIndex === i ? "bg-white/[0.06]" : ""}`}>
+              <div
+                className="flex-1 rounded-t-md bg-[#03A9F4] shadow-[0_0_18px_rgba(3,169,244,0.25)] transition-all duration-700 ease-out"
+                style={{ height: ready ? `${(d.views / maxVal) * 100}%` : "0%", minHeight: ready && d.views > 0 ? 5 : 0, transitionDelay: `${i * 35}ms` }}
+              />
+              <div
+                className="flex-1 rounded-t-md bg-[#7bdcff] transition-all duration-700 ease-out"
+                style={{ height: ready ? `${(d.clicks / maxVal) * 100}%` : "0%", minHeight: ready && d.clicks > 0 ? 5 : 0, transitionDelay: `${i * 35 + 70}ms` }}
+              />
             </div>
-          )}
-          <div className={`flex h-36 w-full items-end gap-1 rounded-md px-1 transition-colors ${activeIndex === i ? "bg-white/[0.06]" : ""}`}>
-            <div
-              className="flex-1 rounded-t-md bg-[#03A9F4] shadow-[0_0_18px_rgba(3,169,244,0.25)] transition-all duration-700 ease-out"
-              style={{ height: ready ? `${(d.views / maxVal) * 100}%` : "0%", minHeight: ready && d.views > 0 ? 5 : 0, transitionDelay: `${i * 45}ms` }}
-            />
-            <div
-              className="flex-1 rounded-t-md bg-[#7bdcff] transition-all duration-700 ease-out"
-              style={{ height: ready ? `${(d.clicks / maxVal) * 100}%` : "0%", minHeight: ready && d.clicks > 0 ? 5 : 0, transitionDelay: `${i * 45 + 80}ms` }}
-            />
-          </div>
-          <span className="text-[10px] text-white/30">{d.date}</span>
-        </button>
-      ))}
+            <span className="text-[10px] text-white/30">{d.date}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
 
 function DonutChart({ data }: { data: { title: string; clicks: number; fill: string }[] }) {
   const [drawn, setDrawn] = useState(false);
+  const chartRef = useRef<HTMLDivElement>(null);
   const total = data.reduce((s, d) => s + d.clicks, 0);
+  const donutColors = ['#03A9F4', '#35cfff', '#7bdcff', '#2f6be6', '#8A2BE2', '#ec4899', '#f59e0b'];
+
   useEffect(() => {
     setDrawn(false);
-    const frame = requestAnimationFrame(() => setDrawn(true));
-    return () => cancelAnimationFrame(frame);
+    const node = chartRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        const frame = requestAnimationFrame(() => setDrawn(true));
+        observer.disconnect();
+        return () => cancelAnimationFrame(frame);
+      },
+      { threshold: 0.25 },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
   }, [data]);
 
   if (total === 0) return <div className="flex items-center justify-center h-full text-white/20 text-xs">No data</div>;
   let cumulative = 0;
-  const segments = data.map(d => {
+  const segments = data.map((d, i) => {
     const pct = d.clicks / total;
     const start = cumulative;
     cumulative += pct;
-    return { ...d, start, pct };
+    return { ...d, fill: donutColors[i % donutColors.length], start, pct };
   });
   const r = 60, cx = 80, cy = 80, stroke = 22;
   const circ = 2 * Math.PI * r;
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4 w-full h-full">
+    <div ref={chartRef} className="flex flex-col sm:flex-row items-center gap-4 w-full h-full">
       <svg viewBox="0 0 160 160" className="w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0 -rotate-90">
         {segments.map((s, i) => (
           <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={s.fill}
