@@ -75,7 +75,7 @@ export async function getProfileWithLinks(
   const profile = row as unknown as ProfileWithLinks;
 
   // ── 3. Populate cache ───────────────────────────────────────────────────────
-  await set(cacheKey, profile, PROFILE_TTL);
+  void set(cacheKey, profile, PROFILE_TTL);
 
   return profile;
 }

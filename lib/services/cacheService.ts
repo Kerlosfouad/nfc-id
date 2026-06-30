@@ -3,6 +3,7 @@ import { Redis } from '@upstash/redis';
 export const TAG_TTL = 60;
 export const PROFILE_TTL = 60;
 export const ANALYTICS_TTL = 60;
+const CACHE_TIMEOUT_MS = 400;
 
 export const tagCacheKey = (publicId: string) => `tag:${publicId}`;
 export const profileCacheKey = (publicId: string) => `profile:${publicId}`;
@@ -34,11 +35,26 @@ if (process.env.NODE_ENV !== 'production') {
   globalThis._redisClient = redis;
 }
 
+async function withCacheTimeout<T>(operation: Promise<T>): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      operation,
+      new Promise<T>((_, reject) => {
+        timeout = setTimeout(() => reject(new Error('Cache request timed out')), CACHE_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
 // Typed cache wrappers — silently no-op if Redis unavailable
 export async function get<T>(key: string): Promise<T | null> {
   if (!redis) return null;
   try {
-    return await redis.get<T>(key);
+    return await withCacheTimeout(redis.get<T>(key));
   } catch {
     return null;
   }
@@ -48,9 +64,9 @@ export async function set(key: string, value: unknown, ttlSeconds?: number): Pro
   if (!redis) return;
   try {
     if (ttlSeconds !== undefined) {
-      await redis.set(key, value, { ex: ttlSeconds });
+      await withCacheTimeout(redis.set(key, value, { ex: ttlSeconds }));
     } else {
-      await redis.set(key, value);
+      await withCacheTimeout(redis.set(key, value));
     }
   } catch {
     // ignore cache write failures
@@ -60,7 +76,7 @@ export async function set(key: string, value: unknown, ttlSeconds?: number): Pro
 export async function del(key: string): Promise<void> {
   if (!redis) return;
   try {
-    await redis.del(key);
+    await withCacheTimeout(redis.del(key));
   } catch {
     // ignore cache delete failures
   }

@@ -60,7 +60,7 @@ export async function GET(
     );
   }
 
-  await cacheService.set(cacheKey, tag.state, cacheService.TAG_TTL);
+  void cacheService.set(cacheKey, tag.state, cacheService.TAG_TTL);
 
   return NextResponse.redirect(
     new URL(resolveDestination(tag.state as TagState, publicId), request.url),

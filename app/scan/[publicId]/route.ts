@@ -41,7 +41,7 @@ export async function GET(
     );
   }
 
-  await cacheService.set(cacheKey, tag.state, cacheService.TAG_TTL);
+  void cacheService.set(cacheKey, tag.state, cacheService.TAG_TTL);
 
   return NextResponse.redirect(
     new URL(resolveTagScanDestination({ publicId, state: tag.state as TagState }), request.url),
