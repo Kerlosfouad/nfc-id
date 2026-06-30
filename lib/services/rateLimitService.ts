@@ -3,7 +3,7 @@ import redis from './cacheService';
 
 const RATE_LIMIT_WINDOW = 60;
 const RATE_LIMIT_MAX = 30;
-const RATE_LIMIT_TIMEOUT_MS = 400;
+const RATE_LIMIT_TIMEOUT_MS = 150;
 
 export interface RateLimitResult {
   allowed: boolean;

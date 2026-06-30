@@ -3,7 +3,7 @@ import { Redis } from '@upstash/redis';
 export const TAG_TTL = 60;
 export const PROFILE_TTL = 60;
 export const ANALYTICS_TTL = 60;
-const CACHE_TIMEOUT_MS = 400;
+const CACHE_TIMEOUT_MS = 150;
 
 export const tagCacheKey = (publicId: string) => `tag:${publicId}`;
 export const profileCacheKey = (publicId: string) => `profile:${publicId}`;

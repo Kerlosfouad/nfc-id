@@ -11,6 +11,7 @@ import PinGate from '@/components/profile/PinGate';
 import ContentWarning from '@/components/profile/ContentWarning';
 import ProfileView from '@/components/profile/ProfileView';
 import type { ProfileTheme } from '@/lib/domain/types';
+import { preload } from 'react-dom';
 
 interface ProfilePageProps {
   params: Promise<{ publicId: string }>;
@@ -31,6 +32,19 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
 
   if (!profile || profile.isSuspended) {
     return <SuspensionPage />;
+  }
+
+  if (profile.avatarUrl) {
+    preload(profile.avatarUrl, { as: 'image' });
+  }
+
+  if (profile.theme.coverUrl) {
+    preload(profile.theme.coverUrl, { as: 'image' });
+  }
+
+  const firstThumbnail = profile.links.find((link) => link.thumbnailUrl)?.thumbnailUrl;
+  if (firstThumbnail) {
+    preload(firstThumbnail, { as: 'image' });
   }
 
   if (profile.passwordProtected) {
