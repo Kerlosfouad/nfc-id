@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ProfileView from "@/components/profile/ProfileView";
+import AnimatedCounter from "@/components/AnimatedCounter";
 import type { Link as PublicLink, Profile as PublicProfile, ProfileTheme as PublicProfileTheme } from "@/lib/domain/types";
 
 interface LinkItem { id: string; type: string; title: string; url: string; displayOrder: number; activeFrom: string | null; activeTo: string | null; thumbnailUrl: string | null; isActive?: boolean; }
@@ -1029,7 +1030,15 @@ interface AnalyticsSummary {
 
 function MiniBarChart({ data }: { data: { date: string; views: number; clicks: number }[] }) {
   const [activeIndex, setActiveIndex] = useState(Math.max(data.length - 1, 0));
+  const [ready, setReady] = useState(false);
   const maxVal = Math.max(...data.map(d => Math.max(d.views, d.clicks)), 1);
+
+  useEffect(() => {
+    setReady(false);
+    const frame = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(frame);
+  }, [data]);
+
   return (
     <div className="relative flex h-full w-full items-end gap-1 px-1 pb-7 pt-20">
       {data.map((d, i) => (
@@ -1042,8 +1051,14 @@ function MiniBarChart({ data }: { data: { date: string; views: number; clicks: n
             </div>
           )}
           <div className={`flex h-36 w-full items-end gap-1 rounded-md px-1 transition-colors ${activeIndex === i ? "bg-white/[0.06]" : ""}`}>
-            <div className="flex-1 rounded-t-md bg-[#2f6be6] transition-all" style={{ height: `${(d.views / maxVal) * 100}%`, minHeight: d.views > 0 ? 5 : 0 }} />
-            <div className="flex-1 rounded-t-md bg-[#35c19a] transition-all" style={{ height: `${(d.clicks / maxVal) * 100}%`, minHeight: d.clicks > 0 ? 5 : 0 }} />
+            <div
+              className="flex-1 rounded-t-md bg-[#03A9F4] shadow-[0_0_18px_rgba(3,169,244,0.25)] transition-all duration-700 ease-out"
+              style={{ height: ready ? `${(d.views / maxVal) * 100}%` : "0%", minHeight: ready && d.views > 0 ? 5 : 0, transitionDelay: `${i * 45}ms` }}
+            />
+            <div
+              className="flex-1 rounded-t-md bg-[#7bdcff] transition-all duration-700 ease-out"
+              style={{ height: ready ? `${(d.clicks / maxVal) * 100}%` : "0%", minHeight: ready && d.clicks > 0 ? 5 : 0, transitionDelay: `${i * 45 + 80}ms` }}
+            />
           </div>
           <span className="text-[10px] text-white/30">{d.date}</span>
         </button>
@@ -1053,7 +1068,14 @@ function MiniBarChart({ data }: { data: { date: string; views: number; clicks: n
 }
 
 function DonutChart({ data }: { data: { title: string; clicks: number; fill: string }[] }) {
+  const [drawn, setDrawn] = useState(false);
   const total = data.reduce((s, d) => s + d.clicks, 0);
+  useEffect(() => {
+    setDrawn(false);
+    const frame = requestAnimationFrame(() => setDrawn(true));
+    return () => cancelAnimationFrame(frame);
+  }, [data]);
+
   if (total === 0) return <div className="flex items-center justify-center h-full text-white/20 text-xs">No data</div>;
   let cumulative = 0;
   const segments = data.map(d => {
@@ -1069,8 +1091,8 @@ function DonutChart({ data }: { data: { title: string; clicks: number; fill: str
       <svg viewBox="0 0 160 160" className="w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0 -rotate-90">
         {segments.map((s, i) => (
           <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={s.fill}
-            strokeWidth={stroke} strokeDasharray={`${s.pct * circ} ${circ}`}
-            strokeDashoffset={-s.start * circ} className="transition-all" />
+            strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${drawn ? s.pct * circ : 0} ${circ}`}
+            strokeDashoffset={-s.start * circ} className="transition-all duration-700 ease-out" />
         ))}
         <circle cx={cx} cy={cy} r={r - stroke / 2 - 2} fill="#1a1a1a" />
       </svg>
@@ -1130,10 +1152,10 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
   }
 
   const stats = [
-    { label: "Views", value: data?.totalViews ?? 0, icon: "ri-eye-line", color: "#2f6be6", badge: null },
-    { label: "Link Clicks", value: data?.totalLinkClicks ?? 0, icon: "ri-cursor-line", color: "#35c19a", badge: "New" },
-    { label: "Click Rate", value: data ? `${data.linkClickRate}%` : "0%", icon: "ri-percent-line", color: "#f6b93b", badge: "New" },
-    { label: "Contact Saves", value: data?.contactSaves ?? 0, icon: "ri-file-user-line", color: "#8b7cf6", badge: "New" },
+    { label: "Views", value: data?.totalViews ?? 0, suffix: "", icon: "ri-eye-line", badge: null },
+    { label: "Link Clicks", value: data?.totalLinkClicks ?? 0, suffix: "", icon: "ri-cursor-line", badge: "New" },
+    { label: "Click Rate", value: data?.linkClickRate ?? 0, suffix: "%", icon: "ri-percent-line", badge: "New" },
+    { label: "Contact Saves", value: data?.contactSaves ?? 0, suffix: "", icon: "ri-file-user-line", badge: "New" },
   ];
 
   return (
@@ -1171,7 +1193,9 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
             </div>
             {loading
               ? <div className="h-10 w-20 animate-pulse rounded-xl bg-white/5" />
-              : <p className="text-[42px] font-semibold leading-none tracking-normal text-white">{String(s.value)}</p>
+              : <p className="text-[30px] font-semibold leading-none tracking-normal text-[#03A9F4] sm:text-[34px]">
+                  <AnimatedCounter key={`${profile.id}-${range}-${s.label}-${s.value}`} value={s.value} suffix={s.suffix} duration={950} />
+                </p>
             }
           </div>
         ))}
@@ -2307,14 +2331,14 @@ function SystemToast({ toast }: { toast: { msg: string; ok: boolean; visible: bo
           "flex min-h-12 w-full max-w-[460px] items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium shadow-[0_18px_45px_rgba(0,0,0,0.24)] transition-all duration-300 ease-out sm:min-h-14 sm:text-base " +
           (toast.visible ? "translate-y-0 scale-100 opacity-100" : "-translate-y-4 scale-[0.98] opacity-0") +
           (toast.ok
-            ? " border-[#03A9F4]/20 bg-white text-[#20252b]"
+            ? " border-[#03A9F4]/60 bg-[#03A9F4] text-white"
             : " border-red-100 bg-white text-[#20252b]")
         }
       >
         <span
           className={
             "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xl " +
-            (toast.ok ? "bg-[#03A9F4] text-white" : "bg-red-500 text-white")
+            (toast.ok ? "bg-white text-[#03A9F4]" : "bg-red-500 text-white")
           }
         >
           <i className={toast.ok ? "ri-check-line" : "ri-error-warning-line"} />
