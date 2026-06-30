@@ -2398,14 +2398,14 @@ function SystemToast({ toasts }: { toasts: ToastItem[] }) {
             (toast.visible ? "translate-y-0 scale-100 opacity-100" : "-translate-y-4 scale-[0.98] opacity-0") +
             (index > 0 ? " -mt-1 scale-[0.98]" : "") +
             (toast.ok
-              ? " border-[#03A9F4]/60 bg-[#03A9F4] text-white"
+              ? " border-white/80 bg-white text-[#20252b]"
               : " border-red-100 bg-white text-[#20252b]")
           }
         >
           <span
             className={
               "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-lg " +
-              (toast.ok ? "bg-white text-[#03A9F4]" : "bg-red-500 text-white")
+              (toast.ok ? "bg-[#55D84A] text-white" : "bg-red-500 text-white")
             }
           >
             <i className={toast.ok ? "ri-check-line" : "ri-error-warning-line"} />
@@ -2451,9 +2451,25 @@ export default function DashboardPage() {
     }
 
     setToasts(current => {
-      const fading = current.map(item => ({ ...item, visible: false })).slice(-1);
-      return [{ id, msg, ok, visible: true }, ...fading].slice(0, 2);
+      const nextToast: ToastItem = { id, msg, ok, visible: false };
+      const kept = current.slice(0, 1);
+      const fading = current.slice(1).map(item => ({ ...item, visible: false }));
+
+      fading.forEach(item => {
+        clearToastTimers(item.id);
+        const removeTimer = setTimeout(() => {
+          setToasts(list => list.filter(toast => toast.id !== item.id));
+          clearToastTimers(item.id);
+        }, exitDelay);
+        toastTimersRef.current[item.id] = [removeTimer];
+      });
+
+      return [nextToast, ...kept, ...fading].slice(0, 3);
     });
+
+    const enterTimer = setTimeout(() => {
+      setToasts(current => current.map(item => item.id === id ? { ...item, visible: true } : item));
+    }, 40);
 
     const dismissTimer = setTimeout(() => {
       setToasts(current => current.map(item => item.id === id ? { ...item, visible: false } : item));
@@ -2464,7 +2480,7 @@ export default function DashboardPage() {
       toastTimersRef.current[id] = [...(toastTimersRef.current[id] ?? []), removeTimer];
     }, dismissDelay);
 
-    toastTimersRef.current[id] = [dismissTimer];
+    toastTimersRef.current[id] = [enterTimer, dismissTimer];
   }
   function hdrs() { return { "Content-Type": "application/json", Authorization: "Bearer " + token, "x-user-id": uid }; }
   function removeProfile(profileId: string) {
