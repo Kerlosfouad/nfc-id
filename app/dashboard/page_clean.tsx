@@ -1033,53 +1033,80 @@ function MiniBarChart({ data }: { data: { date: string; views: number; clicks: n
   const [ready, setReady] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
   const maxVal = Math.max(...data.map(d => Math.max(d.views, d.clicks)), 1);
-  const innerWidth = Math.max(data.length * 28, 320);
+  const chartW = 320;
+  const chartH = 170;
+  const padX = 14;
+  const padTop = 18;
+  const padBottom = 34;
+  const innerW = chartW - padX * 2;
+  const innerH = chartH - padTop - padBottom;
+  const xFor = (i: number) => padX + (data.length <= 1 ? innerW : (i / (data.length - 1)) * innerW);
+  const yFor = (value: number) => padTop + innerH - (value / maxVal) * innerH;
+  const viewsPoints = data.map((d, i) => ({ x: xFor(i), y: yFor(d.views), value: d.views, date: d.date }));
+  const clicksPoints = data.map((d, i) => ({ x: xFor(i), y: yFor(d.clicks), value: d.clicks, date: d.date }));
+  const pathFor = (points: typeof viewsPoints) => points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ");
+  const labelEvery = data.length > 20 ? 5 : data.length > 14 ? 3 : data.length > 7 ? 2 : 1;
+  const active = data[activeIndex] ?? data[data.length - 1];
+  const activePoint = clicksPoints[activeIndex] ?? clicksPoints[clicksPoints.length - 1];
+  const tooltipLeft = activePoint ? Math.min(Math.max((activePoint.x / chartW) * 100, 18), 82) : 50;
 
   useEffect(() => {
     setReady(false);
     const node = chartRef.current;
     if (!node) return;
+    let frame = 0;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
-        const frame = requestAnimationFrame(() => setReady(true));
+        frame = requestAnimationFrame(() => setReady(true));
         observer.disconnect();
-        return () => cancelAnimationFrame(frame);
       },
       { threshold: 0.25 },
     );
 
     observer.observe(node);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
   }, [data]);
 
   return (
-    <div ref={chartRef} className="h-full w-full overflow-x-auto overflow-y-hidden pb-1">
-      <div className="relative flex h-full items-end gap-1 px-1 pb-7 pt-20" style={{ minWidth: innerWidth }}>
-        {data.map((d, i) => (
-          <button key={i} type="button" onClick={() => setActiveIndex(i)} className="relative flex min-w-[24px] flex-1 flex-col items-center gap-1 outline-none">
-            {activeIndex === i && (
-              <div className="absolute -top-20 left-1/2 z-10 w-[118px] -translate-x-1/2 rounded-xl border border-white/10 bg-black/85 px-3 py-2 text-xs shadow-xl">
-                <p className="mb-1 font-semibold text-white">{d.date}</p>
-                <p className="flex items-center gap-2 text-white/60"><span className="h-2 w-2 rounded-sm bg-[#03A9F4]" /> Views <b className="ml-auto text-white">{d.views}</b></p>
-                <p className="flex items-center gap-2 text-white/60"><span className="h-2 w-2 rounded-sm bg-[#7bdcff]" /> Clicks <b className="ml-auto text-white">{d.clicks}</b></p>
-              </div>
-            )}
-            <div className={`flex h-36 w-full items-end gap-1 rounded-md px-1 transition-colors ${activeIndex === i ? "bg-white/[0.06]" : ""}`}>
-              <div
-                className="flex-1 rounded-t-md bg-[#03A9F4] shadow-[0_0_18px_rgba(3,169,244,0.25)] transition-all duration-700 ease-out"
-                style={{ height: ready ? `${(d.views / maxVal) * 100}%` : "0%", minHeight: ready && d.views > 0 ? 5 : 0, transitionDelay: `${i * 35}ms` }}
-              />
-              <div
-                className="flex-1 rounded-t-md bg-[#7bdcff] transition-all duration-700 ease-out"
-                style={{ height: ready ? `${(d.clicks / maxVal) * 100}%` : "0%", minHeight: ready && d.clicks > 0 ? 5 : 0, transitionDelay: `${i * 35 + 70}ms` }}
-              />
-            </div>
-            <span className="text-[10px] text-white/30">{d.date}</span>
-          </button>
+    <div ref={chartRef} className="relative h-full w-full overflow-visible px-1 pt-14">
+      {active && (
+        <div
+          className="absolute top-1 z-10 w-[124px] -translate-x-1/2 rounded-xl border border-white/10 bg-black/85 px-3 py-2 text-xs shadow-xl"
+          style={{ left: `${tooltipLeft}%` }}
+        >
+          <p className="mb-1 font-semibold text-white">{active.date}</p>
+          <p className="flex items-center gap-2 text-white/60"><span className="h-2 w-2 rounded-sm bg-[#2f6be6]" /> Views <b className="ml-auto text-white">{active.views}</b></p>
+          <p className="flex items-center gap-2 text-white/60"><span className="h-2 w-2 rounded-sm bg-[#35c19a]" /> Clicks <b className="ml-auto text-white">{active.clicks}</b></p>
+        </div>
+      )}
+      <svg viewBox={`0 0 ${chartW} ${chartH}`} className="h-full w-full overflow-visible">
+        {[0.25, 0.5, 0.75, 1].map(level => (
+          <line key={level} x1={padX} x2={chartW - padX} y1={padTop + innerH * level} y2={padTop + innerH * level} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
         ))}
-      </div>
+        <path d={pathFor(viewsPoints)} fill="none" stroke="#2f6be6" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"
+          pathLength={1} className="transition-all duration-700 ease-out" style={{ strokeDasharray: 1, strokeDashoffset: ready ? 0 : 1 }} />
+        <path d={pathFor(clicksPoints)} fill="none" stroke="#35c19a" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"
+          pathLength={1} className="transition-all duration-700 ease-out delay-100" style={{ strokeDasharray: 1, strokeDashoffset: ready ? 0 : 1 }} />
+        {data.map((d, i) => {
+          const x = xFor(i);
+          const selected = i === activeIndex;
+          return (
+            <g key={i}>
+              <rect x={x - 6} y={padTop - 8} width="12" height={innerH + 16} fill="transparent" className="cursor-pointer" onClick={() => setActiveIndex(i)} />
+              <circle cx={x} cy={yFor(d.views)} r={selected ? 4 : 0} fill="#2f6be6" className="transition-all" />
+              <circle cx={x} cy={yFor(d.clicks)} r={selected ? 4 : 0} fill="#35c19a" className="transition-all" />
+              {(i % labelEvery === 0 || i === data.length - 1) && (
+                <text x={x} y={chartH - 8} textAnchor="middle" className="fill-white/30 text-[10px]">{d.date}</text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
     </div>
   );
 }
@@ -1088,25 +1115,28 @@ function DonutChart({ data }: { data: { title: string; clicks: number; fill: str
   const [drawn, setDrawn] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
   const total = data.reduce((s, d) => s + d.clicks, 0);
-  const donutColors = ['#03A9F4', '#35cfff', '#7bdcff', '#2f6be6', '#8A2BE2', '#ec4899', '#f59e0b'];
+  const donutColors = ['#03A9F4', '#8A2BE2', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#6366f1'];
 
   useEffect(() => {
     setDrawn(false);
     const node = chartRef.current;
     if (!node) return;
+    let frame = 0;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
-        const frame = requestAnimationFrame(() => setDrawn(true));
+        frame = requestAnimationFrame(() => setDrawn(true));
         observer.disconnect();
-        return () => cancelAnimationFrame(frame);
       },
       { threshold: 0.25 },
     );
 
     observer.observe(node);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
   }, [data]);
 
   if (total === 0) return <div className="flex items-center justify-center h-full text-white/20 text-xs">No data</div>;
@@ -2358,10 +2388,10 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
 
 function SystemToast({ toast }: { toast: { msg: string; ok: boolean; visible: boolean } }) {
   return (
-    <div className="pointer-events-none fixed left-0 right-0 top-[78px] z-[100] flex justify-center px-4 sm:top-6">
+    <div className="pointer-events-none fixed left-0 right-0 top-[52px] z-[100] flex justify-center px-4 sm:top-5">
       <div
         className={
-          "flex min-h-12 w-full max-w-[460px] items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium shadow-[0_18px_45px_rgba(0,0,0,0.24)] transition-all duration-300 ease-out sm:min-h-14 sm:text-base " +
+          "flex min-h-10 w-full max-w-[330px] items-center gap-2.5 rounded-xl border px-3 py-2 text-[13px] font-medium shadow-[0_14px_36px_rgba(0,0,0,0.22)] transition-all duration-300 ease-out sm:max-w-[380px] sm:text-sm " +
           (toast.visible ? "translate-y-0 scale-100 opacity-100" : "-translate-y-4 scale-[0.98] opacity-0") +
           (toast.ok
             ? " border-[#03A9F4]/60 bg-[#03A9F4] text-white"
@@ -2370,7 +2400,7 @@ function SystemToast({ toast }: { toast: { msg: string; ok: boolean; visible: bo
       >
         <span
           className={
-            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xl " +
+            "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-lg " +
             (toast.ok ? "bg-white text-[#03A9F4]" : "bg-red-500 text-white")
           }
         >
