@@ -37,11 +37,11 @@ function ProductCard({ product, onAdd, onBuyNow }: { product: ShopProduct; onAdd
     <article className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#101010] transition-all duration-300 hover:border-[#03A9F4]/40">
       <div className="absolute inset-0 bg-gradient-to-b from-[#03A9F4]/8 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-      <div className="relative aspect-[5/3] overflow-hidden bg-[#070707]">
+      <div className="relative aspect-[4/3] overflow-hidden bg-[#070707]">
         <img
           src={product.imageUrl}
           alt={product.name}
-          className="h-full w-full object-contain p-5 transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full scale-105 object-cover transition-transform duration-500 group-hover:scale-110"
         />
         <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-[#03A9F4]/30 bg-black/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#03A9F4] backdrop-blur-md">
           <i className="ri-archive-stack-line" />
@@ -200,7 +200,7 @@ export default function ShopSection() {
         {loading ? (
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 md:grid-cols-3">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="h-[410px] animate-pulse rounded-3xl border border-white/10 bg-white/[0.03]" />
+              <div key={index} className="h-[480px] animate-pulse rounded-3xl border border-white/10 bg-white/[0.03]" />
             ))}
           </div>
         ) : error ? (
