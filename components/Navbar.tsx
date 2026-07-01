@@ -16,6 +16,13 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsLoggedIn(!!session);
@@ -82,6 +89,8 @@ export default function Navbar() {
               className="md:hidden flex flex-col justify-center gap-1.5 w-10 h-10 rounded-full border border-white/10 bg-white/5 cursor-pointer group items-center"
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-navigation"
             >
               <span className="block h-[2px] w-5 bg-white rounded group-hover:bg-[#03A9F4] transition-colors" />
               <span className="block h-[2px] w-5 bg-white rounded group-hover:bg-[#03A9F4] transition-colors" />
@@ -92,13 +101,13 @@ export default function Navbar() {
       </nav>
 
       {/* Mobile Menu */}
-      <div className={`mobile-menu ${menuOpen ? "show" : ""}`}>
+      <div id="mobile-navigation" className={`mobile-menu ${menuOpen ? "show" : ""}`} aria-hidden={!menuOpen}>
         <button
           className="absolute top-6 right-6 text-white text-4xl bg-transparent border-none cursor-pointer w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
           onClick={() => setMenuOpen(false)}
           aria-label="Close menu"
         >
-          x
+          <i className="ri-close-line" aria-hidden="true" />
         </button>
         <ul className="mobile-menu-slides list-none text-center w-full p-0 m-0">
           {links.map((l, index) => (

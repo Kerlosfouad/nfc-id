@@ -4,7 +4,7 @@ export default function CtaSection() {
   return (
     <section className="py-14 sm:py-24 px-5 sm:px-4">
       <div className="container mx-auto">
-        <div className="relative bg-gradient-to-br from-[#0f1a2e] to-[#0b0a0a] border border-[#03A9F4]/20 rounded-3xl p-5 sm:p-12 text-center overflow-hidden">
+        <div className="relative bg-gradient-to-br from-[#0f1a2e] to-[#0b0a0a] border border-[#03A9F4]/20 rounded-2xl p-5 sm:p-12 text-center overflow-hidden">
           {/* Glow */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-[#03A9F4]/10 blur-3xl rounded-full pointer-events-none" />
 
@@ -19,7 +19,7 @@ export default function CtaSection() {
               <span className="text-[#03A9F4]">Powered by NFC</span>
             </h2>
 
-            <p className="text-[#555] text-sm sm:text-base max-w-[330px] sm:max-w-md mx-auto mb-6 sm:mb-8 leading-relaxed">
+            <p className="text-white/65 text-sm sm:text-base max-w-[330px] sm:max-w-md mx-auto mb-6 sm:mb-8 leading-relaxed text-pretty">
               Join thousands of creators, professionals, and businesses who use NFC ID to share everything with one tap.
             </p>
 

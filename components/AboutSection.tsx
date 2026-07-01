@@ -29,7 +29,7 @@ export default function AboutSection() {
           <span className="text-[#03A9F4] text-[10px] sm:text-xs font-semibold uppercase tracking-widest">Who We Are</span>
         </div>
         <h2 className="text-white text-2xl sm:text-5xl font-bold uppercase mb-1 leading-tight">About Us</h2>
-        <p className="text-[#555] text-xs sm:text-base mb-5 sm:mb-10 leading-relaxed">Everything you need to know</p>
+        <p className="text-white/65 text-xs sm:text-base mb-5 sm:mb-10 leading-relaxed">Everything you need to know</p>
 
         <div className="flex w-full flex-col md:flex-row gap-6 md:gap-8 items-start">
           {/* Stats grid */}
@@ -48,7 +48,7 @@ export default function AboutSection() {
                     <AnimatedCounter value={s.value} suffix={s.suffix} />
                   </div>
                   <div className="text-white text-xs sm:text-sm font-semibold leading-tight">{s.label}</div>
-                  <div className="text-[#555] text-[10px] sm:text-xs mt-0.5 leading-tight">{s.desc}</div>
+                  <div className="text-white/60 text-[10px] sm:text-xs mt-0.5 leading-tight">{s.desc}</div>
                 </div>
               </div>
             ))}
@@ -59,15 +59,15 @@ export default function AboutSection() {
               <div className="space-y-2 max-h-[176px] overflow-hidden sm:max-h-none">
                 {comparison.map((c, i) => (
                   <div key={i} className="flex items-start sm:items-center justify-between gap-3 text-[10px] sm:text-xs">
-                    <span className="text-[#666]">{c.feature}</span>
+                    <span className="text-white/65">{c.feature}</span>
                     <div className="flex shrink-0 items-center gap-2 sm:gap-6">
                       <span className={c.us ? "text-green-400" : "text-red-400/50"}>
                         <i className={c.us ? "ri-check-line" : "ri-close-line"} />
-                        <span className="ml-1 text-[#444]">NFC ID</span>
+                        <span className="ml-1 text-white/60">NFC ID</span>
                       </span>
                       <span className={c.them ? "text-green-400/50" : "text-red-400/30"}>
                         <i className={c.them ? "ri-check-line" : "ri-close-line"} />
-                        <span className="ml-1 text-[#333]">Linktree</span>
+                        <span className="ml-1 text-white/50">Linktree</span>
                       </span>
                     </div>
                   </div>

@@ -2666,13 +2666,13 @@ export default function DashboardPage() {
             <img src="/img/logo.png" alt="NFC ID" className="w-8 h-8" />
             <span className="hidden font-bold text-base">NFC<span className="text-[#03A9F4]">·ID</span></span>
           </Link>
-          <button onClick={() => setSidebarOpen(false)} className="md:hidden text-white/30 hover:text-white">
+          <button type="button" onClick={() => setSidebarOpen(false)} className="md:hidden text-white/55 hover:text-white" aria-label="Close dashboard navigation">
             <i className="ri-close-line text-lg" />
           </button>
         </div>
         <nav className="flex-1 px-2 py-3 space-y-0.5">
           {NAV.map(n => (
-            <button key={n.id} onClick={() => { setTab(n.id); setSidebarOpen(false); }} className={"w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all " + (tab === n.id ? "bg-white/10 text-white font-medium" : "text-white/40 hover:text-white hover:bg-white/5")}>
+            <button key={n.id} type="button" onClick={() => { setTab(n.id); setSidebarOpen(false); }} className={"w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all " + (tab === n.id ? "bg-white/10 text-white font-medium" : "text-white/60 hover:text-white hover:bg-white/5")}>
               <i className={n.icon + " text-base"} />{n.label}
             </button>
           ))}
@@ -2684,7 +2684,7 @@ export default function DashboardPage() {
         <div className="px-2 pb-2 border-t border-white/5 pt-3">
           <p className="text-[10px] text-white/30 uppercase tracking-wider px-3 mb-1.5">Your Profiles</p>
           {profiles.map(p => (
-            <button key={p.id} onClick={() => setSelId(p.id)} className={"w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs transition-all " + ((selId ?? profiles[0]?.id) === p.id ? "bg-white/10 text-white" : "text-white/40 hover:text-white hover:bg-white/5")}>
+            <button key={p.id} type="button" onClick={() => setSelId(p.id)} className={"w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs transition-all " + ((selId ?? profiles[0]?.id) === p.id ? "bg-white/10 text-white" : "text-white/60 hover:text-white hover:bg-white/5")}>
               <div className="w-5 h-5 rounded-full bg-[#03A9F4]/20 flex items-center justify-center text-[10px] font-bold text-[#03A9F4] flex-shrink-0">{p.displayName.charAt(0).toUpperCase()}</div>
               <span className="truncate">{p.displayName}</span>
               {p.isActive && !p.isSuspended && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />}
@@ -2694,7 +2694,7 @@ export default function DashboardPage() {
         <div className="px-3 py-3 border-t border-white/5 flex items-center gap-2">
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#03A9F4]/50 to-[#8A2BE2]/50 flex items-center justify-center text-xs font-bold flex-shrink-0">{email.charAt(0).toUpperCase()}</div>
           <p className="text-xs truncate flex-1">{email}</p>
-          <button onClick={async () => { await createClient().auth.signOut(); router.push("/login"); }} className="text-white/30 hover:text-white"><i className="ri-logout-box-line text-sm" /></button>
+          <button type="button" onClick={async () => { await createClient().auth.signOut(); router.push("/login"); }} className="text-white/55 hover:text-white" aria-label="Sign out"><i className="ri-logout-box-line text-sm" /></button>
         </div>
       </aside>
 
@@ -2702,7 +2702,7 @@ export default function DashboardPage() {
       <main className="flex-1 overflow-hidden flex flex-col min-w-0">
         {/* Mobile top bar */}
         <div className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-[#0f0f0f] flex-shrink-0">
-          <button onClick={() => setSidebarOpen(true)} className="hidden text-white/50 hover:text-white">
+          <button type="button" onClick={() => setSidebarOpen(true)} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/70 hover:text-white" aria-label="Open dashboard navigation" aria-expanded={sidebarOpen}>
             <i className="ri-menu-line text-xl" />
           </button>
           <Link href="/" className="flex items-center gap-0">
@@ -2782,7 +2782,7 @@ export default function DashboardPage() {
         {/* Mobile bottom nav */}
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex border-t border-white/5 bg-[#0f0f0f]/95 text-white backdrop-blur-xl">
           {NAV.map(n => (
-            <button key={n.id} onClick={() => setTab(n.id)} className={"flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] transition-all " + (tab === n.id ? "text-[#03A9F4]" : "text-white/30 hover:text-white/60")}>
+            <button key={n.id} type="button" onClick={() => setTab(n.id)} className={"flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] transition-all " + (tab === n.id ? "text-[#03A9F4]" : "text-white/55 hover:text-white/75")}>
               <i className={n.icon + " text-lg"} />
               <span>{n.label}</span>
             </button>

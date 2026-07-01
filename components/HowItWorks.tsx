@@ -46,15 +46,17 @@ export default function HowItWorks() {
             Simple Setup
           </div>
           <h2 className="text-white text-3xl sm:text-4xl font-bold uppercase leading-tight">How It Works</h2>
-          <p className="text-[#555] text-xs sm:text-sm mt-2 leading-relaxed">From tap to live profile in minutes</p>
+          <p className="text-white/65 text-xs sm:text-sm mt-2 leading-relaxed">From tap to live profile in minutes</p>
         </div>
 
         <div className="w-full max-w-[520px] space-y-3">
           {steps.map((s, i) => (
-            <div
+            <button
+              type="button"
               key={i}
-              className={`glass-card w-full ${activeIndex === i ? "active" : ""} cursor-pointer`}
+              className={`glass-card w-full text-left ${activeIndex === i ? "active" : ""}`}
               onClick={() => toggle(i)}
+              aria-expanded={activeIndex === i}
             >
               <div className="flex justify-between items-center relative z-10">
                 <div className="flex items-center gap-3">
@@ -73,7 +75,7 @@ export default function HowItWorks() {
                 <p className="text-[#ccc] text-sm my-5 leading-relaxed">{s.desc}</p>
                 <Image src={s.img} alt={s.title} width={200} height={200} className="rounded-xl mx-auto" />
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>

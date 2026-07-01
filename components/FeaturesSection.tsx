@@ -3,7 +3,7 @@ import Image from "next/image";
 const features = [
   {
     title: "All Your Links",
-    desc: "Add unlimited links — social profiles, websites, WhatsApp, YouTube, Spotify, TikTok, and more. Everything in one place.",
+    desc: "Add unlimited links - social profiles, websites, WhatsApp, YouTube, Spotify, TikTok, and more. Everything in one place.",
     img: "/img/add-links.webp",
     icon: "ri-links-line",
     color: "from-[#03A9F4]/20 to-transparent",
@@ -12,7 +12,7 @@ const features = [
   },
   {
     title: "Real-Time Analytics",
-    desc: "Track views, unique visitors, click-through rates per link, device types, and geographic data — all in real time.",
+    desc: "Track views, unique visitors, click-through rates per link, device types, and geographic data - all in real time.",
     img: "/img/analytics.webp",
     icon: "ri-bar-chart-2-line",
     color: "from-[#8A2BE2]/20 to-transparent",
@@ -21,7 +21,7 @@ const features = [
   },
   {
     title: "NFC + QR Powered",
-    desc: "Physical NFC cards and QR codes that instantly redirect to your profile. One tap — your entire digital identity.",
+    desc: "Physical NFC cards and QR codes that instantly redirect to your profile. One tap - your entire digital identity.",
     img: "/img/dynamic-qr.webp",
     icon: "ri-qr-code-line",
     color: "from-[#00d084]/20 to-transparent",
@@ -49,7 +49,7 @@ export default function FeaturesSection() {
             Everything You Need
           </div>
           <h2 className="text-white text-3xl sm:text-5xl font-bold uppercase leading-tight">Power Features</h2>
-          <p className="text-[#555] text-sm sm:text-base mt-2 sm:mt-3 max-w-[330px] sm:max-w-md mx-auto leading-relaxed">
+          <p className="text-white/65 text-sm sm:text-base mt-2 sm:mt-3 max-w-[330px] sm:max-w-md mx-auto leading-relaxed text-pretty">
             More than a link-in-bio. A complete phygital identity platform.
           </p>
         </div>
@@ -71,7 +71,7 @@ export default function FeaturesSection() {
                 </span>
               </div>
               <h3 className="text-white text-lg sm:text-xl font-bold uppercase mb-2 leading-tight">{f.title}</h3>
-              <p className="text-[#777] text-sm mb-5 sm:mb-6 leading-relaxed">{f.desc}</p>
+              <p className="text-white/68 text-sm mb-5 sm:mb-6 leading-relaxed text-pretty">{f.desc}</p>
               <div className="flex justify-center">
                 <Image src={f.img} alt={f.title} width={200} height={200} className="mx-auto group-hover:scale-105 transition-transform duration-500" />
               </div>
@@ -85,7 +85,7 @@ export default function FeaturesSection() {
             <div key={i} className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 hover:border-[#03A9F4]/30 hover:bg-[#03A9F4]/5 transition-all duration-200 text-center group">
               <i className={`${f.icon} text-[#03A9F4] text-2xl mb-2 block group-hover:scale-110 transition-transform`} />
               <p className="text-white text-sm sm:text-xs font-semibold mb-1">{f.title}</p>
-              <p className="text-[#666] text-sm sm:text-xs leading-tight">{f.desc}</p>
+              <p className="text-white/62 text-sm sm:text-xs leading-tight">{f.desc}</p>
             </div>
           ))}
         </div>

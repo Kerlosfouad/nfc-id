@@ -18,10 +18,11 @@ export default function ParticleBackground() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const PARTICLE_COUNT = 80;
+    const PARTICLE_COUNT = window.innerWidth < 640 ? 36 : 64;
     const CONNECTION_DIST = 140;
     const MOUSE_REPEL = 120;
     const COLOR = "3,169,244";
@@ -134,7 +135,12 @@ export default function ParticleBackground() {
     });
 
     init();
-    draw();
+    if (reducedMotion) {
+      draw();
+      cancelAnimationFrame(animRef.current);
+    } else {
+      draw();
+    }
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseleave", onMouseLeave);
     ro.observe(canvas);

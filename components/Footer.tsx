@@ -30,7 +30,7 @@ export default function Footer() {
                 NFC <span className="text-[#03a9f4]">ID</span>
               </span>
             </Link>
-            <p className="text-[#444] text-sm leading-relaxed max-w-xs">
+            <p className="text-white/65 text-sm leading-relaxed max-w-xs">
               The all-in-one platform for smart NFC connections. One tap, infinite possibilities.
             </p>
           </div>
@@ -41,7 +41,7 @@ export default function Footer() {
             <ul className="space-y-2 list-none p-0 m-0">
               {navLinks.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-[#555] hover:text-[#03A9F4] text-sm transition-colors">
+                  <Link href={l.href} className="text-white/65 hover:text-[#03A9F4] text-sm transition-colors">
                     {l.label}
                   </Link>
                 </li>
@@ -55,7 +55,7 @@ export default function Footer() {
             <ul className="space-y-2 list-none p-0 m-0">
               {productLinks.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-[#555] hover:text-[#03A9F4] text-sm transition-colors">
+                  <Link href={l.href} className="text-white/65 hover:text-[#03A9F4] text-sm transition-colors">
                     {l.label}
                   </Link>
                 </li>
@@ -75,7 +75,7 @@ export default function Footer() {
                   key={s.href}
                   href={s.href}
                   aria-label={s.label}
-                  className="w-9 h-9 rounded-xl border border-[#1e1e1e] bg-[#111] flex items-center justify-center text-[#555] hover:text-[#03a9f4] hover:border-[#03a9f4]/30 hover:bg-[#03a9f4]/5 transition-all duration-200"
+                  className="w-9 h-9 rounded-xl border border-[#1e1e1e] bg-[#111] flex items-center justify-center text-white/65 hover:text-[#03a9f4] hover:border-[#03a9f4]/30 hover:bg-[#03a9f4]/5 transition-all duration-200"
                 >
                   <i className={`${s.icon} text-base`} />
                 </a>
@@ -84,11 +84,11 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-[#111] pt-6 flex flex-col md:flex-row justify-between items-center gap-2 text-[#333] text-xs">
+        <div className="border-t border-[#111] pt-6 flex flex-col md:flex-row justify-between items-center gap-2 text-white/55 text-xs">
           <span>© 2026 NFC ID · All rights reserved.</span>
           <span>
             Made with <span className="text-[#03A9F4]">♥</span> by{" "}
-            <a href="https://www.facebook.com/kerlos.foudi" className="text-[#555] hover:text-white transition-colors font-medium">
+            <a href="https://www.facebook.com/kerlos.foudi" className="text-white/70 hover:text-white transition-colors font-medium">
               KERLOS FOUAD
             </a>
           </span>

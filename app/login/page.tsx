@@ -112,10 +112,10 @@ function LoginContent() {
               <span className="text-white font-bold text-xl tracking-wider">NFC <span className="text-[#03A9F4]">ID</span></span>
             </Link>
           </div>
-          <div className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-3xl p-8 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+          <div className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-2xl p-8 shadow-[0_8px_24px_rgba(0,0,0,0.42)]">
             <div className="mb-8">
               <h2 className="text-white text-3xl font-bold mb-1">Two-Factor Auth</h2>
-              <p className="text-[#555] text-sm">Enter the 6-digit code from your authenticator app</p>
+              <p className="text-white/65 text-sm">Enter the 6-digit code from your authenticator app</p>
             </div>
             <form onSubmit={handleMfaVerify} className="space-y-5">
               <div className="group">
@@ -146,16 +146,16 @@ function LoginContent() {
             <span className="text-white font-bold text-xl tracking-wider">NFC <span className="text-[#03A9F4]">ID</span></span>
           </Link>
         </div>
-        <div className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-3xl p-8 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+        <div className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-2xl p-8 shadow-[0_8px_24px_rgba(0,0,0,0.42)]">
           <div className="mb-8">
             <h2 className="text-white text-3xl font-bold mb-1">Welcome back</h2>
-            <p className="text-[#555] text-sm">Sign in to your NFC ID account</p>
+            <p className="text-white/65 text-sm">Sign in to your NFC ID account</p>
           </div>
           <form onSubmit={handleEmailLogin} className="space-y-5">
             <div className="group">
               <label className="text-[#888] text-xs font-semibold uppercase tracking-wider block mb-2">Email</label>
               <div className="relative">
-                <i className="ri-mail-line absolute left-4 top-1/2 -translate-y-1/2 text-[#444] group-focus-within:text-[#03A9F4] transition-colors text-lg" />
+                <i className="ri-mail-line absolute left-4 top-1/2 -translate-y-1/2 text-white/45 group-focus-within:text-[#03A9F4] transition-colors text-lg" />
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
                   className="w-full bg-[#0a0a0a] border border-[#1e1e1e] focus:border-[#03A9F4]/50 text-white rounded-xl pl-11 pr-4 py-3 outline-none transition-all text-sm" placeholder="email@example.com" />
               </div>
@@ -166,10 +166,10 @@ function LoginContent() {
                 <button type="button" onClick={handlePasswordReset} className="text-[#03A9F4]/70 text-xs hover:text-[#03A9F4] transition-colors">Forgot password?</button>
               </div>
               <div className="relative">
-                <i className="ri-lock-line absolute left-4 top-1/2 -translate-y-1/2 text-[#444] group-focus-within:text-[#03A9F4] transition-colors text-lg" />
+                <i className="ri-lock-line absolute left-4 top-1/2 -translate-y-1/2 text-white/45 group-focus-within:text-[#03A9F4] transition-colors text-lg" />
                 <input type={showPass ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required
                   className="w-full bg-[#0a0a0a] border border-[#1e1e1e] focus:border-[#03A9F4]/50 text-white rounded-xl pl-11 pr-11 py-3 outline-none transition-all text-sm" placeholder="********" />
-                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#444] hover:text-[#888] transition-colors">
+                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/45 hover:text-white/75 transition-colors" aria-label={showPass ? "Hide password" : "Show password"}>
                   <i className={showPass ? "ri-eye-off-line text-lg" : "ri-eye-line text-lg"} />
                 </button>
               </div>
@@ -181,7 +181,7 @@ function LoginContent() {
             </button>
           </form>
           <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-[#1e1e1e]" /><span className="text-[#333] text-xs">OR</span><div className="flex-1 h-px bg-[#1e1e1e]" />
+            <div className="flex-1 h-px bg-[#1e1e1e]" /><span className="text-white/50 text-xs">OR</span><div className="flex-1 h-px bg-[#1e1e1e]" />
           </div>
           <div className="space-y-3">
             <button type="button" onClick={() => handleOAuth("google")}
@@ -193,7 +193,7 @@ function LoginContent() {
               <i className="ri-apple-fill text-lg" /> Continue with Apple
             </button>
           </div>
-          <p className="text-[#555] text-sm text-center mt-6">
+          <p className="text-white/65 text-sm text-center mt-6">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="text-[#03A9F4] font-semibold hover:text-white transition-colors">Create one free</Link>
           </p>

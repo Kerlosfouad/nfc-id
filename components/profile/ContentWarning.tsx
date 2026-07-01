@@ -41,11 +41,11 @@ export default function ContentWarning({ profile }: ContentWarningProps) {
           </div>
         </div>
 
-        <div className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-3xl p-8 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+        <div className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-2xl p-8 shadow-[0_8px_24px_rgba(0,0,0,0.42)]">
           <div className="text-center mb-6">
             <h2 className="text-white text-xl font-bold mb-2">Sensitive Content</h2>
-            <p className="text-[#555] text-sm leading-relaxed">
-              <span className="text-[#888] font-medium">{profile.displayName}</span>
+            <p className="text-white/65 text-sm leading-relaxed">
+              <span className="text-white/80 font-medium">{profile.displayName}</span>
               &apos;s profile may contain content that some viewers find sensitive.
               You must be 18 or older to proceed.
             </p>
@@ -62,7 +62,7 @@ export default function ContentWarning({ profile }: ContentWarningProps) {
 
             <button
               onClick={() => window.history.back()}
-              className="w-full py-3 rounded-xl bg-transparent border border-[#1e1e1e] text-[#555] font-bold text-sm uppercase tracking-wider hover:border-[#2a2a2a] hover:text-[#888] transition-all duration-200 flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl bg-transparent border border-[#1e1e1e] text-white/65 font-bold text-sm uppercase tracking-wider hover:border-[#2a2a2a] hover:text-white transition-all duration-200 flex items-center justify-center gap-2"
             >
               <i className="ri-arrow-left-line" />
               Go back

@@ -64,10 +64,10 @@ export default function PinGate({ publicId }: PinGateProps) {
           </div>
         </div>
 
-        <div className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-3xl p-8 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+        <div className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-2xl p-8 shadow-[0_8px_24px_rgba(0,0,0,0.42)]">
           <div className="text-center mb-6">
             <h2 className="text-white text-xl font-bold mb-2">Protected Profile</h2>
-            <p className="text-[#555] text-sm">Enter the PIN to view this profile.</p>
+            <p className="text-white/65 text-sm">Enter the PIN to view this profile.</p>
           </div>
 
           {/* Error message */}
@@ -87,7 +87,7 @@ export default function PinGate({ publicId }: PinGateProps) {
               onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
               placeholder="Enter PIN"
               autoFocus
-              className="w-full px-4 py-3 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] text-white text-center text-xl tracking-[0.5em] placeholder:text-[#333] placeholder:tracking-normal focus:outline-none focus:border-[#8A2BE2]/60 transition-colors"
+              className="w-full px-4 py-3 rounded-xl bg-[#1a1a1a] border border-[#2a2a2a] text-white text-center text-xl tracking-[0.5em] placeholder:text-white/50 placeholder:tracking-normal focus:outline-none focus:border-[#8A2BE2]/60 transition-colors"
             />
 
             <button

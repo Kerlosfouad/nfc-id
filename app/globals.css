@@ -5,6 +5,14 @@
   --main-color: rgba(3, 89, 122, 0.45);
   --second-color: #03A9F4;
   --third-color: rgb(114, 114, 114);
+  --bg: #0b0a0a;
+  --surface: #111315;
+  --surface-raised: #181b1f;
+  --border-subtle: rgba(255, 255, 255, 0.12);
+  --text: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.72);
+  --text-subtle: rgba(255, 255, 255, 0.58);
+  --focus-ring: rgba(3, 169, 244, 0.42);
 }
 
 * {
@@ -12,13 +20,23 @@
 }
 
 body {
-  background-color: rgb(11, 10, 10);
+  background-color: var(--bg);
   font-family: "Oswald", sans-serif;
-  user-select: none;
+  color: var(--text);
 }
 
 a {
   text-decoration: none;
+}
+
+:where(a, button, input, textarea, select, [role="button"], [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: rgba(3, 169, 244, 0.35);
+  color: #fff;
 }
 
 /* Navbar */
@@ -288,7 +306,7 @@ a {
 }
 
 .custom-input::placeholder {
-  color: #444;
+  color: rgba(255, 255, 255, 0.56);
 }
 
 /* Dashboard */
@@ -383,12 +401,9 @@ a {
 }
 
 .hero-grid {
-  background-image:
-    linear-gradient(rgba(3, 169, 244, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(3, 169, 244, 0.07) 1px, transparent 1px);
-  background-size: 60px 60px;
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+  background:
+    radial-gradient(circle at 50% 20%, rgba(3, 169, 244, 0.12), transparent 36%),
+    linear-gradient(180deg, rgba(3, 169, 244, 0.06), transparent 46%);
 }
 
 .hero-dot {
@@ -526,4 +541,31 @@ a {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .scroll-left,
+  .scroll-right,
+  .animate-pulse-slow,
+  .animate-pulse-slow2,
+  .animate-float-left,
+  .animate-float-right,
+  .animate-float-top,
+  .product-orbit-slow,
+  .product-orbit-slow > *,
+  .product-orbit-reverse,
+  .product-orbit-reverse > *,
+  .product-orbit-glow,
+  .arrow-animate {
+    animation: none !important;
+  }
 }
