@@ -210,7 +210,16 @@ export default function AdminTagsPage() {
         </div>
       )}
 
-      <Panel title="Generate NFC Codes">
+      <Panel title="NFC">
+        <div className="mb-5 flex items-center gap-4 rounded-xl border border-[#03A9F4]/20 bg-[#03A9F4]/10 p-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[#03A9F4]/25 bg-black/25 text-[#03A9F4]">
+            <i className="ri-nfc-line text-3xl" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-base font-bold text-white">NFC medal codes</h2>
+            <p className="mt-1 text-sm text-white/55">Generate scan links, copy public codes, and manage only tags stored in the database.</p>
+          </div>
+        </div>
         <div className="grid gap-3 md:grid-cols-[180px_1fr]">
           <div>
             <label className="mb-2 block text-xs uppercase tracking-widest text-white/35">Quantity</label>
@@ -289,10 +298,10 @@ export default function AdminTagsPage() {
       </div>
 
       <div className="mt-6">
-        <Panel title="Tag Results">
+        <Panel title="Database Tags">
           {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
           {tags.length === 0 ? (
-            <EmptyState icon="ri-nfc-line" title="No tags found" body="Search results from the database will appear here." />
+            <EmptyState icon="ri-nfc-line" title="No database tags found" body="Only NFC tags saved in the database appear here." />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[820px] text-sm">

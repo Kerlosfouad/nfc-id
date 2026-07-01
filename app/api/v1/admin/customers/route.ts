@@ -40,6 +40,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           },
         },
       },
+      tags: {
+        orderBy: { createdAt: 'desc' },
+        select: {
+          publicId: true,
+          state: true,
+        },
+        take: 20,
+      },
       _count: {
         select: {
           tags: true,

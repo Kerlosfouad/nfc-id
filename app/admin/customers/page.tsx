@@ -24,6 +24,10 @@ interface CustomerRow {
     isActive: boolean;
     links: { title: string; url: string }[];
   }[];
+  tags: {
+    publicId: string;
+    state: string;
+  }[];
   _count: { tags: number; profiles: number };
 }
 
@@ -35,6 +39,7 @@ export default function AdminCustomersPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [busyProfileId, setBusyProfileId] = useState<string | null>(null);
   const [durations, setDurations] = useState<Record<string, string>>({});
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const supabase = createClient();
@@ -118,18 +123,62 @@ export default function AdminCustomersPage() {
 
   if (checking) return <AdminLoadingScreen />;
 
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const visibleCustomers = normalizedSearch
+    ? customers.filter((customer) => {
+        const profileMatch = customer.profiles.some((profile) =>
+          [profile.displayName, profile.publicId, profile.bio ?? ""].some((value) => value.toLowerCase().includes(normalizedSearch))
+        );
+        const tagMatch = customer.tags.some((tag) => tag.publicId.toLowerCase().includes(normalizedSearch));
+        return customer.email.toLowerCase().includes(normalizedSearch) || profileMatch || tagMatch;
+      })
+    : customers;
+
   return (
     <AdminChrome title="Customers" subtitle="Registered users, owned medals, and public profile counts.">
       <Panel title="Customer Directory">
+        <div className="mb-5 grid gap-3 md:grid-cols-[1fr_auto]">
+          <div>
+            <label className="mb-2 block text-xs uppercase tracking-widest text-white/35">Search customer or medal</label>
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Customer name, email, profile code, or medal code"
+              className="custom-input"
+            />
+          </div>
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="self-end rounded-lg border border-white/10 px-4 py-3 text-sm font-semibold text-white/65 hover:border-[#03A9F4]/40 hover:text-white"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
         {customers.length === 0 ? (
           <EmptyState icon="ri-user-search-line" title="No customers yet" body="When users sign up, they will appear here automatically." />
+        ) : visibleCustomers.length === 0 ? (
+          <EmptyState icon="ri-search-line" title="No matching customers" body="Try another customer name, profile code, or NFC medal code." />
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
-            {customers.map((customer) => (
+            {visibleCustomers.map((customer) => (
               <article key={customer.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h3 className="truncate text-sm font-bold text-white">{customer.email}</h3>
+                    {customer.tags.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {customer.tags.slice(0, 4).map((tag) => (
+                          <span key={tag.publicId} className="rounded-md border border-[#03A9F4]/20 bg-[#03A9F4]/10 px-2 py-1 font-mono text-[10px] text-[#8ddfff]">
+                            {tag.publicId}
+                          </span>
+                        ))}
+                        {customer.tags.length > 4 && <span className="text-[10px] text-white/35">+{customer.tags.length - 4}</span>}
+                      </div>
+                    )}
                     <p className="mt-1 text-xs text-white/35">
                       {customer.role} · {customer._count.tags} medals · {customer._count.profiles} profiles
                     </p>
@@ -183,20 +232,40 @@ export default function AdminCustomersPage() {
                             <option value="365">1 year</option>
                           </select>
                           <div className="grid gap-2 sm:grid-cols-2">
-                            <button
-                              onClick={() => updateProfileAccess(profile.id, { primeDesignUntil: untilFromDays(profile.id) })}
-                              disabled={busyProfileId === profile.id}
-                              className="rounded-lg bg-yellow-400 px-3 py-2 text-xs font-bold text-black disabled:opacity-50"
-                            >
-                              {busyProfileId === profile.id ? "Saving..." : "Activate Theme Pro"}
-                            </button>
-                            <button
-                              onClick={() => updateProfileAccess(profile.id, { verifiedUntil: untilFromDays(profile.id), verified: true })}
-                              disabled={busyProfileId === profile.id}
-                              className="rounded-lg bg-[#1877F2] px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
-                            >
-                              {busyProfileId === profile.id ? "Saving..." : "Activate Verification"}
-                            </button>
+                            {isActiveUntil(profile.primeDesignUntil) ? (
+                              <button
+                                onClick={() => updateProfileAccess(profile.id, { primeDesignUntil: null })}
+                                disabled={busyProfileId === profile.id}
+                                className="rounded-lg border border-yellow-300/30 bg-yellow-400/15 px-3 py-2 text-xs font-bold text-yellow-200 disabled:opacity-50"
+                              >
+                                {busyProfileId === profile.id ? "Saving..." : "Active Theme - cancel"}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => updateProfileAccess(profile.id, { primeDesignUntil: untilFromDays(profile.id) })}
+                                disabled={busyProfileId === profile.id}
+                                className="rounded-lg bg-yellow-400 px-3 py-2 text-xs font-bold text-black disabled:opacity-50"
+                              >
+                                {busyProfileId === profile.id ? "Saving..." : "Activate Theme Pro"}
+                              </button>
+                            )}
+                            {isActiveUntil(profile.verifiedUntil) ? (
+                              <button
+                                onClick={() => updateProfileAccess(profile.id, { verifiedUntil: null, verified: false })}
+                                disabled={busyProfileId === profile.id}
+                                className="rounded-lg border border-[#1877F2]/35 bg-[#1877F2]/15 px-3 py-2 text-xs font-bold text-[#9dccff] disabled:opacity-50"
+                              >
+                                {busyProfileId === profile.id ? "Saving..." : "Active Verification - cancel"}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => updateProfileAccess(profile.id, { verifiedUntil: untilFromDays(profile.id), verified: true })}
+                                disabled={busyProfileId === profile.id}
+                                className="rounded-lg bg-[#1877F2] px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
+                              >
+                                {busyProfileId === profile.id ? "Saving..." : "Activate Verification"}
+                              </button>
+                            )}
                           </div>
                           <div className="grid gap-2 text-[11px] text-white/35 sm:grid-cols-2">
                             <span>Theme Pro: <b className="text-white/65">{expiryLabel(profile.primeDesignUntil)}</b></span>
