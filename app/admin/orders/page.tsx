@@ -129,7 +129,7 @@ export default function AdminOrdersPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <MetricCard label="Orders" value={orders.length} icon="ri-archive-stack-line" hint="Total checkout submissions" />
         <MetricCard label="Units" value={units} icon="ri-shopping-bag-3-line" hint="Products requested by customers" />
-        <MetricCard label="Revenue" value={money(revenue)} icon="ri-money-dollar-circle-line" hint="Before shipping collection" />
+        <MetricCard label="Revenue" value={revenue} formatter={money} icon="ri-money-dollar-circle-line" hint="Before shipping collection" />
       </div>
 
       <div className="mt-5">

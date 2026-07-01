@@ -29,7 +29,13 @@ function priceNumber(product: ShopProduct) {
 }
 
 function money(value: number) {
-  return `${value.toLocaleString("en-US", { maximumFractionDigits: 2 })} EGP`;
+  return `ج.م ${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+}
+
+function priceLabel(value: string) {
+  const match = value.replace(/,/g, "").match(/\d+(\.\d+)?/);
+  if (!match) return value;
+  return money(Number(match[0]));
 }
 
 function ProductCard({ product, onAdd, onBuyNow }: { product: ShopProduct; onAdd: () => void; onBuyNow: () => void }) {
@@ -60,13 +66,13 @@ function ProductCard({ product, onAdd, onBuyNow }: { product: ShopProduct; onAdd
               {product.salePriceLabel ? (
                 <>
                   <span className="relative text-sm font-semibold text-white/35">
-                    {product.priceLabel}
+                    {priceLabel(product.priceLabel)}
                     <span className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-[#03A9F4]" />
                   </span>
-                  <span className="text-lg font-bold text-[#03A9F4]">{product.salePriceLabel}</span>
+                  <span className="text-lg font-bold text-[#03A9F4]">{priceLabel(product.salePriceLabel)}</span>
                 </>
               ) : (
-                <span className="text-lg font-bold text-[#03A9F4]">{product.priceLabel}</span>
+                <span className="text-lg font-bold text-[#03A9F4]">{priceLabel(product.priceLabel)}</span>
               )}
             </div>
           </div>

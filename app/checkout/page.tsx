@@ -68,7 +68,7 @@ function priceNumber(product: ShopProduct) {
 }
 
 function money(value: number) {
-  return `${value.toLocaleString("en-US", { maximumFractionDigits: 2 })} EGP`;
+  return `ج.م ${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 }
 
 function egyptPhone(value: string) {
@@ -283,7 +283,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between text-white/50">
                     <span>Discount</span>
-                    <span>0 EGP</span>
+                    <span>ج.م 0</span>
                   </div>
                   <div className="flex justify-between text-white/50">
                     <span>Shipping</span>

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { AdminChrome } from "./_components/AdminChrome";
-import { AdminLoadingScreen, MetricCard, Panel } from "./_components/AdminUi";
+import { AdminLoadingScreen, AnimatedNumber, MetricCard, Panel } from "./_components/AdminUi";
 
 interface AdminStats {
   totalTags: number;
@@ -88,7 +88,7 @@ export default function AdminPage() {
   return (
     <AdminChrome title="Owner Dashboard" subtitle="Revenue, customers, NFC usage, and moderation health in one fast view.">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard label="Revenue" value={money(stats?.totalRevenue ?? 0)} icon="ri-money-dollar-circle-line" hint={`${stats?.totalOrders ?? 0} orders · avg ${money(stats?.averageOrderValue ?? 0)}`} />
+        <MetricCard label="Revenue" value={stats?.totalRevenue ?? 0} formatter={money} icon="ri-money-dollar-circle-line" hint={`${stats?.totalOrders ?? 0} orders · avg ${money(stats?.averageOrderValue ?? 0)}`} />
         <MetricCard label="NFC" value={stats?.totalTags ?? 0} icon="ri-nfc-line" hint={`${readyTags.toLocaleString()} ready · ${liveTags.toLocaleString()} in use`} />
         <MetricCard label="Customers" value={stats?.totalUsers ?? 0} icon="ri-user-3-line" hint={`${stats?.totalProfiles ?? 0} public profiles created`} />
         <MetricCard label="Scans Today" value={stats?.totalAnalyticsToday ?? 0} icon="ri-pulse-line" hint={`${stats?.openTickets ?? 0} open moderation reports`} />
@@ -99,9 +99,11 @@ export default function AdminPage() {
           <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
             <div className="rounded-xl border border-[#03A9F4]/20 bg-[#03A9F4]/10 p-4">
               <p className="text-xs uppercase tracking-widest text-[#8ddfff]">Total sales</p>
-              <p className="mt-3 text-3xl font-bold text-white">{money(stats?.totalRevenue ?? 0)}</p>
+              <p className="mt-3 text-3xl font-bold text-white">
+                <AnimatedNumber value={stats?.totalRevenue ?? 0} formatter={money} />
+              </p>
               <p className="mt-2 text-sm text-white/55">
-                {stats?.totalOrders ?? 0} orders with an average value of {money(stats?.averageOrderValue ?? 0)}.
+                <AnimatedNumber value={stats?.totalOrders ?? 0} /> orders with an average value of {money(stats?.averageOrderValue ?? 0)}.
               </p>
             </div>
 
@@ -130,7 +132,9 @@ export default function AdminPage() {
           <div className="space-y-5">
             <div className="flex items-center gap-5">
               <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-full border-[10px] border-[#03A9F4]/25 bg-[#03A9F4]/5">
-                <span className="text-2xl font-bold">{activation}%</span>
+                <span className="text-2xl font-bold">
+                  <AnimatedNumber value={activation} formatter={(value) => `${value}%`} />
+                </span>
               </div>
               <div>
                 <p className="text-sm font-semibold text-white">Activation rate</p>
@@ -149,7 +153,7 @@ export default function AdminPage() {
                 <div key={row.label}>
                   <div className="mb-1.5 flex items-center justify-between text-sm">
                     <span className="text-white/70">{row.label} <span className="text-white/35">· {row.hint}</span></span>
-                    <span className="font-mono text-white/55">{row.value.toLocaleString()}</span>
+                    <AnimatedNumber value={row.value} className="font-mono text-white/55" />
                   </div>
                   <div className="h-2 rounded-full bg-white/10">
                     <div className={`h-2 rounded-full ${row.color}`} style={{ width: `${percent(row.value, stats?.totalTags ?? 0)}%` }} />
@@ -166,7 +170,7 @@ export default function AdminPage() {
           { href: "/admin/customers", icon: "ri-user-smile-line", label: "Customers", body: "Customer list and profile ownership." },
           { href: "/admin/products", icon: "ri-shopping-bag-3-line", label: "Products", body: "Product catalog and sections." },
           { href: "/admin/orders", icon: "ri-archive-stack-line", label: "Orders", body: "Incoming customer orders." },
-          { href: "/admin/tags", icon: "ri-nfc-line", label: "NFC", body: "Generate NFC codes and manage medal states.", image: "/img/medal-black.png" },
+          { href: "/admin/tags", icon: "ri-nfc-line", label: "NFC", body: "Generate NFC codes and manage medal states.", image: "/img/logo.png" },
         ].map((item) => (
           <Link key={item.href} href={item.href} className="group overflow-hidden rounded-xl border border-[#2c2c2c] bg-white/[0.03] transition-all hover:border-[#03A9F4]/50 hover:bg-[#03A9F4]/5">
             {"image" in item ? (

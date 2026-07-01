@@ -1,10 +1,72 @@
-export function MetricCard({ label, value, icon, hint }: { label: string; value: string | number; icon: string; hint: string }) {
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+export function AnimatedNumber({
+  value,
+  formatter,
+  className,
+  duration = 650,
+}: {
+  value: number;
+  formatter?: (value: number) => string;
+  className?: string;
+  duration?: number;
+}) {
+  const [displayValue, setDisplayValue] = useState(0);
+  const displayRef = useRef(0);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      displayRef.current = value;
+      setDisplayValue(value);
+      return;
+    }
+
+    let frame = 0;
+    const start = performance.now();
+    const from = displayRef.current;
+    const change = value - from;
+
+    function tick(now: number) {
+      const progress = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - progress, 4);
+      const nextValue = from + change * eased;
+      displayRef.current = nextValue;
+      setDisplayValue(nextValue);
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    }
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [value, duration]);
+
+  const rounded = Math.round(displayValue);
+
+  return <span className={className}>{formatter ? formatter(rounded) : rounded.toLocaleString()}</span>;
+}
+
+export function MetricCard({
+  label,
+  value,
+  icon,
+  hint,
+  formatter,
+}: {
+  label: string;
+  value: number;
+  icon: string;
+  hint: string;
+  formatter?: (value: number) => string;
+}) {
   return (
     <div className="rounded-xl border border-[#2c2c2c] bg-white/[0.03] p-5 backdrop-blur-md">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-widest text-white/35">{label}</p>
-          <p className="mt-3 text-3xl font-bold">{typeof value === "number" ? value.toLocaleString() : value}</p>
+          <p className="mt-3 text-3xl font-bold">
+            <AnimatedNumber value={value} formatter={formatter} />
+          </p>
         </div>
         <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#03A9F4]/25 bg-[#03A9F4]/10 text-[#03A9F4]">
           <i className={`${icon} text-xl`} />
