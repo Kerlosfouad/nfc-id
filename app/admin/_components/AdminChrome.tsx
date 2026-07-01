@@ -11,11 +11,11 @@ const navItems = [
   { href: "/admin/customers", icon: "ri-user-smile-line", label: "Customers" },
   { href: "/admin/products", icon: "ri-shopping-bag-3-line", label: "Products" },
   { href: "/admin/orders", icon: "ri-archive-stack-line", label: "Orders" },
-  { href: "/admin/tags", icon: "ri-nfc-line", label: "Generate NFC" },
+  { href: "/admin/tags", icon: "ri-nfc-line", label: "NFC" },
   { href: "/admin/moderation", icon: "ri-shield-check-line", label: "Moderation" },
 ];
 
-export function AdminChrome({ children }: { title: string; subtitle: string; children: React.ReactNode }) {
+export function AdminChrome({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [orderCount, setOrderCount] = useState(0);
@@ -30,12 +30,12 @@ export function AdminChrome({ children }: { title: string; subtitle: string; chi
     const supabase = createClient();
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return;
-      const res = await fetch("/api/v1/admin/orders", {
+      const res = await fetch("/api/v1/admin/stats", {
         headers: { Authorization: `Bearer ${session.access_token}`, "x-user-id": session.user.id },
       });
       if (!res.ok) return;
       const json = await res.json();
-      if (alive) setOrderCount(Array.isArray(json.data) ? json.data.length : 0);
+      if (alive) setOrderCount(Number(json.data?.totalOrders ?? 0));
     });
     return () => {
       alive = false;
@@ -87,9 +87,15 @@ export function AdminChrome({ children }: { title: string; subtitle: string; chi
       <main className="relative z-10 flex min-h-screen flex-col lg:pl-[220px]">
         <header className="sticky top-0 z-20 border-b border-white/5 bg-[#0b0a0a]/90 px-4 py-4 backdrop-blur-xl sm:px-6">
           <div className="flex items-center justify-between gap-4">
-            <Link href="/" className="inline-flex group" aria-label="Back to website">
-              <Image src="/img/logo.png" alt="NFC ID" width={38} height={38} className="transition-all group-hover:drop-shadow-[0_0_10px_#03A9F4]" />
-            </Link>
+            <div className="flex min-w-0 items-center gap-3">
+              <Link href="/" className="inline-flex shrink-0 group" aria-label="Back to website">
+                <Image src="/img/logo.png" alt="NFC ID" width={38} height={38} className="transition-all group-hover:drop-shadow-[0_0_10px_#03A9F4]" />
+              </Link>
+              <div className="min-w-0">
+                <h1 className="truncate text-base font-bold text-white sm:text-lg">{title}</h1>
+                <p className="hidden max-w-xl truncate text-xs text-white/45 sm:block">{subtitle}</p>
+              </div>
+            </div>
             <button
               type="button"
               onClick={signOutAdmin}

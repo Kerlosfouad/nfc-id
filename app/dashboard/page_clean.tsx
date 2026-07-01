@@ -2394,7 +2394,7 @@ function SystemToast({ toasts }: { toasts: ToastItem[] }) {
         <div
           key={toast.id}
           className={
-            "flex min-h-10 w-fit max-w-[calc(100vw-32px)] items-center justify-center gap-2.5 rounded-none border px-4 py-2.5 text-center text-[13px] font-semibold text-white shadow-[0_10px_22px_rgba(3,169,244,0.28)] transition-all duration-300 ease-out sm:max-w-[420px] sm:text-sm " +
+            "flex min-h-10 w-fit max-w-[calc(100vw-32px)] items-center justify-center gap-2.5 rounded-lg border px-4 py-2.5 text-center text-[13px] font-semibold text-white shadow-[0_10px_22px_rgba(3,169,244,0.28)] transition-all duration-300 ease-out sm:max-w-[420px] sm:text-sm " +
             (toast.visible ? "translate-y-0 scale-100 opacity-100" : "-translate-y-4 scale-[0.98] opacity-0") +
             (index > 0 ? " -mt-1 scale-[0.98]" : "") +
             (toast.ok
