@@ -48,8 +48,9 @@ export async function proxy(request: NextRequest) {
   // /api/v1/ routes return 401 JSON for unauthenticated requests
   // (individual route handlers also call requireAuth for fine-grained checks)
   if (pathname.startsWith("/api/v1/") && !user) {
-    // Allow public endpoints: tag resolver, profile view, lead form POST, reports
+    // Allow public endpoints: shop products, tag resolver, profile view, lead form POST, reports
     const publicApiPatterns = [
+      /^\/api\/v1\/products$/,                  // GET public shop products
       /^\/api\/v1\/profiles\/[^/]+\/leads$/,   // POST lead form
       /^\/api\/v1\/reports$/,                   // POST report
     ];
