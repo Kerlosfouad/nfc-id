@@ -43,7 +43,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     average_order_value: unknown;
   }>>`
     SELECT
-      COUNT(*)::bigint AS total_orders,
+      COUNT(*) FILTER (WHERE status = 'NEW')::bigint AS total_orders,
       COALESCE(SUM(total), 0) AS total_revenue,
       COALESCE(AVG(total), 0) AS average_order_value
     FROM shop_orders

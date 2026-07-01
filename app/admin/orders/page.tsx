@@ -91,6 +91,7 @@ export default function AdminOrdersPage() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
+  const [revenueOrders, setRevenueOrders] = useState<AdminOrder[]>([]);
   const [token, setToken] = useState("");
   const [userId, setUserId] = useState("");
   const [error, setError] = useState("");
@@ -107,9 +108,11 @@ export default function AdminOrdersPage() {
       }
       setToken(session.access_token);
       setUserId(session.user.id);
-      const res = await fetch("/api/v1/admin/orders", {
-        headers: { Authorization: `Bearer ${session.access_token}`, "x-user-id": session.user.id },
-      });
+      const headers = { Authorization: `Bearer ${session.access_token}`, "x-user-id": session.user.id };
+      const [res, revenueRes] = await Promise.all([
+        fetch("/api/v1/admin/orders", { headers }),
+        fetch("/api/v1/admin/orders?status=all", { headers }),
+      ]);
       if (res.status === 403) {
         router.push("/dashboard");
         return;
@@ -117,6 +120,10 @@ export default function AdminOrdersPage() {
       if (res.ok) {
         const json = await res.json();
         setOrders(json.data ?? []);
+        if (revenueRes.ok) {
+          const revenueJson = await revenueRes.json();
+          setRevenueOrders(revenueJson.data ?? json.data ?? []);
+        }
       } else {
         setError("Orders could not be loaded.");
       }
@@ -125,19 +132,22 @@ export default function AdminOrdersPage() {
   }, [router]);
 
   async function exportOrders() {
-    const res = await fetch("/api/v1/admin/orders?format=xls", {
+    const res = await fetch("/api/v1/admin/orders?format=print", {
       headers: { Authorization: `Bearer ${token}`, "x-user-id": userId },
     });
     if (!res.ok) throw new Error("Export failed.");
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `nfc-id-accepted-orders-${new Date().toISOString().slice(0, 10)}.xls`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    window.open(url, "_blank", "noopener,noreferrer");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }
+
+  async function acceptExportedOrders() {
+    const res = await fetch("/api/v1/admin/orders?all=true&accept=true", {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}`, "x-user-id": userId },
+    });
+    if (!res.ok) throw new Error("Orders could not be accepted.");
   }
 
   async function exportCurrentOrders() {
@@ -146,6 +156,9 @@ export default function AdminOrdersPage() {
     setError("");
     try {
       await exportOrders();
+      await acceptExportedOrders();
+      setOrders([]);
+      setSelectedOrder(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Orders could not be exported.");
     } finally {
@@ -155,9 +168,9 @@ export default function AdminOrdersPage() {
 
   if (checking) return <AdminLoadingScreen />;
 
-  const revenue = orders.reduce((sum, order) => sum + Number(order.total), 0);
+  const revenue = revenueOrders.reduce((sum, order) => sum + Number(order.total), 0);
   const units = orders.reduce((sum, order) => sum + orderUnits(order), 0);
-  const revenueSeries = buildRevenueSeries(orders, revenueRange);
+  const revenueSeries = buildRevenueSeries(revenueOrders, revenueRange);
   const filteredRevenue = revenueSeries.reduce((sum, point) => sum + point.revenue, 0);
   const filteredOrders = revenueSeries.reduce((sum, point) => sum + point.orders, 0);
 
@@ -166,7 +179,7 @@ export default function AdminOrdersPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <MetricCard label="Orders" value={orders.length} icon="ri-archive-stack-line" hint="Total checkout submissions" />
         <MetricCard label="Units" value={units} icon="ri-shopping-bag-3-line" hint="Products requested by customers" />
-        <MetricCard label="Revenue" value={revenue} formatter={money} icon="ri-money-dollar-circle-line" hint="Before shipping collection" />
+        <MetricCard label="Revenue" value={revenue} formatter={money} icon="ri-money-dollar-circle-line" hint="Accepted and pending orders" />
       </div>
 
       <section className="mt-5 rounded-xl border border-[#2c2c2c] bg-white/[0.03] p-5 backdrop-blur-md">
@@ -233,7 +246,7 @@ export default function AdminOrdersPage() {
               className="inline-flex h-10 items-center gap-2 rounded-full bg-[#03A9F4] px-5 text-xs font-bold uppercase tracking-wider text-white transition-all hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
             >
               <i className={exporting ? "ri-loader-4-line animate-spin text-base" : "ri-download-2-line text-base"} />
-              {exporting ? "Exporting..." : "Export XLS"}
+              {exporting ? "Exporting..." : "Print PDF"}
             </button>
           }
         >

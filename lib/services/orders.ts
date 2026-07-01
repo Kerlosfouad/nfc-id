@@ -224,12 +224,18 @@ export async function createOrder(input: CheckoutInput) {
   return { id: orderRows[0].id, orderNumber: Number(orderRows[0].order_number), total };
 }
 
-export async function listOrders() {
+export async function listOrders(status: 'NEW' | 'ACCEPTED' | 'ALL' = 'NEW') {
   await ensureOrderTables();
-  const orders = await db.$queryRaw<Array<Parameters<typeof mapOrderRows>[0][number]>>`
-    SELECT * FROM shop_orders
-    ORDER BY created_at DESC
-  `;
+  const orders = status === 'ALL'
+    ? await db.$queryRaw<Array<Parameters<typeof mapOrderRows>[0][number]>>`
+        SELECT * FROM shop_orders
+        ORDER BY created_at DESC
+      `
+    : await db.$queryRaw<Array<Parameters<typeof mapOrderRows>[0][number]>>`
+        SELECT * FROM shop_orders
+        WHERE status = ${status}
+        ORDER BY created_at DESC
+      `;
   const orderIds = orders.map((order) => order.id);
   const items = orderIds.length
     ? await db.$queryRaw<Array<Parameters<typeof mapOrderRows>[1][number]>>`
@@ -253,11 +259,17 @@ export async function deleteAllOrders() {
 
 export async function acceptAllOrders() {
   const orders = await listOrders();
+  if (orders.length === 0) return;
   const stockItems = orders.flatMap((order) =>
     order.items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
   );
   await decrementProductStock(stockItems);
-  await deleteAllOrders();
+  const orderIds = orders.map((order) => order.id);
+  await db.$executeRaw`
+    UPDATE shop_orders
+    SET status = 'ACCEPTED', updated_at = NOW()
+    WHERE id = ANY(${orderIds})
+  `;
 }
 
 function csvCell(value: unknown) {
@@ -431,6 +443,156 @@ export function ordersToExcel(orders: AdminOrder[]) {
     <tr>${headerCells}</tr>
     ${bodyRows || '<tr><td colspan="15" class="center">No orders found</td></tr>'}
   </table>
+</body>
+</html>`;
+}
+
+export function ordersToPrintHtml(orders: AdminOrder[]) {
+  const total = orders.reduce((sum, order) => sum + order.total, 0);
+  const rows = orders.flatMap((order) =>
+    order.items.length
+      ? order.items.map((item) => ({ order, item }))
+      : [{ order, item: null }],
+  );
+
+  const bodyRows = rows.map(({ order, item }) => `
+    <tr>
+      <td>${htmlCell(order.orderNumber)}</td>
+      <td>${htmlCell(order.createdAt.toLocaleString('en-US'))}</td>
+      <td class="name">${htmlCell(order.customerName)}</td>
+      <td class="phone">${htmlCell(order.phone)}</td>
+      <td class="phone">${htmlCell(order.secondaryPhone ?? '')}</td>
+      <td>${htmlCell(order.city)}</td>
+      <td class="address">${htmlCell(`${order.address} - ${order.apartment}`)}</td>
+      <td>${htmlCell(item?.productName ?? '')}</td>
+      <td>${htmlCell(item?.quantity ?? 0)}</td>
+      <td>${htmlCell(item?.unitPrice ?? 0)}</td>
+      <td>${htmlCell(item?.lineTotal ?? 0)}</td>
+      <td>${htmlCell(order.total)}</td>
+      <td class="notes">${htmlCell(order.notes ?? '')}</td>
+    </tr>
+  `).join('');
+
+  return `<!doctype html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <title>NFC ID Orders</title>
+  <style>
+    @page { size: A4 landscape; margin: 10mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: #111827;
+      background: #fff;
+      font-family: Arial, "Tahoma", "Segoe UI", sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 2px solid #03A9F4;
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+    }
+    h1 { margin: 0; color: #0f172a; font-size: 24px; }
+    .meta { margin-top: 5px; color: #64748b; font-size: 12px; }
+    .total {
+      min-width: 170px;
+      border: 1px solid #bae6fd;
+      background: #eff6ff;
+      border-radius: 10px;
+      padding: 10px 12px;
+      text-align: right;
+    }
+    .total span { display: block; color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .total strong { display: block; margin-top: 4px; color: #0369a1; font-size: 20px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 10.5px; }
+    th {
+      background: #0f172a;
+      color: #fff;
+      border: 1px solid #1e293b;
+      padding: 7px 5px;
+      text-align: center;
+      font-weight: 700;
+    }
+    td {
+      border: 1px solid #cbd5e1;
+      padding: 6px 5px;
+      vertical-align: top;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+    }
+    tr:nth-child(even) td { background: #f8fafc; }
+    .name, .address, .notes {
+      direction: auto;
+      unicode-bidi: plaintext;
+      text-align: start;
+      font-weight: 700;
+    }
+    .phone { direction: ltr; unicode-bidi: plaintext; white-space: nowrap; font-weight: 700; }
+    .empty { padding: 28px; text-align: center; color: #64748b; font-size: 14px; }
+    .actions {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      display: flex;
+      gap: 8px;
+    }
+    .actions button {
+      border: 0;
+      border-radius: 999px;
+      background: #03A9F4;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 700;
+      padding: 10px 16px;
+    }
+    @media print { .actions { display: none; } }
+  </style>
+</head>
+<body>
+  <section class="top">
+    <div>
+      <h1>NFC ID - Accepted Orders</h1>
+      <p class="meta">Generated ${htmlCell(new Date().toLocaleString('en-US'))} · ${orders.length} orders</p>
+    </div>
+    <div class="total">
+      <span>Total</span>
+      <strong>${htmlCell(total.toLocaleString('en-US'))} EGP</strong>
+    </div>
+  </section>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:5%">Order</th>
+        <th style="width:10%">Date</th>
+        <th style="width:12%">Name</th>
+        <th style="width:9%">Phone</th>
+        <th style="width:9%">Second</th>
+        <th style="width:8%">City</th>
+        <th style="width:15%">Address</th>
+        <th style="width:11%">Product</th>
+        <th style="width:4%">Qty</th>
+        <th style="width:6%">Unit</th>
+        <th style="width:6%">Line</th>
+        <th style="width:6%">Total</th>
+        <th style="width:9%">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${bodyRows || '<tr><td colspan="13" class="empty">No orders found</td></tr>'}
+    </tbody>
+  </table>
+  <div class="actions">
+    <button type="button" onclick="window.print()">Print / Save PDF</button>
+  </div>
+  <script>
+    window.addEventListener('load', () => setTimeout(() => window.print(), 350));
+  </script>
 </body>
 </html>`;
 }

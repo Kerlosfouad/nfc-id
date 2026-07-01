@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/middleware/adminCheck';
-import { acceptAllOrders, deleteAllOrders, deleteOrder, listOrders, ordersToCsv, ordersToExcel } from '@/lib/services/orders';
+import { acceptAllOrders, deleteAllOrders, deleteOrder, listOrders, ordersToCsv, ordersToExcel, ordersToPrintHtml } from '@/lib/services/orders';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const authResult = await requireAdmin(request);
   if (authResult instanceof Response) return authResult;
 
-  const orders = await listOrders();
+  const includeAccepted = request.nextUrl.searchParams.get('status') === 'all';
+  const orders = await listOrders(includeAccepted ? 'ALL' : 'NEW');
   if (request.nextUrl.searchParams.get('format') === 'csv') {
     const csv = ordersToCsv(orders);
     return new NextResponse(`\uFEFF${csv}`, {
@@ -24,6 +25,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       headers: {
         'Content-Type': 'application/vnd.ms-excel; charset=utf-8',
         'Content-Disposition': `attachment; filename="nfc-id-accepted-orders-${new Date().toISOString().slice(0, 10)}.xls"`,
+      },
+    });
+  }
+
+  if (request.nextUrl.searchParams.get('format') === 'print') {
+    const html = ordersToPrintHtml(orders);
+    return new NextResponse(html, {
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Content-Disposition': `inline; filename="nfc-id-accepted-orders-${new Date().toISOString().slice(0, 10)}.html"`,
       },
     });
   }
