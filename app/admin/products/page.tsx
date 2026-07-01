@@ -45,6 +45,12 @@ const blankProduct: Omit<ProductRow, "id"> = {
   stockQuantity: 0,
 };
 
+function formatPriceLabel(value: string | null | undefined) {
+  const match = String(value ?? "").replace(/,/g, "").match(/\d+(\.\d+)?/);
+  if (!match) return value?.trim() ?? "";
+  return `${Number(match[0]).toLocaleString("en-US", { maximumFractionDigits: 2 })} EGP`;
+}
+
 export default function AdminProductsPage() {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -205,11 +211,12 @@ export default function AdminProductsPage() {
       const productPayload = {
         ...draft,
         badge: String(stockQuantity),
+        priceLabel: formatPriceLabel(draft.priceLabel),
+        salePriceLabel: draft.salePriceLabel?.trim() ? formatPriceLabel(draft.salePriceLabel) : null,
         stockQuantity,
         icon: "ri-archive-stack-line",
         isActive: true,
         displayOrder: 0,
-        salePriceLabel: draft.salePriceLabel?.trim() ? draft.salePriceLabel.trim() : null,
         discountLabel: null,
       };
       const res = await fetch(editingId ? `/api/v1/admin/products/${editingId}` : "/api/v1/admin/products", {
@@ -245,6 +252,26 @@ export default function AdminProductsPage() {
     }
     setProducts((current) => current.filter((product) => product.id !== id));
     showToast("Product deleted");
+  }
+
+  async function removeCategory(name: string, productCount: number) {
+    if (productCount > 0) {
+      showToast("Delete or move products in this section first", "error");
+      return;
+    }
+    if (!confirm(`Delete ${name} section?`)) return;
+    const res = await fetch(`/api/v1/admin/product-categories?name=${encodeURIComponent(name)}`, {
+      method: "DELETE",
+      headers: authHeaders(false),
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) {
+      showToast(json?.error?.message ?? "Section could not be deleted", "error");
+      return;
+    }
+    await loadData(authToken, userId);
+    if (draft.category === name) setDraft((current) => ({ ...current, category: "General" }));
+    showToast("Section deleted");
   }
 
   if (checking) return <AdminLoadingScreen />;
@@ -327,7 +354,7 @@ export default function AdminProductsPage() {
               >
                 <div className="h-28 overflow-hidden rounded-xl bg-black/40 ring-1 ring-white/5">
                   {draft.imageUrl ? (
-                    <img src={draft.imageUrl} alt="" className="h-full w-full object-contain p-2" />
+                    <img src={draft.imageUrl} alt="" className="h-full w-full object-cover" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-white/20">
                       <i className="ri-image-add-line text-3xl" />
@@ -395,8 +422,18 @@ export default function AdminProductsPage() {
           <Panel title="Sections">
             <div className="flex flex-wrap gap-2">
               {categories.map((category) => (
-                <span key={category.name} className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/60">
-                  {category.name} · {category.productCount}
+                <span key={category.name} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 py-1 pl-3 pr-1 text-xs text-white/60">
+                  <span>{category.name} · {category.productCount}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeCategory(category.name, category.productCount)}
+                    disabled={category.name === "General"}
+                    className="flex h-6 w-6 items-center justify-center rounded-full text-white/35 transition hover:bg-red-500/15 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-25"
+                    aria-label={`Delete ${category.name} section`}
+                    title={category.productCount > 0 ? "Delete or move products first" : category.name === "General" ? "General cannot be deleted" : "Delete section"}
+                  >
+                    <i className="ri-delete-bin-line" />
+                  </button>
                 </span>
               ))}
             </div>
@@ -410,7 +447,7 @@ export default function AdminProductsPage() {
                 {products.map((product) => (
                   <div key={product.id} className="grid gap-4 rounded-xl border border-white/10 bg-black/20 p-3 sm:grid-cols-[96px_1fr_auto] sm:items-center">
                     <div className="relative h-24 rounded-xl bg-white/5">
-                      <img src={product.imageUrl} alt={product.name} className="h-full w-full object-contain p-3" />
+                      <img src={product.imageUrl} alt={product.name} className="h-full w-full rounded-xl object-cover" />
                     </div>
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
@@ -425,13 +462,13 @@ export default function AdminProductsPage() {
                         {product.salePriceLabel ? (
                           <>
                             <span className="relative text-white/35">
-                              {product.priceLabel}
+                              {formatPriceLabel(product.priceLabel)}
                               <span className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-[#03A9F4]" />
                             </span>
-                            <span className="font-semibold text-[#03A9F4]">{product.salePriceLabel}</span>
+                            <span className="font-semibold text-[#03A9F4]">{formatPriceLabel(product.salePriceLabel)}</span>
                           </>
                         ) : (
-                          <span className="font-semibold text-[#03A9F4]">{product.priceLabel}</span>
+                          <span className="font-semibold text-[#03A9F4]">{formatPriceLabel(product.priceLabel)}</span>
                         )}
                         <span className="text-white/25">· {product.category}</span>
                       </div>

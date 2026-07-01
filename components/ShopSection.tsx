@@ -29,7 +29,7 @@ function priceNumber(product: ShopProduct) {
 }
 
 function money(value: number) {
-  return `ج.م ${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+  return `${value.toLocaleString("en-US", { maximumFractionDigits: 2 })} EGP`;
 }
 
 function priceLabel(value: string) {
@@ -47,7 +47,7 @@ function ProductCard({ product, onAdd, onBuyNow }: { product: ShopProduct; onAdd
         <img
           src={product.imageUrl}
           alt={product.name}
-          className="h-full w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-[#03A9F4]/30 bg-black/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#03A9F4] backdrop-blur-md">
           <i className="ri-archive-stack-line" />
@@ -271,7 +271,7 @@ export default function ShopSection() {
                 <div className="space-y-4">
                   {cart.map((item) => (
                     <div key={item.product.id} className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-                      <img src={item.product.imageUrl} alt={item.product.name} className="h-20 w-20 rounded-xl bg-black object-contain p-2" />
+                      <img src={item.product.imageUrl} alt={item.product.name} className="h-20 w-20 rounded-xl bg-black object-cover" />
                       <div className="min-w-0 flex-1">
                         <p className="line-clamp-2 text-sm font-bold">{item.product.name}</p>
                         <p className="mt-1 text-sm font-semibold text-[#03A9F4]">{money(priceNumber(item.product))}</p>

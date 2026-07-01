@@ -194,6 +194,23 @@ export async function listCategories() {
   return rows.map((row) => ({ name: row.name, productCount: Number(row.product_count) }));
 }
 
+export async function deleteCategory(name: string) {
+  await ensureProductCatalogTable();
+  const cleanName = name.trim();
+  if (!cleanName || cleanName === 'General') return { ok: false, reason: 'PROTECTED' as const };
+
+  const rows = await db.$queryRaw<Array<{ product_count: bigint }>>`
+    SELECT COUNT(*) AS product_count
+    FROM admin_products
+    WHERE category = ${cleanName}
+  `;
+  const productCount = Number(rows[0]?.product_count ?? 0);
+  if (productCount > 0) return { ok: false, reason: 'NOT_EMPTY' as const };
+
+  await db.$executeRaw`DELETE FROM admin_product_categories WHERE name = ${cleanName}`;
+  return { ok: true as const };
+}
+
 export async function ensureCategory(name: string) {
   await ensureProductCatalogTable();
   const cleanName = name.trim() || 'General';

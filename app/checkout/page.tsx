@@ -68,7 +68,7 @@ function priceNumber(product: ShopProduct) {
 }
 
 function money(value: number) {
-  return `ج.م ${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+  return `${value.toLocaleString("en-US", { maximumFractionDigits: 2 })} EGP`;
 }
 
 function egyptPhone(value: string) {
@@ -255,7 +255,7 @@ export default function CheckoutPage() {
                   {cart.map((item) => (
                     <div key={item.product.id} className="flex gap-3">
                       <div className="relative h-16 w-16 shrink-0 rounded-xl bg-black">
-                        <img src={item.product.imageUrl} alt={item.product.name} className="h-full w-full object-contain p-2" />
+                        <img src={item.product.imageUrl} alt={item.product.name} className="h-full w-full rounded-xl object-cover" />
                         <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#03A9F4] px-1 text-[10px] font-bold">
                           {item.quantity}
                         </span>
@@ -283,7 +283,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between text-white/50">
                     <span>Discount</span>
-                    <span>ج.م 0</span>
+                    <span>0 EGP</span>
                   </div>
                   <div className="flex justify-between text-white/50">
                     <span>Shipping</span>

@@ -271,7 +271,7 @@ export default function AdminOrdersPage() {
                     <img
                       src={firstItem?.imageUrl || "/img/logo.png"}
                       alt={firstItem?.productName || "Order product"}
-                      className="h-14 w-14 shrink-0 rounded-xl bg-black object-contain p-2"
+                      className="h-14 w-14 shrink-0 rounded-xl bg-black object-cover"
                     />
                     <div className="min-w-0 flex-1">
                       <p className="font-bold">{order.customerName}</p>
@@ -334,7 +334,7 @@ export default function AdminOrdersPage() {
               <div className="mt-3 space-y-3">
                 {selectedOrder.items.map((item) => (
                   <div key={item.id} className="flex items-center gap-3">
-                    <img src={item.imageUrl} alt={item.productName} className="h-14 w-14 rounded-xl bg-black object-contain p-2" />
+                    <img src={item.imageUrl} alt={item.productName} className="h-14 w-14 rounded-xl bg-black object-cover" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{item.productName}</p>
                       <p className="mt-1 text-xs text-white/40">{money(item.unitPrice)} x{item.quantity}</p>
