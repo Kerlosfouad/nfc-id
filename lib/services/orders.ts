@@ -273,6 +273,24 @@ function htmlCell(value: unknown) {
     .replace(/"/g, '&quot;');
 }
 
+const EXCEL_COLUMNS = [
+  { key: 'index', label: '#', width: 64, className: 'center nowrap' },
+  { key: 'orderNumber', label: 'Order', width: 78, className: 'center nowrap' },
+  { key: 'date', label: 'Date', width: 170, className: 'nowrap' },
+  { key: 'customer', label: 'Customer Name', width: 220, className: 'text' },
+  { key: 'phone', label: 'Phone', width: 150, className: 'phone nowrap' },
+  { key: 'secondaryPhone', label: 'Second Phone', width: 150, className: 'phone nowrap' },
+  { key: 'email', label: 'Email', width: 250, className: 'text' },
+  { key: 'city', label: 'City', width: 135, className: 'text' },
+  { key: 'address', label: 'Address', width: 280, className: 'text' },
+  { key: 'product', label: 'Product', width: 210, className: 'text' },
+  { key: 'quantity', label: 'Qty', width: 66, className: 'center nowrap' },
+  { key: 'unitPrice', label: 'Unit Price', width: 105, className: 'money nowrap' },
+  { key: 'lineTotal', label: 'Line Total', width: 105, className: 'money nowrap' },
+  { key: 'total', label: 'Order Total', width: 115, className: 'money nowrap' },
+  { key: 'notes', label: 'Notes', width: 260, className: 'text' },
+] as const;
+
 export function ordersToCsv(orders: AdminOrder[]) {
   const header = [
     'Order Number',
@@ -358,77 +376,59 @@ export function ordersToExcel(orders: AdminOrder[]) {
 
   const bodyRows = rows.map((row) => `
     <tr>
-      <td class="center">${htmlCell(row.index)}</td>
-      <td class="center">${htmlCell(row.orderNumber)}</td>
-      <td>${htmlCell(row.date)}</td>
-      <td>${htmlCell(row.customer)}</td>
-      <td>${htmlCell(row.phone)}</td>
-      <td>${htmlCell(row.secondaryPhone)}</td>
-      <td>${htmlCell(row.email)}</td>
-      <td>${htmlCell(row.city)}</td>
-      <td>${htmlCell(row.address)}</td>
-      <td>${htmlCell(row.product)}</td>
-      <td class="center">${htmlCell(row.quantity)}</td>
-      <td class="money">${htmlCell(row.unitPrice)}</td>
-      <td class="money">${htmlCell(row.lineTotal)}</td>
-      <td class="money">${htmlCell(row.total)}</td>
-      <td>${htmlCell(row.notes)}</td>
+      ${EXCEL_COLUMNS.map((column) => `
+        <td width="${column.width}" class="${column.className}" style="width:${column.width}px">${htmlCell(row[column.key])}</td>
+      `).join('')}
     </tr>
   `).join('');
+
+  const headerCells = EXCEL_COLUMNS.map((column) =>
+    `<th width="${column.width}" style="width:${column.width}px">${column.label}</th>`,
+  ).join('');
 
   return `<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
+  <!--[if gte mso 9]><xml>
+    <x:ExcelWorkbook xmlns:x="urn:schemas-microsoft-com:office:excel">
+      <x:ExcelWorksheets>
+        <x:ExcelWorksheet>
+          <x:Name>Accepted Orders</x:Name>
+          <x:WorksheetOptions>
+            <x:FreezePanes/>
+            <x:FrozenNoSplit/>
+            <x:SplitHorizontal>3</x:SplitHorizontal>
+            <x:TopRowBottomPane>3</x:TopRowBottomPane>
+            <x:ActivePane>2</x:ActivePane>
+          </x:WorksheetOptions>
+        </x:ExcelWorksheet>
+      </x:ExcelWorksheets>
+    </x:ExcelWorkbook>
+  </xml><![endif]-->
   <style>
-    body { font-family: Arial, sans-serif; }
-    table { border-collapse: collapse; width: 100%; }
-    .title { background: #173966; color: #fff; font-size: 22px; font-weight: 700; text-align: center; height: 34px; }
-    th { background: #2f5597; color: #fff; font-size: 14px; font-weight: 700; text-align: center; border: 1px solid #173966; height: 28px; }
-    td { border: 1px solid #173966; font-size: 12px; height: 24px; padding: 4px 6px; vertical-align: middle; mso-number-format: "\\@"; }
-    tr:nth-child(even) td { background: #f2f5fa; }
+    body { font-family: Arial, sans-serif; margin: 0; }
+    table { border-collapse: collapse; table-layout: fixed; width: 2363px; }
+    .title { background: #173966; color: #fff; font-size: 20px; font-weight: 700; text-align: center; height: 38px; }
+    .subtitle { background: #eef3fb; color: #173966; font-size: 12px; font-weight: 700; text-align: center; height: 24px; }
+    th { background: #2f5597; color: #fff; font-size: 13px; font-weight: 700; text-align: center; border: 1px solid #173966; height: 32px; padding: 4px 6px; white-space: normal; }
+    td { border: 1px solid #9fb2cf; color: #111827; font-size: 12px; height: 30px; padding: 4px 7px; vertical-align: middle; mso-number-format: "\\@"; overflow-wrap: break-word; word-break: normal; }
+    tr:nth-child(even) td { background: #f5f8fc; }
     .center { text-align: center; font-weight: 700; }
     .money { text-align: center; font-weight: 700; }
+    .phone { color: #0f5132; font-weight: 700; }
+    .text { text-align: left; white-space: normal; }
+    .nowrap { white-space: nowrap; }
   </style>
 </head>
 <body>
   <table>
     <colgroup>
-      <col style="width: 52px" />
-      <col style="width: 78px" />
-      <col style="width: 150px" />
-      <col style="width: 190px" />
-      <col style="width: 140px" />
-      <col style="width: 140px" />
-      <col style="width: 210px" />
-      <col style="width: 130px" />
-      <col style="width: 260px" />
-      <col style="width: 210px" />
-      <col style="width: 80px" />
-      <col style="width: 100px" />
-      <col style="width: 100px" />
-      <col style="width: 100px" />
-      <col style="width: 260px" />
+      ${EXCEL_COLUMNS.map((column) => `<col width="${column.width}" style="width:${column.width}px" />`).join('')}
     </colgroup>
     <tr><td class="title" colspan="15">NFC ID - Accepted Orders</td></tr>
-    <tr><td colspan="15"></td></tr>
-    <tr>
-      <th>#</th>
-      <th>Order</th>
-      <th>Date</th>
-      <th>Customer Name</th>
-      <th>Phone</th>
-      <th>Second Phone</th>
-      <th>Email</th>
-      <th>City</th>
-      <th>Address</th>
-      <th>Product</th>
-      <th>Qty</th>
-      <th>Unit Price</th>
-      <th>Line Total</th>
-      <th>Order Total</th>
-      <th>Notes</th>
-    </tr>
+    <tr><td class="subtitle" colspan="15">One row per product. Order Total is repeated for all products in the same order.</td></tr>
+    <tr>${headerCells}</tr>
     ${bodyRows || '<tr><td colspan="15" class="center">No orders found</td></tr>'}
   </table>
 </body>

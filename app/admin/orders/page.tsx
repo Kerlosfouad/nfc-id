@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { createClient } from "@/lib/supabase/client";
 import { AdminChrome } from "../_components/AdminChrome";
 import { AdminLoadingScreen, EmptyState, MetricCard, Panel } from "../_components/AdminUi";
@@ -43,6 +44,49 @@ function orderUnits(order: AdminOrder) {
   return order.items.reduce((sum, item) => sum + item.quantity, 0);
 }
 
+type RevenueRange = "7d" | "30d" | "90d" | "all";
+
+const revenueRanges: Array<{ value: RevenueRange; label: string; days: number | null }> = [
+  { value: "7d", label: "Last week", days: 7 },
+  { value: "30d", label: "Last month", days: 30 },
+  { value: "90d", label: "Last 3 months", days: 90 },
+  { value: "all", label: "All time", days: null },
+];
+
+function rangeStart(range: RevenueRange) {
+  const selected = revenueRanges.find((item) => item.value === range);
+  if (!selected?.days) return null;
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() - selected.days + 1);
+  return date;
+}
+
+function formatChartDate(dateKey: string) {
+  return new Date(`${dateKey}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function buildRevenueSeries(orders: AdminOrder[], range: RevenueRange) {
+  const start = rangeStart(range);
+  const filtered = orders.filter((order) => !start || new Date(order.createdAt) >= start);
+  const totals = new Map<string, { revenue: number; orders: number }>();
+
+  filtered.forEach((order) => {
+    const key = new Date(order.createdAt).toISOString().slice(0, 10);
+    const current = totals.get(key) ?? { revenue: 0, orders: 0 };
+    totals.set(key, { revenue: current.revenue + Number(order.total), orders: current.orders + 1 });
+  });
+
+  return Array.from(totals.entries())
+    .sort(([first], [second]) => first.localeCompare(second))
+    .map(([date, value]) => ({
+      date,
+      label: formatChartDate(date),
+      revenue: value.revenue,
+      orders: value.orders,
+    }));
+}
+
 export default function AdminOrdersPage() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
@@ -51,7 +95,8 @@ export default function AdminOrdersPage() {
   const [userId, setUserId] = useState("");
   const [error, setError] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
-  const [accepting, setAccepting] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [revenueRange, setRevenueRange] = useState<RevenueRange>("30d");
 
   useEffect(() => {
     const supabase = createClient();
@@ -95,27 +140,16 @@ export default function AdminOrdersPage() {
     URL.revokeObjectURL(url);
   }
 
-  async function deleteAllOrders() {
-    const res = await fetch("/api/v1/admin/orders?all=true&accept=true", {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}`, "x-user-id": userId },
-    });
-    if (!res.ok) throw new Error("Orders could not be cleared.");
-  }
-
-  async function acceptOrders() {
-    if (!token || !userId || orders.length === 0 || accepting) return;
-    setAccepting(true);
+  async function exportCurrentOrders() {
+    if (!token || !userId || orders.length === 0 || exporting) return;
+    setExporting(true);
     setError("");
     try {
       await exportOrders();
-      await deleteAllOrders();
-      setOrders([]);
-      setSelectedOrder(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Orders could not be accepted.");
+      setError(e instanceof Error ? e.message : "Orders could not be exported.");
     } finally {
-      setAccepting(false);
+      setExporting(false);
     }
   }
 
@@ -123,6 +157,9 @@ export default function AdminOrdersPage() {
 
   const revenue = orders.reduce((sum, order) => sum + Number(order.total), 0);
   const units = orders.reduce((sum, order) => sum + orderUnits(order), 0);
+  const revenueSeries = buildRevenueSeries(orders, revenueRange);
+  const filteredRevenue = revenueSeries.reduce((sum, point) => sum + point.revenue, 0);
+  const filteredOrders = revenueSeries.reduce((sum, point) => sum + point.orders, 0);
 
   return (
     <AdminChrome title="Orders" subtitle="Incoming shop orders, customer details, and fulfillment status.">
@@ -132,18 +169,71 @@ export default function AdminOrdersPage() {
         <MetricCard label="Revenue" value={revenue} formatter={money} icon="ri-money-dollar-circle-line" hint="Before shipping collection" />
       </div>
 
+      <section className="mt-5 rounded-xl border border-[#2c2c2c] bg-white/[0.03] p-5 backdrop-blur-md">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-white/35">Revenue chart</p>
+            <p className="mt-2 text-3xl font-bold">{money(filteredRevenue)}</p>
+            <p className="mt-1 text-xs text-white/40">{filteredOrders} orders in selected range</p>
+          </div>
+          <label className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/30 px-3 py-2 text-xs font-semibold text-white/70">
+            <i className="ri-calendar-line text-[#03A9F4]" />
+            <select
+              value={revenueRange}
+              onChange={(event) => setRevenueRange(event.target.value as RevenueRange)}
+              className="bg-transparent text-white outline-none"
+              aria-label="Revenue range"
+            >
+              {revenueRanges.map((range) => (
+                <option key={range.value} value={range.value} className="bg-[#0f0f0f] text-white">
+                  {range.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="mt-5 h-64 sm:h-72">
+          {revenueSeries.length === 0 ? (
+            <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-white/10 bg-black/20 text-sm text-white/40">
+              No revenue in this range.
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={revenueSeries} margin={{ top: 10, right: 8, left: -18, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="revenueFill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor="#03A9F4" stopOpacity={0.38} />
+                    <stop offset="100%" stopColor="#03A9F4" stopOpacity={0.03} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
+                <XAxis dataKey="label" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(value) => `${Number(value) / 1000}k`} />
+                <Tooltip
+                  cursor={{ stroke: "#03A9F4", strokeOpacity: 0.35 }}
+                  contentStyle={{ background: "#0f0f0f", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "#fff" }}
+                  formatter={(value, name) => [name === "revenue" ? money(Number(value)) : value, name === "revenue" ? "Revenue" : "Orders"]}
+                  labelFormatter={(_, payload) => payload?.[0]?.payload?.date ?? ""}
+                />
+                <Area type="monotone" dataKey="revenue" stroke="#03A9F4" strokeWidth={3} fill="url(#revenueFill)" activeDot={{ r: 5, fill: "#03A9F4", stroke: "#fff", strokeWidth: 2 }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </section>
+
       <div className="mt-5">
         <Panel
           title="Orders"
           action={
             <button
               type="button"
-              onClick={acceptOrders}
-              disabled={orders.length === 0 || accepting}
+              onClick={exportCurrentOrders}
+              disabled={orders.length === 0 || exporting}
               className="inline-flex h-10 items-center gap-2 rounded-full bg-[#03A9F4] px-5 text-xs font-bold uppercase tracking-wider text-white transition-all hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <i className={accepting ? "ri-loader-4-line animate-spin text-base" : "ri-check-line text-base"} />
-              {accepting ? "Accepting..." : "Accept"}
+              <i className={exporting ? "ri-loader-4-line animate-spin text-base" : "ri-download-2-line text-base"} />
+              {exporting ? "Exporting..." : "Export XLS"}
             </button>
           }
         >

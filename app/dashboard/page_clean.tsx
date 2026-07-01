@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState, useRef } from "react";
 import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { isOwnerEmail } from "@/lib/config/ownerAccess";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ProfileView from "@/components/profile/ProfileView";
@@ -2516,6 +2517,10 @@ export default function DashboardPage() {
   useEffect(() => {
     createClient().auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.push("/login"); return; }
+      if (isOwnerEmail(session.user.email)) {
+        router.replace("/admin");
+        return;
+      }
       const tok = session.access_token;
       const uid = session.user.id;
       setToken(tok); setUid(uid); setEmail(session.user.email ?? "");
