@@ -40,7 +40,7 @@ export default function AdminTagsPage() {
   const [error, setError] = useState<string | null>(null);
   const [pendingStates, setPendingStates] = useState<Record<string, TagState>>({});
   const [saving, setSaving] = useState<Record<string, boolean>>({});
-  const [generateQuantity, setGenerateQuantity] = useState(1);
+  const [generateQuantity, setGenerateQuantity] = useState("1");
   const [generating, setGenerating] = useState(false);
   const [generatedIds, setGeneratedIds] = useState<string[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -134,6 +134,7 @@ export default function AdminTagsPage() {
 
   async function generateTags() {
     if (!authToken) return;
+    const quantity = Math.max(1, Math.min(10000, Number(generateQuantity) || 1));
     setGenerating(true);
     try {
       const res = await fetch("/api/v1/admin/tags/batch", {
@@ -143,7 +144,7 @@ export default function AdminTagsPage() {
           Authorization: `Bearer ${authToken}`,
           "x-user-id": userId ?? "",
         },
-        body: JSON.stringify({ quantity: generateQuantity }),
+        body: JSON.stringify({ quantity }),
       });
       if (!res.ok) {
         const json = await res.json().catch(() => null);
@@ -153,6 +154,7 @@ export default function AdminTagsPage() {
       const ids = csv.split(/\r?\n/).slice(1).map((id) => id.trim()).filter(Boolean);
       setGeneratedIds(ids);
       setUsedIds(new Set());
+      setGenerateQuantity(String(quantity));
       showToast(`Generated ${ids.length} NFC code${ids.length === 1 ? "" : "s"}`);
       await searchTags();
     } catch (e: unknown) {
@@ -213,7 +215,7 @@ export default function AdminTagsPage() {
       <Panel title="NFC">
         <div className="mb-5 flex items-center gap-4 rounded-xl border border-[#03A9F4]/20 bg-[#03A9F4]/10 p-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[#03A9F4]/25 bg-black/25 text-[#03A9F4]">
-            <i className="ri-nfc-line text-3xl" />
+            <i className="ri-qr-scan-2-line text-3xl" />
           </div>
           <div className="min-w-0">
             <h2 className="text-base font-bold text-white">NFC medal codes</h2>
@@ -228,7 +230,8 @@ export default function AdminTagsPage() {
               min={1}
               max={10000}
               value={generateQuantity}
-              onChange={(e) => setGenerateQuantity(Math.max(1, Math.min(10000, Number(e.target.value) || 1)))}
+              onChange={(e) => setGenerateQuantity(e.target.value.replace(/[^\d]/g, ""))}
+              onBlur={() => setGenerateQuantity((value) => String(Math.max(1, Math.min(10000, Number(value) || 1))))}
               className="custom-input"
             />
           </div>
@@ -301,7 +304,7 @@ export default function AdminTagsPage() {
         <Panel title="Database Tags">
           {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
           {tags.length === 0 ? (
-            <EmptyState icon="ri-nfc-line" title="No database tags found" body="Only NFC tags saved in the database appear here." />
+            <EmptyState icon="ri-qr-scan-2-line" title="No database tags found" body="Only NFC tags saved in the database appear here." />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[820px] text-sm">

@@ -121,6 +121,21 @@ export default function AdminCustomersPage() {
     }
   }
 
+  async function exportCustomersExcel() {
+    if (!authToken) return;
+    const res = await fetch("/api/v1/admin/customers?format=xls", {
+      headers: { Authorization: `Bearer ${authToken}`, "x-user-id": userId ?? "" },
+    });
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `nfc-id-customers-${new Date().toISOString().slice(0, 10)}.xls`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (checking) return <AdminLoadingScreen />;
 
   const normalizedSearch = searchQuery.trim().toLowerCase();
@@ -137,7 +152,7 @@ export default function AdminCustomersPage() {
   return (
     <AdminChrome title="Customers" subtitle="Registered users, owned medals, and public profile counts.">
       <Panel title="Customer Directory">
-        <div className="mb-5 grid gap-3 md:grid-cols-[1fr_auto]">
+        <div className="mb-5 grid gap-3 lg:grid-cols-[1fr_auto_auto]">
           <div>
             <label className="mb-2 block text-xs uppercase tracking-widest text-white/35">Search customer or medal</label>
             <input
@@ -156,6 +171,14 @@ export default function AdminCustomersPage() {
               Clear
             </button>
           )}
+          <button
+            type="button"
+            onClick={exportCustomersExcel}
+            className="self-end rounded-lg bg-[#03A9F4] px-4 py-3 text-sm font-bold text-white hover:bg-[#03A9F4]/85"
+          >
+            <i className="ri-file-excel-2-line mr-2" />
+            Export Excel
+          </button>
         </div>
 
         {customers.length === 0 ? (

@@ -11,7 +11,7 @@ const navItems = [
   { href: "/admin/customers", icon: "ri-user-smile-line", label: "Customers" },
   { href: "/admin/products", icon: "ri-shopping-bag-3-line", label: "Products" },
   { href: "/admin/orders", icon: "ri-archive-stack-line", label: "Orders" },
-  { href: "/admin/tags", icon: "ri-nfc-line", label: "NFC" },
+  { href: "/admin/tags", icon: "ri-qr-scan-2-line", label: "NFC" },
   { href: "/admin/moderation", icon: "ri-shield-check-line", label: "Moderation" },
 ];
 
