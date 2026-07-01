@@ -2389,28 +2389,41 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
 
 function SystemToast({ toasts }: { toasts: ToastItem[] }) {
   return (
-    <div className="pointer-events-none fixed left-0 right-0 top-[52px] z-[100] flex flex-col items-center gap-2 px-4 sm:top-5">
+    <div className="pointer-events-none fixed left-0 right-0 top-[58px] z-[100] flex flex-col items-center gap-2 px-4 sm:top-5">
       {toasts.map((toast, index) => (
         <div
           key={toast.id}
           className={
-            "flex min-h-10 w-full max-w-[330px] items-center gap-2.5 rounded-xl border px-3 py-2 text-[13px] font-medium shadow-[0_14px_36px_rgba(0,0,0,0.22)] transition-all duration-300 ease-out sm:max-w-[380px] sm:text-sm " +
+            "flex min-h-10 w-fit max-w-[calc(100vw-32px)] items-center justify-center gap-2.5 rounded-full border px-4 py-2.5 text-center text-[13px] font-semibold text-white shadow-[0_10px_22px_rgba(3,169,244,0.28)] transition-all duration-300 ease-out sm:max-w-[420px] sm:text-sm " +
             (toast.visible ? "translate-y-0 scale-100 opacity-100" : "-translate-y-4 scale-[0.98] opacity-0") +
             (index > 0 ? " -mt-1 scale-[0.98]" : "") +
             (toast.ok
-              ? " border-white/80 bg-white text-[#20252b]"
-              : " border-red-100 bg-white text-[#20252b]")
+              ? " border-[#35c7ff]/40 bg-[#03A9F4]"
+              : " border-red-300/30 bg-red-500")
           }
         >
           <span
             className={
-              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-lg " +
-              (toast.ok ? "bg-[#55D84A] text-white" : "bg-red-500 text-white")
+              "flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-white"
             }
           >
-            <i className={toast.ok ? "ri-check-line" : "ri-error-warning-line"} />
+            {toast.ok ? (
+              <svg className="h-4 w-4" viewBox="0 0 20 20" aria-hidden="true">
+                <path
+                  className={toast.visible ? "toast-check-path" : ""}
+                  d="M4.2 10.4 8.1 14.1 15.8 5.9"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.4"
+                />
+              </svg>
+            ) : (
+              <i className="ri-error-warning-line text-base" />
+            )}
           </span>
-          <span className="min-w-0 flex-1 leading-snug">{toast.msg}</span>
+          <span className="min-w-0 leading-snug">{toast.msg}</span>
         </div>
       ))}
     </div>
@@ -2702,9 +2715,7 @@ export default function DashboardPage() {
       <main className="flex-1 overflow-hidden flex flex-col min-w-0">
         {/* Mobile top bar */}
         <div className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-[#0f0f0f] flex-shrink-0">
-          <button type="button" onClick={() => setSidebarOpen(true)} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/70 hover:text-white" aria-label="Open dashboard navigation" aria-expanded={sidebarOpen}>
-            <i className="ri-menu-line text-xl" />
-          </button>
+          <span className="h-10 w-10" aria-hidden="true" />
           <Link href="/" className="flex items-center gap-0">
             <img src="/img/logo.png" alt="NFC ID" className="h-8 w-8 object-contain" />
             <span className="hidden font-bold text-sm">NFC<span className="text-[#03A9F4]">·ID</span></span>

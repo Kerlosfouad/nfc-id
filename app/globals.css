@@ -431,6 +431,17 @@ a {
 .animate-pulse-slow  { animation: pulse-slow  6s ease-in-out infinite; }
 .animate-pulse-slow2 { animation: pulse-slow2 8s ease-in-out infinite; }
 
+@keyframes toastCheckDraw {
+  from { stroke-dashoffset: 22; }
+  to { stroke-dashoffset: 0; }
+}
+
+.toast-check-path {
+  stroke-dasharray: 22;
+  stroke-dashoffset: 22;
+  animation: toastCheckDraw 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.08s forwards;
+}
+
 /* ===== Product Section Badge Animations ===== */
 @keyframes float-left {
   0%, 100% { transform: translateX(0px) translateY(0px); }
