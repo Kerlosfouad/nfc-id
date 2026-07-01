@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/middleware/adminCheck';
-import { acceptAllOrders, deleteAllOrders, deleteOrder, listOrders, ordersToCsv } from '@/lib/services/orders';
+import { acceptAllOrders, deleteAllOrders, deleteOrder, listOrders, ordersToCsv, ordersToExcel } from '@/lib/services/orders';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const authResult = await requireAdmin(request);
@@ -14,6 +14,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
         'Content-Disposition': 'attachment; filename="nfc-id-orders.csv"',
+      },
+    });
+  }
+
+  if (request.nextUrl.searchParams.get('format') === 'xls') {
+    const html = ordersToExcel(orders);
+    return new NextResponse(`\uFEFF${html}`, {
+      headers: {
+        'Content-Type': 'application/vnd.ms-excel; charset=utf-8',
+        'Content-Disposition': `attachment; filename="nfc-id-accepted-orders-${new Date().toISOString().slice(0, 10)}.xls"`,
       },
     });
   }

@@ -47,7 +47,7 @@ function ProductCard({ product, onAdd, onBuyNow }: { product: ShopProduct; onAdd
         <img
           src={product.imageUrl}
           alt={product.name}
-          className="h-full w-full scale-105 object-cover transition-transform duration-500 group-hover:scale-110"
+          className="h-full w-full object-contain p-4 transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-[#03A9F4]/30 bg-black/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#03A9F4] backdrop-blur-md">
           <i className="ri-archive-stack-line" />

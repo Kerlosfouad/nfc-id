@@ -80,7 +80,7 @@ export default function AdminOrdersPage() {
   }, [router]);
 
   async function exportOrders() {
-    const res = await fetch("/api/v1/admin/orders?format=csv", {
+    const res = await fetch("/api/v1/admin/orders?format=xls", {
       headers: { Authorization: `Bearer ${token}`, "x-user-id": userId },
     });
     if (!res.ok) throw new Error("Export failed.");
@@ -88,7 +88,7 @@ export default function AdminOrdersPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `nfc-id-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `nfc-id-accepted-orders-${new Date().toISOString().slice(0, 10)}.xls`;
     document.body.appendChild(link);
     link.click();
     link.remove();

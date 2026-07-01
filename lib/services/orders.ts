@@ -265,6 +265,14 @@ function csvCell(value: unknown) {
   return `"${text.replace(/"/g, '""')}"`;
 }
 
+function htmlCell(value: unknown) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 export function ordersToCsv(orders: AdminOrder[]) {
   const header = [
     'Order Number',
@@ -307,4 +315,122 @@ export function ordersToCsv(orders: AdminOrder[]) {
     order.notes,
   ]);
   return [header, ...rows].map((row) => row.map(csvCell).join(',')).join('\n');
+}
+
+export function ordersToExcel(orders: AdminOrder[]) {
+  const rows = orders.flatMap((order) =>
+    order.items.length
+      ? order.items.map((item, itemIndex) => ({
+          index: `${order.orderNumber}.${itemIndex + 1}`,
+          orderNumber: order.orderNumber,
+          date: order.createdAt.toLocaleString(),
+          customer: order.customerName,
+          phone: order.phone,
+          secondaryPhone: order.secondaryPhone ?? '',
+          email: order.email ?? '',
+          city: order.city,
+          address: `${order.address} - ${order.apartment}`,
+          product: item.productName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          lineTotal: item.lineTotal,
+          total: order.total,
+          notes: order.notes ?? '',
+        }))
+      : [{
+          index: String(order.orderNumber),
+          orderNumber: order.orderNumber,
+          date: order.createdAt.toLocaleString(),
+          customer: order.customerName,
+          phone: order.phone,
+          secondaryPhone: order.secondaryPhone ?? '',
+          email: order.email ?? '',
+          city: order.city,
+          address: `${order.address} - ${order.apartment}`,
+          product: '',
+          quantity: 0,
+          unitPrice: 0,
+          lineTotal: 0,
+          total: order.total,
+          notes: order.notes ?? '',
+        }],
+  );
+
+  const bodyRows = rows.map((row) => `
+    <tr>
+      <td class="center">${htmlCell(row.index)}</td>
+      <td class="center">${htmlCell(row.orderNumber)}</td>
+      <td>${htmlCell(row.date)}</td>
+      <td>${htmlCell(row.customer)}</td>
+      <td>${htmlCell(row.phone)}</td>
+      <td>${htmlCell(row.secondaryPhone)}</td>
+      <td>${htmlCell(row.email)}</td>
+      <td>${htmlCell(row.city)}</td>
+      <td>${htmlCell(row.address)}</td>
+      <td>${htmlCell(row.product)}</td>
+      <td class="center">${htmlCell(row.quantity)}</td>
+      <td class="money">${htmlCell(row.unitPrice)}</td>
+      <td class="money">${htmlCell(row.lineTotal)}</td>
+      <td class="money">${htmlCell(row.total)}</td>
+      <td>${htmlCell(row.notes)}</td>
+    </tr>
+  `).join('');
+
+  return `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body { font-family: Arial, sans-serif; }
+    table { border-collapse: collapse; width: 100%; }
+    .title { background: #173966; color: #fff; font-size: 22px; font-weight: 700; text-align: center; height: 34px; }
+    th { background: #2f5597; color: #fff; font-size: 14px; font-weight: 700; text-align: center; border: 1px solid #173966; height: 28px; }
+    td { border: 1px solid #173966; font-size: 12px; height: 24px; padding: 4px 6px; vertical-align: middle; mso-number-format: "\\@"; }
+    tr:nth-child(even) td { background: #f2f5fa; }
+    .center { text-align: center; font-weight: 700; }
+    .money { text-align: center; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <table>
+    <colgroup>
+      <col style="width: 52px" />
+      <col style="width: 78px" />
+      <col style="width: 150px" />
+      <col style="width: 190px" />
+      <col style="width: 140px" />
+      <col style="width: 140px" />
+      <col style="width: 210px" />
+      <col style="width: 130px" />
+      <col style="width: 260px" />
+      <col style="width: 210px" />
+      <col style="width: 80px" />
+      <col style="width: 100px" />
+      <col style="width: 100px" />
+      <col style="width: 100px" />
+      <col style="width: 260px" />
+    </colgroup>
+    <tr><td class="title" colspan="15">NFC ID - Accepted Orders</td></tr>
+    <tr><td colspan="15"></td></tr>
+    <tr>
+      <th>#</th>
+      <th>Order</th>
+      <th>Date</th>
+      <th>Customer Name</th>
+      <th>Phone</th>
+      <th>Second Phone</th>
+      <th>Email</th>
+      <th>City</th>
+      <th>Address</th>
+      <th>Product</th>
+      <th>Qty</th>
+      <th>Unit Price</th>
+      <th>Line Total</th>
+      <th>Order Total</th>
+      <th>Notes</th>
+    </tr>
+    ${bodyRows || '<tr><td colspan="15" class="center">No orders found</td></tr>'}
+  </table>
+</body>
+</html>`;
 }
