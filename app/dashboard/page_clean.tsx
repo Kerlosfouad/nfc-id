@@ -2389,12 +2389,12 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
 
 function SystemToast({ toasts }: { toasts: ToastItem[] }) {
   return (
-    <div className="pointer-events-none fixed left-0 right-0 top-[58px] z-[100] flex flex-col items-center gap-2 px-4 sm:top-5">
+    <div className="pointer-events-none fixed left-0 right-0 top-[46px] z-[100] flex flex-col items-center gap-2 px-4 sm:top-5">
       {toasts.map((toast, index) => (
         <div
           key={toast.id}
           className={
-            "flex min-h-10 w-fit max-w-[calc(100vw-32px)] items-center justify-center gap-2.5 rounded-full border px-4 py-2.5 text-center text-[13px] font-semibold text-white shadow-[0_10px_22px_rgba(3,169,244,0.28)] transition-all duration-300 ease-out sm:max-w-[420px] sm:text-sm " +
+            "flex min-h-10 w-fit max-w-[calc(100vw-32px)] items-center justify-center gap-2.5 rounded-none border px-4 py-2.5 text-center text-[13px] font-semibold text-white shadow-[0_10px_22px_rgba(3,169,244,0.28)] transition-all duration-300 ease-out sm:max-w-[420px] sm:text-sm " +
             (toast.visible ? "translate-y-0 scale-100 opacity-100" : "-translate-y-4 scale-[0.98] opacity-0") +
             (index > 0 ? " -mt-1 scale-[0.98]" : "") +
             (toast.ok
@@ -2715,7 +2715,6 @@ export default function DashboardPage() {
       <main className="flex-1 overflow-hidden flex flex-col min-w-0">
         {/* Mobile top bar */}
         <div className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-[#0f0f0f] flex-shrink-0">
-          <span className="h-10 w-10" aria-hidden="true" />
           <Link href="/" className="flex items-center gap-0">
             <img src="/img/logo.png" alt="NFC ID" className="h-8 w-8 object-contain" />
             <span className="hidden font-bold text-sm">NFC<span className="text-[#03A9F4]">·ID</span></span>
