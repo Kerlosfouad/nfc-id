@@ -34,15 +34,7 @@ function LoginContent() {
     if (callbackError === "auth_callback_failed") {
       setError("Sign in could not be completed. Please try again.");
     }
-
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user && redirectTo.startsWith("/claim/")) {
-        supabase.auth.signOut();
-        return;
-      }
-      if (data.user) router.replace(resolveRedirect(data.user.email));
-    });
-  }, [callbackError, redirectTo, resolveRedirect, router, supabase]);
+  }, [callbackError]);
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
