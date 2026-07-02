@@ -43,6 +43,24 @@ const NFC_URI_PREFIXES: Record<number, string> = {
   0x04: "https://",
 };
 
+const RESERVED_PUBLIC_PATHS = new Set([
+  "admin",
+  "api",
+  "auth",
+  "checkout",
+  "claim",
+  "connect-nfc",
+  "dashboard",
+  "login",
+  "privacy",
+  "profile",
+  "scan",
+  "shop",
+  "signup",
+  "suspended",
+  "terms",
+]);
+
 declare global {
   interface Window {
     NDEFReader?: NDEFReaderConstructor;
@@ -107,19 +125,29 @@ export default function ConnectNfcPage() {
   const scanStartedRef = useRef(false);
 
   const extractPublicIdFromText = useCallback((value: string) => {
-    const trimmed = value.trim();
+    const trimmed = value.replace(/[\u0000-\u001f]+/g, " ").trim();
     if (!trimmed) return "";
+
+    const directRouteMatch = trimmed.match(/(?:^|[^\w-])(?:claim|scan)\/([a-zA-Z0-9_-]{3,128})(?:[^\w-]|$)/);
+    if (directRouteMatch?.[1]) return directRouteMatch[1];
+
+    const embeddedUrl = trimmed.match(/https?:\/\/[^\s"'<>]+/i)?.[0];
+    if (embeddedUrl && embeddedUrl !== trimmed) {
+      const publicId = extractPublicIdFromText(embeddedUrl);
+      if (publicId) return publicId;
+    }
 
     try {
       const url = new URL(trimmed, window.location.origin);
       const parts = url.pathname.split("/").filter(Boolean);
       if (parts[0] === "claim" && parts[1]) return parts[1];
       if (parts[0] === "scan" && parts[1]) return parts[1];
-      if (parts[0] && !["admin", "api", "auth", "checkout", "connect-nfc", "dashboard", "login", "profile", "shop", "signup", "terms"].includes(parts[0])) {
+      if (parts[0] && !RESERVED_PUBLIC_PATHS.has(parts[0].toLowerCase())) {
         return parts[0];
       }
     } catch {
-      return trimmed.match(/(?:claim|scan)\/([a-zA-Z0-9_-]+)/)?.[1] ?? "";
+      const looseCode = trimmed.match(/\b([a-zA-Z0-9][a-zA-Z0-9_-]{2,127})\b/)?.[1] ?? "";
+      return looseCode && !RESERVED_PUBLIC_PATHS.has(looseCode.toLowerCase()) ? looseCode : "";
     }
 
     return "";
@@ -137,7 +165,11 @@ export default function ConnectNfcPage() {
       const candidates =
         record.recordType === "url"
           ? [uriValue, raw, raw.replace(/^[\u0000-\u001f]+/, "")]
-          : [raw, raw.replace(/^[a-z]{2}/i, "")];
+          : [
+              raw,
+              new TextDecoder().decode(bytes.slice(1)),
+              new TextDecoder().decode(bytes.slice(3)),
+            ];
 
       for (const candidate of candidates) {
         const publicId = extractPublicIdFromText(candidate);
@@ -162,6 +194,15 @@ export default function ConnectNfcPage() {
 
   const linkCard = useCallback(async ({ uid, publicId }: { uid?: string; publicId?: string }) => {
     if (!token) return;
+    const normalizedUid = uid?.trim();
+    const normalizedPublicId = publicId?.trim();
+    if (!normalizedUid && !normalizedPublicId) {
+      scanStartedRef.current = false;
+      setStatus("error");
+      setError("The card was detected, but Chrome did not expose a readable UID or LinkUp link. Tap Try Again and hold the card still.");
+      return;
+    }
+
     setStatus("connecting");
     setError("");
 
@@ -171,7 +212,10 @@ export default function ConnectNfcPage() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ uid, publicId }),
+      body: JSON.stringify({
+        ...(normalizedUid ? { uid: normalizedUid } : {}),
+        ...(normalizedPublicId ? { publicId: normalizedPublicId } : {}),
+      }),
     });
     const body = await response.json();
 
