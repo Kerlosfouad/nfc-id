@@ -11,7 +11,7 @@
  */
 
 import { db } from '../db';
-import { get, set, profileCacheKey, PROFILE_TTL } from '../services/cacheService';
+import { get, set, del, profileCacheKey, PROFILE_TTL } from '../services/cacheService';
 import type { Profile, Link } from '../domain/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -56,6 +56,16 @@ export async function getProfileWithLinks(
   // ── 1. Cache lookup ─────────────────────────────────────────────────────────
   const cached = await get<ProfileWithLinks>(cacheKey);
   if (cached) {
+    const stillExists = await db.profile.findUnique({
+      where: { publicId },
+      select: { id: true },
+    });
+
+    if (!stillExists) {
+      void del(cacheKey);
+      return null;
+    }
+
     // Rehydrate Date fields that JSON serialization converts to strings
     return rehydrateDates(cached);
   }

@@ -26,6 +26,8 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
 
   const profile = await getProfileWithLinks(publicId);
 
+  const freeMedalRedirect = `/login?redirect=${encodeURIComponent('/connect-nfc')}`;
+
   if (profile && query.preview === 'true') {
     if (typeof query.style === 'string') profile.theme.style = query.style as ProfileTheme['style'];
     if (typeof query.linksLayout === 'string') profile.theme.linksLayout = query.linksLayout as ProfileTheme['linksLayout'];
@@ -38,8 +40,8 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
       select: { publicId: true },
     });
 
-    if (tag) redirect(`/${publicId}`);
-    return <SuspensionPage />;
+    if (tag) redirect(freeMedalRedirect);
+    redirect(freeMedalRedirect);
   }
 
   if (profile.isSuspended) {
