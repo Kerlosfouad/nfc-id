@@ -1,6 +1,6 @@
 "use client";
 import { Suspense } from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -18,18 +18,9 @@ function SignupContent() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") ?? "/connect-nfc";
+  const redirectParam = searchParams.get("redirect");
+  const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/connect-nfc";
   const supabase = createClient();
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user && redirectTo.startsWith("/claim/")) {
-        supabase.auth.signOut();
-        return;
-      }
-      if (data.user) router.replace(redirectTo);
-    });
-  }, []);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
