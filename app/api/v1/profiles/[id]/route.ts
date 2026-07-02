@@ -171,7 +171,14 @@ export async function DELETE(
 
   await db.$transaction(async (tx) => {
     await tx.nfcTag.deleteMany({
-      where: { profileId: id, userId },
+      where: {
+        userId,
+        OR: [
+          { profileId: id },
+          { profileId: null },
+          { uid: `PUBLIC:${existing.publicId}` },
+        ],
+      },
     });
     await tx.profile.delete({ where: { id } });
     await tx.tag.updateMany({
