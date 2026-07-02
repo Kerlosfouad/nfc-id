@@ -26,7 +26,7 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
 
   const profile = await getProfileWithLinks(publicId);
 
-  const freeMedalRedirect = `/login?redirect=${encodeURIComponent('/connect-nfc')}`;
+  const freeMedalRedirect = `/signup?redirect=${encodeURIComponent('/connect-nfc')}`;
 
   if (profile && query.preview === 'true') {
     if (typeof query.style === 'string') profile.theme.style = query.style as ProfileTheme['style'];
