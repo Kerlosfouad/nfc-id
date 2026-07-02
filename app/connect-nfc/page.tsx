@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -19,6 +19,12 @@ type NfcStatus =
 
 type NDEFReadingEventWithSerial = Event & {
   serialNumber?: string;
+  message?: {
+    records?: Array<{
+      recordType?: string;
+      data?: DataView;
+    }>;
+  };
 };
 
 type NDEFReaderConstructor = new () => {
@@ -28,6 +34,13 @@ type NDEFReaderConstructor = new () => {
     listener: EventListenerOrEventListenerObject,
     options?: AddEventListenerOptions,
   ) => void;
+};
+
+const NFC_URI_PREFIXES: Record<number, string> = {
+  0x01: "http://www.",
+  0x02: "https://www.",
+  0x03: "http://",
+  0x04: "https://",
 };
 
 declare global {
@@ -91,6 +104,49 @@ export default function ConnectNfcPage() {
   const [error, setError] = useState("");
   const [profileHref, setProfileHref] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const scanStartedRef = useRef(false);
+
+  const extractPublicIdFromText = useCallback((value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+
+    try {
+      const url = new URL(trimmed, window.location.origin);
+      const parts = url.pathname.split("/").filter(Boolean);
+      if (parts[0] === "claim" && parts[1]) return parts[1];
+      if (parts[0] === "scan" && parts[1]) return parts[1];
+      if (parts[0] && !["admin", "api", "auth", "checkout", "connect-nfc", "dashboard", "login", "profile", "shop", "signup", "terms"].includes(parts[0])) {
+        return parts[0];
+      }
+    } catch {
+      return trimmed.match(/(?:claim|scan)\/([a-zA-Z0-9_-]+)/)?.[1] ?? "";
+    }
+
+    return "";
+  }, []);
+
+  const extractPublicIdFromEvent = useCallback((event: NDEFReadingEventWithSerial) => {
+    const records = event.message?.records ?? [];
+    for (const record of records) {
+      if (!record.data) continue;
+
+      const bytes = new Uint8Array(record.data.buffer, record.data.byteOffset, record.data.byteLength);
+      const raw = new TextDecoder().decode(bytes);
+      const uriPrefix = record.recordType === "url" ? NFC_URI_PREFIXES[bytes[0]] ?? "" : "";
+      const uriValue = record.recordType === "url" && uriPrefix ? `${uriPrefix}${new TextDecoder().decode(bytes.slice(1))}` : raw;
+      const candidates =
+        record.recordType === "url"
+          ? [uriValue, raw, raw.replace(/^[\u0000-\u001f]+/, "")]
+          : [raw, raw.replace(/^[a-z]{2}/i, "")];
+
+      for (const candidate of candidates) {
+        const publicId = extractPublicIdFromText(candidate);
+        if (publicId) return publicId;
+      }
+    }
+
+    return "";
+  }, [extractPublicIdFromText]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -104,7 +160,7 @@ export default function ConnectNfcPage() {
     });
   }, [router, supabase]);
 
-  async function linkUid(uid: string) {
+  const linkCard = useCallback(async ({ uid, publicId }: { uid?: string; publicId?: string }) => {
     if (!token) return;
     setStatus("connecting");
     setError("");
@@ -115,7 +171,7 @@ export default function ConnectNfcPage() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ uid }),
+      body: JSON.stringify({ uid, publicId }),
     });
     const body = await response.json();
 
@@ -129,13 +185,15 @@ export default function ConnectNfcPage() {
     setProfileHref(href);
     setStatus(body.data.status === "already-linked" ? "already-linked" : "success");
     window.setTimeout(() => router.push("/dashboard"), 1800);
-  }
+  }, [router, token]);
 
-  async function startScan() {
+  const startScan = useCallback(async () => {
     if (!window.NDEFReader) {
       setStatus("unsupported");
       return;
     }
+    if (scanStartedRef.current) return;
+    scanStartedRef.current = true;
 
     try {
       setStatus("waiting");
@@ -148,13 +206,16 @@ export default function ConnectNfcPage() {
         (event) => {
           setStatus("reading");
           controller.abort();
-          const uid = (event as NDEFReadingEventWithSerial).serialNumber;
-          if (!uid) {
+          const readingEvent = event as NDEFReadingEventWithSerial;
+          const uid = readingEvent.serialNumber;
+          const publicId = extractPublicIdFromEvent(readingEvent);
+          if (!uid && !publicId) {
+            scanStartedRef.current = false;
             setStatus("error");
-            setError("Your browser detected the medal, but did not expose a hardware serial number.");
+            setError("The card was detected, but Chrome could not read its UID or saved LinkUp URL.");
             return;
           }
-          void linkUid(uid);
+          void linkCard({ uid, publicId });
         },
         { once: true },
       );
@@ -162,6 +223,7 @@ export default function ConnectNfcPage() {
       reader.addEventListener(
         "readingerror",
         () => {
+          scanStartedRef.current = false;
           setStatus("error");
           setError("The medal was detected but could not be read. Try holding it still for a moment.");
         },
@@ -171,10 +233,17 @@ export default function ConnectNfcPage() {
       await reader.scan({ signal: controller.signal });
     } catch (scanError) {
       if (scanError instanceof DOMException && scanError.name === "AbortError") return;
+      scanStartedRef.current = false;
       setStatus("error");
-      setError(scanError instanceof Error ? scanError.message : "NFC permission was not granted.");
+      setError(scanError instanceof Error ? scanError.message : "Tap Start Scan, allow NFC access, then hold the card still.");
     }
-  }
+  }, [extractPublicIdFromEvent, linkCard]);
+
+  useEffect(() => {
+    if (status === "ready" && token) {
+      void startScan();
+    }
+  }, [startScan, status, token]);
 
   const copy = statusCopy[status];
   const isBusy = ["checking-auth", "waiting", "reading", "connecting"].includes(status);
@@ -189,7 +258,9 @@ export default function ConnectNfcPage() {
           ? "Already Linked"
           : status === "error"
             ? "Try Again"
-            : isBusy
+            : status === "waiting"
+              ? "Ready to Scan"
+              : isBusy
               ? copy.title
               : "Ready to Scan";
   const statusBody =
@@ -200,10 +271,11 @@ export default function ConnectNfcPage() {
         : copy.body;
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#02080c] text-white">
+    <main className="min-h-[100svh] overflow-hidden bg-[#02080c] text-white">
       <style>{`
         .connect-shell {
           position: relative;
+          min-height: 100svh;
           background:
             radial-gradient(circle at 50% 44%, rgba(3, 169, 244, 0.22), transparent 24rem),
             radial-gradient(circle at 50% -8%, rgba(3, 169, 244, 0.08), transparent 18rem),
@@ -277,6 +349,24 @@ export default function ConnectNfcPage() {
             conic-gradient(#4ade80 0 360deg);
         }
 
+        @media (max-width: 767px) {
+          .connect-shell {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding-top: max(14px, env(safe-area-inset-top));
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+          }
+
+          .connect-reference-artwork {
+            inset: -9% -10% -5%;
+          }
+
+          .connect-status {
+            grid-template-columns: 42px 1fr 38px;
+          }
+        }
+
         @keyframes connectProgressSpin {
           to { transform: rotate(360deg); }
         }
@@ -293,30 +383,30 @@ export default function ConnectNfcPage() {
           }
         }
       `}</style>
-      <div className="connect-shell mx-auto min-h-screen w-full max-w-6xl px-5 py-8 [font-family:Inter,system-ui,sans-serif] sm:px-8 lg:flex lg:flex-col lg:justify-center lg:py-12">
-        <header className="mb-10 flex items-center justify-center lg:mb-14">
+      <div className="connect-shell mx-auto w-full max-w-6xl px-5 py-8 [font-family:Inter,system-ui,sans-serif] sm:px-8 lg:flex lg:min-h-screen lg:flex-col lg:justify-center lg:py-12">
+        <header className="mb-5 flex items-center justify-center sm:mb-8 lg:mb-14">
           <Link href="/" className="flex w-fit items-center justify-center">
-            <Image src="/assets/linkup/linkup-logo-compact.png" alt="LinkUp" width={260} height={304} className="h-auto w-[126px] lg:w-[148px]" priority />
+            <Image src="/assets/linkup/linkup-logo-compact.png" alt="LinkUp" width={260} height={304} className="h-auto w-[94px] sm:w-[126px] lg:w-[148px]" priority />
           </Link>
         </header>
 
-        <div className="connect-layout mx-auto grid w-full max-w-[430px] items-center gap-7 lg:max-w-none lg:grid-cols-[0.9fr_1.1fr] lg:gap-x-12 lg:gap-y-8">
+        <div className="connect-layout mx-auto grid w-full max-w-[430px] flex-1 items-center gap-4 sm:gap-7 lg:max-w-none lg:grid-cols-[0.9fr_1.1fr] lg:gap-x-12 lg:gap-y-8">
           <section className="text-center lg:text-left">
-            <div className="inline-flex rounded-[13px] border border-[#03A9F4]/35 bg-[#03A9F4]/5 px-6 py-2 text-[13px] font-bold uppercase tracking-[0.08em] text-[#03A9F4]">
+            <div className="inline-flex rounded-[13px] border border-[#03A9F4]/35 bg-[#03A9F4]/5 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#03A9F4] sm:px-6 sm:py-2 sm:text-[13px]">
               Connect your card
             </div>
 
-            <h1 className="mt-8 text-[40px] font-black leading-[1.12] tracking-[-0.02em] text-white sm:text-[46px] lg:text-[64px]">
+            <h1 className="mt-4 text-[31px] font-black leading-[1.08] tracking-[-0.02em] text-white sm:mt-8 sm:text-[46px] lg:text-[64px]">
               Tap Your Card
               <span className="block text-[#088cff]">to Connect</span>
             </h1>
 
-            <p className="mx-auto mt-6 max-w-[350px] text-[17px] leading-8 text-white/72 lg:mx-0 lg:max-w-[430px] lg:text-[19px]">
-              Hold your LinkUp card near the back of your phone to link it to your account.
+            <p className="mx-auto mt-3 max-w-[315px] text-[14px] leading-6 text-white/72 sm:mt-6 sm:max-w-[350px] sm:text-[17px] sm:leading-8 lg:mx-0 lg:max-w-[430px] lg:text-[19px]">
+              Keep this page open, then hold the card near the back of your phone.
             </p>
           </section>
 
-          <section className="connect-visual relative h-[330px] overflow-visible lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:h-[500px]" aria-label="LinkUp card approaching the back of a phone">
+          <section className="connect-visual relative h-[245px] overflow-visible sm:h-[330px] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:h-[500px]" aria-label="LinkUp card approaching the back of a phone">
             <div className={`connect-artwork connect-reference-artwork ${isBusy ? "connect-artwork-active" : ""}`}>
               <Image
                 src="/assets/linkup/connect-nfc-phone-card-v2.png"
@@ -334,14 +424,14 @@ export default function ConnectNfcPage() {
               type="button"
               onClick={canScan ? startScan : undefined}
               disabled={!canScan}
-              className="connect-status grid w-full grid-cols-[58px_1fr_48px] items-center gap-4 rounded-[22px] border border-white/10 bg-[#071725]/86 px-5 py-5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_45px_rgba(0,0,0,0.32)] transition enabled:hover:border-[#03A9F4]/35 enabled:hover:bg-[#092033] enabled:active:scale-[0.99] disabled:cursor-default"
+              className="connect-status grid w-full grid-cols-[58px_1fr_48px] items-center gap-3 rounded-[18px] border border-white/10 bg-[#071725]/86 px-4 py-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition enabled:hover:border-[#03A9F4]/35 enabled:hover:bg-[#092033] enabled:active:scale-[0.99] disabled:cursor-default sm:gap-4 sm:rounded-[22px] sm:px-5 sm:py-5"
             >
-              <span className="flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/10 bg-[#0a1824]">
-                <i className={`${copy.icon} ${status === "connecting" ? "animate-spin" : ""} text-3xl ${isPositive ? "text-green-300" : "text-[#03A9F4]"}`} />
+              <span className="flex h-[38px] w-[38px] items-center justify-center rounded-full border border-white/10 bg-[#0a1824] sm:h-[52px] sm:w-[52px]">
+                <i className={`${copy.icon} ${status === "connecting" ? "animate-spin" : ""} text-2xl ${isPositive ? "text-green-300" : "text-[#03A9F4]"} sm:text-3xl`} />
               </span>
               <span>
-                <span className="block text-[20px] font-extrabold leading-tight text-white">{statusTitle}</span>
-                <span className="mt-2 block text-[15px] leading-6 text-white/65">{statusBody}</span>
+                <span className="block text-[17px] font-extrabold leading-tight text-white sm:text-[20px]">{statusTitle}</span>
+                <span className="mt-1.5 block text-[13px] leading-5 text-white/65 sm:mt-2 sm:text-[15px] sm:leading-6">{statusBody}</span>
               </span>
               <span className={`connect-progress ${isPositive ? "connect-progress-done" : ""}`} aria-hidden="true" />
             </button>
@@ -360,9 +450,9 @@ export default function ConnectNfcPage() {
                 </Link>
               )}
 
-              <section className="mt-8 px-5 lg:mt-0 lg:px-0">
+              <section className="mt-5 px-2 sm:mt-8 sm:px-5 lg:mt-0 lg:px-0">
                 <h2 className="text-[16px] font-bold text-[#03A9F4]">Tips</h2>
-                <div className="mt-5 space-y-4 text-[15px] leading-6 text-white/70">
+                <div className="mt-3 space-y-3 text-[13px] leading-5 text-white/70 sm:mt-5 sm:space-y-4 sm:text-[15px] sm:leading-6">
                   <p className="flex items-center gap-4">
                     <i className="ri-smartphone-line text-xl text-white/45" />
                     Make sure NFC is enabled on your device.
@@ -377,8 +467,8 @@ export default function ConnectNfcPage() {
           </section>
         </div>
 
-        <footer className="mx-auto mt-8 w-full max-w-4xl border-t border-white/10 px-5 pb-8 pt-7">
-          <p className="flex items-center justify-center gap-3 text-center text-[15px] text-white/55">
+        <footer className="mx-auto mt-5 w-full max-w-4xl border-t border-white/10 px-5 pb-2 pt-4 sm:mt-8 sm:pb-8 sm:pt-7">
+          <p className="flex items-center justify-center gap-3 text-center text-[13px] text-white/55 sm:text-[15px]">
             <i className="ri-lock-line text-xl text-white/45" />
             Your connection is <span className="text-[#03A9F4]">secure</span> and encrypted.
           </p>

@@ -39,6 +39,10 @@ function normalizeUid(uid: string) {
   return uid.trim().toUpperCase().replace(/[^A-Z0-9:_-]/g, '');
 }
 
+function normalizePublicId(publicId: string) {
+  return publicId.trim().replace(/[^a-zA-Z0-9_-]/g, '');
+}
+
 function newPublicId() {
   return `nfc-${randomUUID().replace(/-/g, '').slice(0, 12)}`;
 }
@@ -128,3 +132,84 @@ export async function linkNfcTag(userId: string, uid: string): Promise<LinkNfcTa
   });
 }
 
+export async function linkPublicTag(
+  userId: string,
+  publicId: string,
+  uid?: string,
+): Promise<LinkNfcTagResult> {
+  const normalizedPublicId = normalizePublicId(publicId);
+  const normalizedUid = uid ? normalizeUid(uid) : '';
+  if (!normalizedPublicId) throw new InvalidNfcUidError('A valid NFC tag link is required');
+
+  return db.$transaction(async (tx) => {
+    const publicTag = await tx.tag.findUnique({
+      where: { publicId: normalizedPublicId },
+    });
+
+    if (!publicTag) throw new InvalidNfcUidError('This card link was not found');
+    if (publicTag.ownerId && publicTag.ownerId !== userId) {
+      throw new NfcTagLinkedToAnotherUserError();
+    }
+
+    const existingProfile = await tx.profile.findUnique({
+      where: { publicId: normalizedPublicId },
+      select: { id: true, publicId: true, displayName: true, ownerId: true },
+    });
+
+    if (existingProfile && existingProfile.ownerId !== userId) {
+      throw new NfcTagLinkedToAnotherUserError();
+    }
+
+    const profile =
+      existingProfile ??
+      (await tx.profile.create({
+        data: defaultProfile(userId, normalizedPublicId),
+        select: { id: true, publicId: true, displayName: true, ownerId: true },
+      }));
+
+    await tx.tag.update({
+      where: { publicId: normalizedPublicId },
+      data: {
+        ownerId: userId,
+        state: publicTag.state === 'ACTIVE' ? 'ACTIVE' : 'CLAIMED',
+      },
+    });
+
+    const nfcTagUid = normalizedUid || `PUBLIC:${normalizedPublicId}`;
+    const existingNfcTag = await tx.nfcTag.findUnique({ where: { uid: nfcTagUid } });
+    if (existingNfcTag && existingNfcTag.userId !== userId) {
+      throw new NfcTagLinkedToAnotherUserError();
+    }
+
+    const nfcTag = await tx.nfcTag.upsert({
+      where: { uid: nfcTagUid },
+      create: {
+        uid: nfcTagUid,
+        userId,
+        profileId: profile.id,
+        status: 'ACTIVE',
+      },
+      update: {
+        userId,
+        profileId: profile.id,
+        status: 'ACTIVE',
+      },
+    });
+
+    return {
+      status: existingProfile ? ('already-linked' as const) : ('linked' as const),
+      tag: {
+        id: nfcTag.id,
+        uid: nfcTag.uid,
+        userId: nfcTag.userId,
+        profileId: nfcTag.profileId,
+        linkedAt: nfcTag.linkedAt,
+      },
+      profile: {
+        id: profile.id,
+        publicId: profile.publicId,
+        displayName: profile.displayName,
+      },
+    };
+  });
+}

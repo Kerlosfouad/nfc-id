@@ -3,12 +3,16 @@ import { z } from 'zod';
 import { requireAuth } from '@/lib/middleware/auth';
 import {
   InvalidNfcUidError,
+  linkPublicTag,
   linkNfcTag,
   NfcTagLinkedToAnotherUserError,
 } from '@/lib/use-cases/linkNfcTag';
 
 const LinkNfcSchema = z.object({
-  uid: z.string().min(1).max(128),
+  uid: z.string().min(1).max(128).optional(),
+  publicId: z.string().min(1).max(128).optional(),
+}).refine((value) => value.uid || value.publicId, {
+  message: 'A valid NFC UID or card link is required',
 });
 
 export async function POST(request: NextRequest) {
@@ -28,13 +32,15 @@ export async function POST(request: NextRequest) {
   const parsed = LinkNfcSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { data: null, error: { code: 'BAD_REQUEST', message: 'A valid NFC UID is required' } },
+      { data: null, error: { code: 'BAD_REQUEST', message: 'A valid NFC UID or card link is required' } },
       { status: 400 },
     );
   }
 
   try {
-    const result = await linkNfcTag(auth.userId, parsed.data.uid);
+    const result = parsed.data.publicId
+      ? await linkPublicTag(auth.userId, parsed.data.publicId, parsed.data.uid)
+      : await linkNfcTag(auth.userId, parsed.data.uid!);
     return NextResponse.json({ data: result, error: null }, { status: 200 });
   } catch (error) {
     if (error instanceof InvalidNfcUidError) {
@@ -58,4 +64,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
