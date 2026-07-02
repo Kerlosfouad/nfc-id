@@ -12,6 +12,8 @@ import ContentWarning from '@/components/profile/ContentWarning';
 import ProfileView from '@/components/profile/ProfileView';
 import type { ProfileTheme } from '@/lib/domain/types';
 import { preload } from 'react-dom';
+import { redirect } from 'next/navigation';
+import { db } from '@/lib/db';
 
 interface ProfilePageProps {
   params: Promise<{ publicId: string }>;
@@ -30,7 +32,17 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
     if (typeof query.profileLayout === 'string') profile.theme.profileLayout = query.profileLayout as ProfileTheme['profileLayout'];
   }
 
-  if (!profile || profile.isSuspended) {
+  if (!profile) {
+    const tag = await db.tag.findUnique({
+      where: { publicId },
+      select: { publicId: true },
+    });
+
+    if (tag) redirect(`/${publicId}`);
+    return <SuspensionPage />;
+  }
+
+  if (profile.isSuspended) {
     return <SuspensionPage />;
   }
 

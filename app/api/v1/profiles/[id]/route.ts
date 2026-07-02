@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { del, profileCacheKey } from '@/lib/services/cacheService';
+import { del, profileCacheKey, tagCacheKey } from '@/lib/services/cacheService';
 
 // ── Auth helper ───────────────────────────────────────────────────────────────
 
@@ -170,6 +170,9 @@ export async function DELETE(
   if (existing.ownerId !== userId) return forbidden();
 
   await db.$transaction(async (tx) => {
+    await tx.nfcTag.deleteMany({
+      where: { profileId: id, userId },
+    });
     await tx.profile.delete({ where: { id } });
     await tx.tag.updateMany({
       where: { publicId: existing.publicId, ownerId: userId },
@@ -178,6 +181,7 @@ export async function DELETE(
   });
 
   void del(profileCacheKey(existing.publicId));
+  void del(tagCacheKey(existing.publicId));
 
   return NextResponse.json({ data: { id, publicId: existing.publicId }, error: null });
 }
