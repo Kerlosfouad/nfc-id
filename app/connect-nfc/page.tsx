@@ -29,6 +29,7 @@ type NDEFReadingEventWithSerial = Event & {
 
 type NDEFReaderConstructor = new () => {
   scan: (options?: { signal?: AbortSignal }) => Promise<void>;
+  write?: (message: string | { records: Array<{ recordType: string; data: string }> }) => Promise<void>;
   addEventListener: (
     type: "reading" | "readingerror",
     listener: EventListenerOrEventListenerObject,
@@ -120,9 +121,11 @@ export default function ConnectNfcPage() {
   const supabase = useMemo(() => createClient(), []);
   const [status, setStatus] = useState<NfcStatus>("checking-auth");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [profileHref, setProfileHref] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const scanStartedRef = useRef(false);
+  const readerRef = useRef<InstanceType<NDEFReaderConstructor> | null>(null);
 
   const extractPublicIdFromText = useCallback((value: string) => {
     const trimmed = value.replace(/[\u0000-\u001f]+/g, " ").trim();
@@ -226,6 +229,20 @@ export default function ConnectNfcPage() {
     }
 
     const href = `/profile/${body.data.profile.publicId}`;
+    const absoluteProfileUrl = `${window.location.origin}${href}`;
+
+    if (readerRef.current?.write) {
+      setNotice("Connected. Keep the medal still while we save your profile link to it.");
+      try {
+        await readerRef.current.write({
+          records: [{ recordType: "url", data: absoluteProfileUrl }],
+        });
+        setNotice("Profile link saved to the medal.");
+      } catch {
+        setNotice("Connected. If the medal still opens this page, tap Try Again and hold it still until the profile link is saved.");
+      }
+    }
+
     setProfileHref(href);
     setStatus(body.data.status === "already-linked" ? "already-linked" : "success");
     window.setTimeout(() => router.push("/dashboard"), 1800);
@@ -242,8 +259,10 @@ export default function ConnectNfcPage() {
     try {
       setStatus("waiting");
       setError("");
+      setNotice("");
       const controller = new AbortController();
       const reader = new window.NDEFReader();
+      readerRef.current = reader;
 
       reader.addEventListener(
         "reading",
@@ -484,6 +503,12 @@ export default function ConnectNfcPage() {
               {error && (
                 <p className="mt-4 rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm leading-6 text-red-100 lg:mt-0">
                   {error}
+                </p>
+              )}
+
+              {notice && !error && (
+                <p className="mt-4 rounded-2xl border border-[#03A9F4]/20 bg-[#03A9F4]/10 px-4 py-3 text-sm leading-6 text-sky-100 lg:mt-0">
+                  {notice}
                 </p>
               )}
 

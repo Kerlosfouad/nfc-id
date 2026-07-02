@@ -44,6 +44,22 @@ export async function GET(
   const cachedState = await cacheService.get<TagState>(cacheKey);
 
   if (cachedState) {
+    if (cachedState === 'MANUFACTURED' || cachedState === 'SOLD') {
+      const profile = await db.profile.findUnique({
+        where: { publicId },
+        select: { publicId: true, isActive: true, isSuspended: true },
+      });
+
+      if (profile?.isSuspended || profile?.isActive === false) {
+        return NextResponse.redirect(new URL('/suspended', request.url));
+      }
+
+      if (profile) {
+        void cacheService.del(cacheKey);
+        return NextResponse.redirect(new URL(`/profile/${profile.publicId}`, request.url));
+      }
+    }
+
     return NextResponse.redirect(
       new URL(resolveDestination(cachedState, publicId), request.url),
     );
@@ -62,6 +78,22 @@ export async function GET(
   }
 
   void cacheService.set(cacheKey, tag.state, cacheService.TAG_TTL);
+
+  if (tag.state === 'MANUFACTURED' || tag.state === 'SOLD') {
+    const profile = await db.profile.findUnique({
+      where: { publicId },
+      select: { publicId: true, isActive: true, isSuspended: true },
+    });
+
+    if (profile?.isSuspended || profile?.isActive === false) {
+      return NextResponse.redirect(new URL('/suspended', request.url));
+    }
+
+    if (profile) {
+      void cacheService.del(cacheKey);
+      return NextResponse.redirect(new URL(`/profile/${profile.publicId}`, request.url));
+    }
+  }
 
   return NextResponse.redirect(
     new URL(resolveDestination(tag.state as TagState, publicId), request.url),

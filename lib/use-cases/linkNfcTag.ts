@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { db } from '@/lib/db';
+import { del, tagCacheKey } from '@/lib/services/cacheService';
 
 export class InvalidNfcUidError extends Error {
   readonly statusCode = 400;
@@ -141,7 +142,7 @@ export async function linkPublicTag(
   const normalizedUid = uid ? normalizeUid(uid) : '';
   if (!normalizedPublicId) throw new InvalidNfcUidError('A valid NFC tag link is required');
 
-  return db.$transaction(async (tx) => {
+  const result = await db.$transaction(async (tx) => {
     const publicTag = await tx.tag.findUnique({
       where: { publicId: normalizedPublicId },
     });
@@ -171,7 +172,7 @@ export async function linkPublicTag(
       where: { publicId: normalizedPublicId },
       data: {
         ownerId: userId,
-        state: publicTag.state === 'ACTIVE' ? 'ACTIVE' : 'CLAIMED',
+        state: 'ACTIVE',
       },
     });
 
@@ -212,4 +213,7 @@ export async function linkPublicTag(
       },
     };
   });
+
+  await del(tagCacheKey(normalizedPublicId));
+  return result;
 }
