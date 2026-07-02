@@ -1,139 +1,284 @@
 "use client";
 
-import Image from "next/image";
+import { Canvas, useFrame } from "@react-three/fiber";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import * as THREE from "three";
 
-const orbitFeatures = [
+const shopSignals = [
   {
     icon: "ri-nfc-line",
-    title: "NFC Tap",
-    desc: "Open your profile with one smooth tap.",
-    className: "left-1/2 top-0 -translate-x-1/2 -translate-y-1/2",
-    orbitClassName: "h-[240px] w-[240px] sm:h-[390px] sm:w-[390px]",
-    orbitDirection: "product-orbit-slow",
-    delayClassName: "",
+    title: "Tap to Launch",
+    desc: "A smart medal that opens your profile, socials, and shop links instantly.",
+    stat: "0.3s",
+    label: "tap response",
+    color: "#20E7FF",
   },
   {
     icon: "ri-qr-code-line",
-    title: "QR Ready",
-    desc: "Every medal is ready for instant QR scans.",
-    className: "left-1/2 top-0 -translate-x-1/2 -translate-y-1/2",
-    orbitClassName: "h-[280px] w-[280px] sm:h-[460px] sm:w-[460px]",
-    orbitDirection: "product-orbit-reverse",
-    delayClassName: "product-orbit-delay-1",
-  },
-  {
-    icon: "ri-shield-check-line",
-    title: "Live Control",
-    desc: "Update links and profile details anytime.",
-    className: "left-1/2 top-0 -translate-x-1/2 -translate-y-1/2",
-    orbitClassName: "h-[320px] w-[320px] sm:h-[530px] sm:w-[530px]",
-    orbitDirection: "product-orbit-slow",
-    delayClassName: "product-orbit-delay-2",
+    title: "Always Scannable",
+    desc: "Every medal ships with QR fallback for phones that need the camera path.",
+    stat: "24/7",
+    label: "scan backup",
+    color: "#03A9F4",
   },
   {
     icon: "ri-vip-diamond-line",
-    title: "Premium Finish",
-    desc: "A clean black medal built to look sharp.",
-    className: "left-1/2 top-0 -translate-x-1/2 -translate-y-1/2",
-    orbitClassName: "h-[360px] w-[360px] sm:h-[600px] sm:w-[600px]",
-    orbitDirection: "product-orbit-reverse",
-    delayClassName: "product-orbit-delay-3",
+    title: "Premium Black Medal",
+    desc: "Built to feel like an accessory, not a disposable tech tag.",
+    stat: "Matte",
+    label: "finish",
+    color: "#68F0FF",
   },
-];
+] as const;
 
-function FeatureNode({
-  feature,
-  active,
-  onClick,
-}: {
-  feature: (typeof orbitFeatures)[number];
-  active: boolean;
-  onClick: () => void;
-}) {
+function ParticleField() {
+  const pointsRef = useRef<THREE.Points>(null);
+  const positions = useMemo(() => {
+    const values = new Float32Array(180 * 3);
+
+    for (let index = 0; index < 180; index += 1) {
+      const radius = 1.8 + Math.random() * 4.6;
+      const angle = Math.random() * Math.PI * 2;
+      const depth = -1.4 + Math.random() * 2.8;
+
+      values[index * 3] = Math.cos(angle) * radius;
+      values[index * 3 + 1] = Math.sin(angle) * radius * 0.55;
+      values[index * 3 + 2] = depth;
+    }
+
+    return values;
+  }, []);
+
+  useFrame(({ clock }) => {
+    if (!pointsRef.current) return;
+    pointsRef.current.rotation.z = clock.elapsedTime * 0.025;
+    pointsRef.current.rotation.y = Math.sin(clock.elapsedTime * 0.35) * 0.08;
+  });
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`absolute ${feature.className} flex flex-col items-center justify-start border border-[#03A9F4]/30 bg-[#07141c]/90 text-[#03A9F4] shadow-[0_0_22px_rgba(3,169,244,0.18)] backdrop-blur-xl transition-all duration-500 ease-out ${
-        active
-          ? "h-[118px] w-[156px] gap-2 rounded-2xl px-3 py-3 text-center sm:w-[174px]"
-          : "h-14 w-14 rounded-full hover:scale-110 hover:border-[#03A9F4]/60"
-      }`}
-      aria-label={feature.title}
-    >
-      <span className={`flex shrink-0 items-center justify-center rounded-full bg-[#03A9F4]/15 transition-all duration-500 ${active ? "h-9 w-9" : "h-full w-full"}`}>
-        <i className={`${feature.icon || "ri-star-smile-line"} ${active ? "text-lg" : "text-2xl"}`} />
-      </span>
-      <span className={`grid min-w-0 overflow-hidden transition-all duration-500 ${active ? "max-h-16 opacity-100" : "max-h-0 opacity-0"}`}>
-        <span className="block text-[11px] font-bold uppercase leading-tight tracking-wide text-white">{feature.title}</span>
-        <span className="mt-1 block text-[10px] leading-snug text-[#8ddfff]/70">{feature.desc}</span>
-      </span>
-    </button>
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+      </bufferGeometry>
+      <pointsMaterial color="#20E7FF" size={0.025} transparent opacity={0.55} sizeAttenuation depthWrite={false} />
+    </points>
+  );
+}
+
+function MedalCore({ active }: { active: number }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const ringRef = useRef<THREE.Mesh>(null);
+
+  useFrame(({ clock, pointer }, delta) => {
+    if (!groupRef.current) return;
+    groupRef.current.rotation.y += delta * 0.28;
+    groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, pointer.y * 0.14, 0.05);
+    groupRef.current.position.y = Math.sin(clock.elapsedTime * 1.2) * 0.08;
+
+    if (ringRef.current) {
+      ringRef.current.rotation.z -= delta * 0.7;
+      ringRef.current.scale.setScalar(1 + Math.sin(clock.elapsedTime * 2.2) * 0.025);
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      <mesh castShadow receiveShadow rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[1.18, 1.18, 0.18, 96]} />
+        <meshStandardMaterial color="#06131B" metalness={0.78} roughness={0.28} emissive={shopSignals[active].color} emissiveIntensity={0.12} />
+      </mesh>
+
+      <mesh ref={ringRef} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[1.28, 0.025, 16, 128]} />
+        <meshStandardMaterial color={shopSignals[active].color} emissive={shopSignals[active].color} emissiveIntensity={1.4} />
+      </mesh>
+
+      <group position={[0, 0.02, 0.11]}>
+        <mesh position={[-0.36, 0, 0]}>
+          <boxGeometry args={[0.2, 0.95, 0.07]} />
+          <meshStandardMaterial color="#087BFF" emissive="#087BFF" emissiveIntensity={0.55} />
+        </mesh>
+        <mesh position={[0.38, 0, 0]}>
+          <boxGeometry args={[0.2, 0.95, 0.07]} />
+          <meshStandardMaterial color="#20E7FF" emissive="#20E7FF" emissiveIntensity={0.55} />
+        </mesh>
+        {[-0.22, 0, 0.22].map((offset) => (
+          <mesh key={offset} position={[0, -0.28 + offset, 0.02]} rotation={[0, 0, -0.58]}>
+            <torusGeometry args={[0.48, 0.025, 12, 72, Math.PI]} />
+            <meshStandardMaterial color="#20E7FF" emissive="#20E7FF" emissiveIntensity={0.9} />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  );
+}
+
+function SignalCard3D({
+  index,
+  active,
+  setActive,
+}: {
+  index: number;
+  active: number;
+  setActive: (index: number) => void;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const angle = index * ((Math.PI * 2) / shopSignals.length) - Math.PI / 2;
+  const selected = active === index;
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const radius = selected ? 2.55 : 2.85;
+    groupRef.current.position.x = Math.cos(angle + clock.elapsedTime * 0.18) * radius;
+    groupRef.current.position.y = Math.sin(angle + clock.elapsedTime * 0.18) * 1.15;
+    groupRef.current.position.z = selected ? 0.55 : -0.12;
+    groupRef.current.rotation.z = Math.sin(clock.elapsedTime + index) * 0.05;
+    groupRef.current.scale.lerp(new THREE.Vector3(selected ? 1.16 : 1, selected ? 1.16 : 1, selected ? 1.16 : 1), 0.08);
+  });
+
+  return (
+    <group ref={groupRef} onClick={(event) => { event.stopPropagation(); setActive(index); }}>
+      <mesh>
+        <boxGeometry args={[0.72, 0.48, 0.08]} />
+        <meshStandardMaterial
+          color={selected ? "#0A2E42" : "#07141C"}
+          metalness={0.35}
+          roughness={0.42}
+          emissive={shopSignals[index].color}
+          emissiveIntensity={selected ? 0.42 : 0.18}
+        />
+      </mesh>
+      <mesh position={[0, 0, 0.065]}>
+        <ringGeometry args={[0.12, 0.18, 32]} />
+        <meshBasicMaterial color={shopSignals[index].color} transparent opacity={selected ? 1 : 0.72} />
+      </mesh>
+    </group>
+  );
+}
+
+function ShopPortal({ active }: { active: number }) {
+  const portalRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }, delta) => {
+    if (!portalRef.current) return;
+    portalRef.current.rotation.z += delta * 0.55;
+    portalRef.current.scale.setScalar(1 + Math.sin(clock.elapsedTime * 1.8) * 0.035);
+  });
+
+  return (
+    <group ref={portalRef} position={[2.9, -0.95, -0.45]} rotation={[0.25, -0.22, 0]}>
+      <mesh>
+        <torusGeometry args={[0.62, 0.035, 16, 96]} />
+        <meshStandardMaterial color={shopSignals[active].color} emissive={shopSignals[active].color} emissiveIntensity={1.8} />
+      </mesh>
+      <mesh>
+        <torusGeometry args={[0.86, 0.012, 12, 96]} />
+        <meshBasicMaterial color="#FFFFFF" transparent opacity={0.32} />
+      </mesh>
+      <pointLight color={shopSignals[active].color} intensity={1.2} distance={4} />
+    </group>
+  );
+}
+
+function ProductScene({ active, setActive }: { active: number; setActive: (index: number) => void }) {
+  return (
+    <>
+      <color attach="background" args={["#031016"]} />
+      <fog attach="fog" args={["#031016", 4, 9]} />
+      <ambientLight intensity={0.7} />
+      <directionalLight position={[3, 4, 5]} intensity={1.7} />
+      <pointLight position={[-2.2, 1.6, 2.8]} color="#20E7FF" intensity={2.4} distance={7} />
+      <ParticleField />
+      <MedalCore active={active} />
+      <ShopPortal active={active} />
+      {shopSignals.map((signal, index) => (
+        <SignalCard3D key={signal.title} index={index} active={active} setActive={setActive} />
+      ))}
+      <mesh position={[0, -1.62, -0.5]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <circleGeometry args={[3.3, 96]} />
+        <meshBasicMaterial color="#03A9F4" transparent opacity={0.05} />
+      </mesh>
+    </>
   );
 }
 
 export default function ProductSection() {
-  const [activeFeature, setActiveFeature] = useState<number | null>(null);
-  const paused = activeFeature !== null;
+  const [activeSignal, setActiveSignal] = useState(0);
+  const signal = shopSignals[activeSignal];
 
   return (
-    <section id="PRODUCT" className="relative overflow-hidden px-4 py-14 sm:py-28">
+    <section id="PRODUCT" className="relative overflow-hidden px-4 py-16 sm:py-28">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#03A9F4]/35 to-transparent" />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[620px] w-[620px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#03A9F4]/10 blur-[120px]" />
-      <div className="pointer-events-none absolute inset-0 hero-grid opacity-35" />
+      <div className="pointer-events-none absolute inset-0 hero-grid opacity-30" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[720px] w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#03A9F4]/10 blur-[120px]" />
 
-      <div className="container relative z-10 mx-auto text-center">
-        <div className="mb-3 sm:mb-4 inline-flex items-center gap-2 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 px-3.5 sm:px-4 py-1.5 text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-[#03A9F4]">
-          NFC ID Shop
-        </div>
-        <h2 className="mb-3 sm:mb-4 text-2xl font-bold uppercase leading-tight text-white sm:text-5xl">Smart Medal, One Tap Away</h2>
-        <p className="mx-auto mb-7 sm:mb-10 max-w-[330px] sm:max-w-2xl text-sm leading-relaxed text-white/40 md:text-base">
-          Tap a feature to pause the orbit and reveal what your NFC medal can do.
-        </p>
-
-        <div className="relative mx-auto flex min-h-[430px] w-full max-w-[780px] items-center justify-center sm:min-h-[560px]">
-          <div className="product-orbit-glow absolute h-[280px] w-[280px] rounded-full sm:h-[430px] sm:w-[430px]" />
-          <div className="absolute h-[220px] w-[220px] rounded-full border border-[#03A9F4]/20 shadow-[0_0_45px_rgba(3,169,244,0.08)] sm:h-[350px] sm:w-[350px]" />
-          <div className="absolute h-[300px] w-[300px] rounded-full border border-[#03A9F4]/15 sm:h-[480px] sm:w-[480px]" />
-          <div className="absolute h-[370px] w-[370px] rounded-full border border-white/5 sm:h-[590px] sm:w-[590px]" />
-
-          {orbitFeatures.map((feature, index) => (
-            <div
-              key={feature.title}
-              className={`product-orbit ${feature.orbitDirection} ${feature.delayClassName} absolute ${feature.orbitClassName} ${paused ? "product-orbit-paused" : ""}`}
-            >
-              <FeatureNode
-                feature={feature}
-                active={activeFeature === index}
-                onClick={() => setActiveFeature(activeFeature === index ? null : index)}
-              />
-            </div>
-          ))}
-
-          <div className="relative z-20 flex h-[132px] w-[132px] items-center justify-center rounded-full border border-[#03A9F4]/35 bg-[#07141c]/85 p-5 shadow-[0_0_50px_rgba(3,169,244,0.28)] backdrop-blur-xl sm:h-[168px] sm:w-[168px]">
-            <div className="absolute inset-3 rounded-full border border-white/10" />
-            <Image
-              src="/img/logo.png"
-              alt="NFC ID logo"
-              width={220}
-              height={220}
-              className="relative h-full w-full object-contain drop-shadow-[0_0_24px_rgba(3,169,244,0.45)]"
-              priority={false}
-            />
+      <div className="container relative z-10 mx-auto">
+        <div className="mx-auto mb-8 max-w-3xl text-center sm:mb-10">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-[#03A9F4] sm:text-xs">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#20E7FF] shadow-[0_0_12px_rgba(32,231,255,0.8)]" />
+            NFC ID Shop
           </div>
+          <h2 className="text-3xl font-black uppercase leading-none text-white sm:text-6xl">
+            Choose Your Smart Medal
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-white/58 sm:text-base">
+            A cinematic 3D preview for the medal before you jump into the shop. Tap the floating signals to change the product layer.
+          </p>
         </div>
 
-        <div className="mt-1 sm:mt-2 flex flex-col items-center justify-center gap-2.5 sm:gap-3 sm:flex-row">
-          <Link href="/shop" className="inline-flex h-11 sm:h-12 items-center justify-center gap-2 rounded-full bg-[#03A9F4] px-6 sm:px-8 text-xs sm:text-sm font-bold uppercase tracking-wider text-white transition-all hover:bg-white hover:text-black hover:shadow-[0_0_30px_rgba(3,169,244,0.4)]">
-            <i className="ri-shopping-bag-line" />
-            Shop Now
-          </Link>
-          <Link href="/signup" className="inline-flex h-11 sm:h-12 items-center justify-center gap-2 rounded-full border border-white/10 px-6 sm:px-8 text-xs sm:text-sm font-bold uppercase tracking-wider text-white/70 transition-all hover:border-[#03A9F4]/40 hover:text-[#03A9F4]">
-            <i className="ri-user-add-line" />
-            Create Profile
-          </Link>
+        <div className="product-r3f-shell relative mx-auto min-h-[560px] max-w-6xl overflow-hidden rounded-[28px] border border-[#03A9F4]/20 bg-[#031016]/80 shadow-[0_40px_120px_rgba(0,0,0,0.38)] sm:min-h-[640px]">
+          <Canvas
+            className="!absolute !inset-0 !h-full !w-full"
+            camera={{ fov: 48, near: 0.1, far: 100, position: [0, 0.35, 6.4] }}
+            dpr={[1, 1.7]}
+            gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+            shadows
+          >
+            <ProductScene active={activeSignal} setActive={setActiveSignal} />
+          </Canvas>
+
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_46%,transparent_0,transparent_38%,rgba(0,0,0,0.38)_76%)]" />
+
+          <div className="absolute left-4 top-4 z-20 w-[calc(100%-2rem)] rounded-2xl border border-white/10 bg-[#05131B]/80 p-4 text-left backdrop-blur-xl sm:left-6 sm:top-6 sm:w-[310px]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#20E7FF]/75">Live product layer</p>
+            <h3 className="mt-2 text-xl font-black uppercase leading-tight text-white">{signal.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-white/58">{signal.desc}</p>
+            <div className="mt-4 flex items-center gap-2">
+              {shopSignals.map((item, index) => (
+                <button
+                  key={item.title}
+                  type="button"
+                  onClick={() => setActiveSignal(index)}
+                  className={`flex h-11 w-11 items-center justify-center rounded-full border text-lg transition-all ${
+                    activeSignal === index
+                      ? "border-[#20E7FF]/60 bg-[#03A9F4]/20 text-[#20E7FF] shadow-[0_0_22px_rgba(32,231,255,0.24)]"
+                      : "border-white/10 bg-white/[0.03] text-white/45 hover:border-[#03A9F4]/40 hover:text-[#20E7FF]"
+                  }`}
+                  aria-label={item.title}
+                  aria-pressed={activeSignal === index}
+                >
+                  <i className={item.icon} />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="absolute bottom-4 left-4 right-4 z-20 flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#05131B]/82 p-4 backdrop-blur-xl sm:bottom-6 sm:left-auto sm:right-6 sm:w-[340px]">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-white/42">Shop signal</p>
+                <p className="mt-1 text-2xl font-black uppercase text-[#20E7FF]">{signal.stat}</p>
+              </div>
+              <span className="rounded-full border border-[#03A9F4]/25 bg-[#03A9F4]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white/58">
+                {signal.label}
+              </span>
+            </div>
+            <Link href="/shop" className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#03A9F4] px-7 text-sm font-black uppercase tracking-wider text-white transition-all hover:bg-white hover:text-black hover:shadow-[0_0_34px_rgba(32,231,255,0.45)]">
+              <i className="ri-shopping-bag-3-line transition-transform group-hover:-translate-y-0.5" />
+              Enter the Shop
+            </Link>
+          </div>
         </div>
       </div>
     </section>

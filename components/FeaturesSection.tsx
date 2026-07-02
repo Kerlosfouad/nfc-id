@@ -1,93 +1,178 @@
 import Image from "next/image";
 
-const features = [
-  {
-    title: "All Your Links",
-    desc: "Add unlimited links - social profiles, websites, WhatsApp, YouTube, Spotify, TikTok, and more. Everything in one place.",
-    img: "/img/add-links.webp",
-    icon: "ri-links-line",
-    color: "from-[#03A9F4]/20 to-transparent",
-    glow: "group-hover:shadow-[0_0_40px_rgba(3,169,244,0.15)]",
-    badge: "Like Linktree",
-  },
-  {
-    title: "Real-Time Analytics",
-    desc: "Track views, unique visitors, click-through rates per link, device types, and geographic data - all in real time.",
-    img: "/img/analytics.webp",
-    icon: "ri-bar-chart-2-line",
-    color: "from-[#8A2BE2]/20 to-transparent",
-    glow: "group-hover:shadow-[0_0_40px_rgba(138,43,226,0.15)]",
-    badge: "Built-in",
-  },
-  {
-    title: "NFC + QR Powered",
-    desc: "Physical NFC cards and QR codes that instantly redirect to your profile. One tap - your entire digital identity.",
-    img: "/img/dynamic-qr.webp",
-    icon: "ri-qr-code-line",
-    color: "from-[#00d084]/20 to-transparent",
-    glow: "group-hover:shadow-[0_0_40px_rgba(0,208,132,0.15)]",
-    badge: "Phygital",
-  },
-];
+function PhoneProfile({ compact = false }: { compact?: boolean }) {
+  return (
+    <div
+      className={`relative mx-auto overflow-hidden rounded-[2.2rem] border border-white/18 bg-[#08090a] shadow-[0_28px_55px_rgba(0,0,0,0.65)] ${
+        compact ? "h-[360px] w-[190px] rotate-[12deg]" : "h-[430px] w-[230px] rotate-[9deg]"
+      }`}
+    >
+      <div className="absolute left-1/2 top-3 h-5 w-20 -translate-x-1/2 rounded-full bg-black" />
+      <div className="absolute inset-3 rounded-[1.75rem] border border-white/8" />
+      <div className="relative z-10 flex h-full flex-col items-center px-5 pt-14">
+        <div className="h-16 w-16 rounded-full border border-white/15 bg-[radial-gradient(circle_at_40%_30%,#8aa0aa,#1b262c_58%,#08090a)]" />
+        <p className="mt-4 text-center text-lg font-semibold text-white">Alex Morgan</p>
+        <p className="mt-1 text-center text-xs text-white/58">Product Designer</p>
+        <div className="mt-2 h-0.5 w-9 rounded-full bg-[#03A9F4]" />
+        <div className="mt-5 w-full space-y-2">
+          {["Email", "Phone", "Website", "LinkedIn", "Download vCard"].map((label) => (
+            <div key={label} className="flex h-9 items-center gap-3 rounded-lg border border-white/6 bg-white/[0.055] px-3 text-xs text-white/72">
+              <span className="h-3 w-3 rounded-sm border border-white/38" />
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-auto flex w-full items-center justify-center gap-7 pb-7 text-[11px] text-white/58">
+          <span className="text-[#03A9F4]">Tap</span>
+          <span className="h-7 w-px bg-white/18" />
+          <span>Scan</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-const extraFeatures = [
-  { icon: "ri-lock-password-line", title: "PIN Protection", desc: "Lock your profile with a PIN code" },
-  { icon: "ri-eye-off-line", title: "Content Warning", desc: "Add age-gate for sensitive content" },
-  { icon: "ri-contacts-line", title: "Lead Capture", desc: "Collect visitor emails directly" },
-  { icon: "ri-palette-line", title: "Custom Themes", desc: "Gradient, glassmorphism, minimal" },
-  { icon: "ri-calendar-schedule-line", title: "Link Scheduling", desc: "Set active from/to dates per link" },
-  { icon: "ri-download-cloud-line", title: "Export Leads", desc: "Download contacts as CSV" },
-];
+function EditProfilePhone() {
+  return (
+    <div className="absolute bottom-[-88px] right-7 h-[410px] w-[220px] rotate-[13deg] overflow-hidden rounded-[2.1rem] border border-white/18 bg-[#08090a] shadow-[0_30px_60px_rgba(0,0,0,0.7)]">
+      <div className="absolute left-1/2 top-3 h-5 w-20 -translate-x-1/2 rounded-full bg-black" />
+      <div className="relative z-10 px-5 pt-12">
+        <p className="text-center text-sm font-semibold italic text-white">Edit profile</p>
+        <div className="mx-auto mt-6 h-16 w-16 rounded-full border border-white/15 bg-[radial-gradient(circle_at_40%_30%,#8aa0aa,#1b262c_58%,#08090a)]" />
+        <div className="mt-6 space-y-2">
+          {[
+            ["Full name", "Alex Morgan"],
+            ["Title", "Product Designer"],
+            ["Email", "alex@morgan.com"],
+            ["Phone", "(415) 555-0108"],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-lg border border-white/6 bg-white/[0.055] px-3 py-3">
+              <p className="text-[10px] text-white/38">{label}</p>
+              <p className="mt-1 text-xs italic text-white/78">{value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function FeaturesSection() {
   return (
-    <section className="py-14 sm:py-24 px-5 sm:px-4">
-      <div className="container mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 text-[#03A9F4] text-[10px] sm:text-xs font-semibold uppercase tracking-widest mb-3 sm:mb-4">
-            Everything You Need
+    <section className="px-4 py-24 sm:py-32">
+      <div className="mx-auto w-full max-w-[1680px]">
+        <div className="grid min-h-[820px] grid-cols-1 gap-0 overflow-hidden rounded-[1.7rem] lg:grid-cols-12 lg:grid-rows-[430px_390px]">
+          <div className="relative border border-white/14 bg-black px-7 py-10 sm:px-12 lg:col-span-5">
+            <div className="mb-8 flex items-center gap-4 text-sm text-white/50">
+              <span className="font-semibold text-[#03A9F4]">2 / 6</span>
+            </div>
+            <h2 className="max-w-[640px] text-[clamp(3.2rem,4.9vw,5.9rem)] font-semibold leading-[0.98] tracking-[-0.03em] text-white text-balance">
+              Control the destination after the card ships.
+            </h2>
+            <p className="mt-8 max-w-[520px] text-xl leading-8 text-white/62">
+              Update your profile, content, and privacy settings anytime. No reprint. No hassle.
+            </p>
           </div>
-          <h2 className="text-white text-3xl sm:text-5xl font-bold uppercase leading-tight">Power Features</h2>
-          <p className="text-white/65 text-sm sm:text-base mt-2 sm:mt-3 max-w-[330px] sm:max-w-md mx-auto leading-relaxed text-pretty">
-            More than a link-in-bio. A complete phygital identity platform.
-          </p>
-        </div>
 
-        {/* Main 3 cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 mb-6 sm:mb-8">
-          {features.map((f, i) => (
-            <div
-              key={i}
-              className={`group relative bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-5 sm:p-6 border border-[#222] hover:border-[#333] transition-all duration-400 overflow-hidden ${f.glow}`}
-            >
-              <div className={`absolute top-0 left-0 right-0 h-px bg-gradient-to-r ${f.color}`} />
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-[#1f1f23] border border-[#2c2c2c] flex items-center justify-center">
-                  <i className={`${f.icon} text-[#03A9F4] text-2xl`} />
+          <article className="feature-panel feature-panel-large group relative overflow-hidden border border-white/14 bg-[#070809] p-8 lg:col-span-7">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_54%_34%,rgba(3,169,244,0.12),transparent_24rem)]" />
+            <div className="relative z-10 max-w-[180px]">
+              <h3 className="text-3xl font-semibold text-white">NFC + QR</h3>
+              <p className="mt-5 text-lg leading-7 text-white/58">Tap or scan. Every card comes ready for instant connections.</p>
+            </div>
+            <div className="feature-float-card absolute left-[24%] top-[12%] h-[290px] w-[320px] rotate-[-8deg]">
+              <Image
+                src="/assets/linkup/linkup-nfc-card.png"
+                alt="LinkUp NFC card"
+                width={640}
+                height={460}
+                className="h-full w-full object-contain drop-shadow-[0_30px_55px_rgba(0,0,0,0.65)]"
+              />
+              <div className="feature-signal absolute right-12 top-12 h-16 w-16 text-center text-5xl leading-none text-[#03A9F4]">)))</div>
+            </div>
+            <div className="feature-phone-lift absolute bottom-[-30px] right-[6%] z-10">
+              <PhoneProfile />
+            </div>
+          </article>
+
+          <article className="feature-panel group relative min-h-[390px] overflow-hidden border border-white/14 bg-black p-7 lg:col-span-4">
+            <h3 className="text-3xl font-semibold text-white">Editable profile</h3>
+            <p className="mt-5 max-w-[230px] text-lg leading-7 text-white/62">
+              Update your info, links, and content anytime. Changes go live instantly.
+            </p>
+            <EditProfilePhone />
+          </article>
+
+          <article className="feature-panel group relative min-h-[390px] overflow-hidden border border-white/14 bg-black p-7 lg:col-span-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-3xl font-semibold text-white">Analytics</h3>
+                <p className="mt-5 max-w-[230px] text-lg leading-7 text-white/62">See taps, scans, and engagement across time.</p>
+              </div>
+              <div className="border-l border-white/12 pl-7">
+                <p className="text-sm text-white/60">Taps</p>
+                <p className="mt-3 text-4xl font-semibold tabular-nums text-white">1,248</p>
+                <p className="mt-2 text-sm font-semibold text-[#03A9F4]">+18% <span className="text-white/45">vs last 7 days</span></p>
+              </div>
+            </div>
+            <div className="absolute inset-x-8 bottom-8 h-[175px]">
+              <svg className="h-full w-full" viewBox="0 0 520 190" preserveAspectRatio="none" aria-hidden="true">
+                {[40, 85, 130, 175].map((y) => (
+                  <line key={y} x1="0" x2="520" y1={y} y2={y} stroke="rgba(255,255,255,0.1)" />
+                ))}
+                <path className="feature-chart-line" d="M0 125 C48 132 76 112 112 82 C146 54 170 70 202 107 C236 144 270 70 314 76 C366 83 370 22 408 36 C454 53 462 98 520 79" fill="none" stroke="#03A9F4" strokeWidth="4" />
+                <path className="feature-chart-fill" d="M0 125 C48 132 76 112 112 82 C146 54 170 70 202 107 C236 144 270 70 314 76 C366 83 370 22 408 36 C454 53 462 98 520 79 L520 190 L0 190 Z" fill="rgba(3,169,244,0.16)" />
+                <circle className="feature-chart-dot" cx="408" cy="36" r="8" fill="#03A9F4" />
+              </svg>
+              <div className="mt-1 grid grid-cols-6 text-xs text-white/55">
+                {["May 6", "May 7", "May 8", "May 9", "May 10", "May 12"].map((day) => (
+                  <span key={day}>{day}</span>
+                ))}
+              </div>
+            </div>
+          </article>
+
+          <div className="grid min-h-[390px] lg:col-span-4 lg:grid-rows-2">
+            <article className="feature-panel group relative border border-white/14 bg-black p-7">
+              <div className="grid gap-8 md:grid-cols-[0.72fr_1fr]">
+                <div>
+                  <h3 className="text-3xl font-semibold text-white">Lead capture</h3>
+                  <p className="mt-4 text-lg leading-7 text-white/62">Collect leads when your card is tapped or scanned.</p>
                 </div>
-                <span className="text-xs text-[#03A9F4] bg-[#03A9F4]/10 border border-[#03A9F4]/20 px-2 py-0.5 rounded-full font-medium">
-                  {f.badge}
-                </span>
+                <div className="rounded-2xl border border-white/12 bg-white/[0.035] p-4">
+                  <div className="flex gap-3">
+                    <div className="feature-input flex-1 rounded-xl bg-white/7 px-4 py-4 text-sm text-white/45">Email address</div>
+                    <div className="feature-save rounded-xl bg-[#03A9F4] px-5 py-4 text-sm font-bold text-[#061014]">Save</div>
+                  </div>
+                  <div className="mt-5 flex items-center gap-3 text-sm text-white/72">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/70">✓</span>
+                    <span>Lead saved</span>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-white text-lg sm:text-xl font-bold uppercase mb-2 leading-tight">{f.title}</h3>
-              <p className="text-white/68 text-sm mb-5 sm:mb-6 leading-relaxed text-pretty">{f.desc}</p>
-              <div className="flex justify-center">
-                <Image src={f.img} alt={f.title} width={200} height={200} className="mx-auto group-hover:scale-105 transition-transform duration-500" />
-              </div>
-            </div>
-          ))}
-        </div>
+            </article>
 
-        {/* Extra features grid */}
-        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {extraFeatures.map((f, i) => (
-            <div key={i} className="bg-[#111] border border-[#1e1e1e] rounded-xl p-4 hover:border-[#03A9F4]/30 hover:bg-[#03A9F4]/5 transition-all duration-200 text-center group">
-              <i className={`${f.icon} text-[#03A9F4] text-2xl mb-2 block group-hover:scale-110 transition-transform`} />
-              <p className="text-white text-sm sm:text-xs font-semibold mb-1">{f.title}</p>
-              <p className="text-white/62 text-sm sm:text-xs leading-tight">{f.desc}</p>
-            </div>
-          ))}
+            <article className="feature-panel group relative border border-white/14 bg-black p-7">
+              <div className="grid gap-8 md:grid-cols-[0.72fr_1fr]">
+                <div>
+                  <h3 className="text-3xl font-semibold text-white">Private controls</h3>
+                  <p className="mt-4 text-lg leading-7 text-white/62">Choose what&apos;s shared and who can see it.</p>
+                </div>
+                <div className="overflow-hidden rounded-2xl border border-white/12 bg-white/[0.035]">
+                  <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 text-sm text-white/74">
+                    <span>Profile visibility</span>
+                    <span>Anyone ›</span>
+                  </div>
+                  <div className="flex items-center justify-between px-5 py-4 text-sm text-white/74">
+                    <span>Hide contact details</span>
+                    <span className="feature-toggle relative h-7 w-12 rounded-full bg-[#03A9F4]">
+                      <span className="absolute right-1 top-1 h-5 w-5 rounded-full bg-white" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
         </div>
       </div>
     </section>

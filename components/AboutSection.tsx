@@ -2,94 +2,99 @@ import Image from "next/image";
 import AnimatedCounter from "./AnimatedCounter";
 
 const stats = [
-  { icon: "ri-user-2-line", value: 12, suffix: "K+", label: "Active Users", desc: "Creators & professionals" },
-  { icon: "ri-qr-scan-2-line", value: 180, suffix: "K+", label: "Monthly Scans", desc: "Successful connections" },
-  { icon: "ri-global-line", value: 18, suffix: "+", label: "Countries", desc: "Global reach & growing" },
-  { icon: "ri-sim-card-2-line", value: 1, suffix: " Tap", label: "Technology", desc: "Fast & secure NFC" },
+  { icon: "ri-user-2-line", value: 12, suffix: "K+", label: "Active profiles", desc: "Creators, teams, and local brands" },
+  { icon: "ri-qr-scan-2-line", value: 180, suffix: "K+", label: "Monthly taps", desc: "NFC and QR connections opened" },
+  { icon: "ri-global-line", value: 18, suffix: "+", label: "Countries", desc: "Profiles shared across markets" },
+  { icon: "ri-sim-card-2-line", value: 1, suffix: " Tap", label: "Live identity", desc: "Cards update without reprints" },
 ];
 
-const comparison = [
-  { feature: "Link in Bio", us: true, them: true },
-  { feature: "Physical NFC Card", us: true, them: false },
-  { feature: "QR Code", us: true, them: true },
-  { feature: "Analytics", us: true, them: true },
-  { feature: "Lead Capture", us: true, them: false },
-  { feature: "Link Scheduling", us: true, them: false },
-  { feature: "PIN Protection", us: true, them: false },
-  { feature: "Custom Themes", us: true, them: true },
+const insights = [
+  "Cards, medals, and QR codes all point to one editable profile.",
+  "Every scan can route to contacts, links, offers, or lead capture.",
+  "Teams can ship physical products first and update destinations later.",
 ];
 
 export default function AboutSection() {
   return (
-    <section id="about" className="py-10 sm:py-24 px-4">
-      <div className="w-full max-w-none md:container md:mx-auto">
-        {/* Section header */}
-        <div className="flex items-center gap-2.5 mb-2">
-          <span className="w-7 sm:w-8 h-[2px] bg-[#03A9F4] rounded-full" />
-          <span className="text-[#03A9F4] text-[10px] sm:text-xs font-semibold uppercase tracking-widest">Who We Are</span>
-        </div>
-        <h2 className="text-white text-2xl sm:text-5xl font-bold uppercase mb-1 leading-tight">About Us</h2>
-        <p className="text-white/65 text-xs sm:text-base mb-5 sm:mb-10 leading-relaxed">Everything you need to know</p>
+    <section id="about" className="relative overflow-hidden px-4 py-20 scroll-mt-28 sm:py-28">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_24%,rgba(3,169,244,0.12),transparent_24rem),radial-gradient(circle_at_78%_46%,rgba(3,169,244,0.08),transparent_28rem)]" />
+      <div className="container relative z-10 mx-auto">
+        <div className="grid-flow-dense grid gap-4 lg:grid-cols-12">
+          <div className="relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#08090a] p-6 sm:p-9 lg:col-span-5">
+            <div className="mb-6 flex items-center gap-2.5">
+              <span className="h-[2px] w-8 rounded-full bg-[#03A9F4]" />
+              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#03A9F4]">Who we are</span>
+            </div>
+            <h2 className="max-w-[760px] text-[clamp(2.8rem,5vw,5.4rem)] font-bold uppercase leading-[0.92] text-white">
+              Built for live identity.
+            </h2>
+            <p className="mt-6 max-w-[520px] text-base leading-7 text-white/60 sm:text-lg">
+              LinkUp turns a physical tap into a flexible digital destination: profile, contact card, lead form, shop link, or campaign.
+            </p>
 
-        <div className="flex w-full flex-col md:flex-row gap-6 md:gap-8 items-start">
-          {/* Stats grid */}
-          <div className="grid w-full grid-cols-2 gap-3 md:w-1/2">
-            {stats.map((s, i) => (
-              <div
-                key={i}
-                className="group relative min-h-[120px] sm:min-h-[132px] bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-3.5 sm:p-5 border border-[#222] hover:border-[#03A9F4]/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-[#03A9F4]/0 group-hover:bg-[#03A9F4]/5 transition-all duration-300 rounded-2xl" />
-                <div className="relative z-10">
-                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#1f1f23] group-hover:bg-[#03A9F4]/20 border border-[#2c2c2c] group-hover:border-[#03A9F4]/30 flex items-center justify-center mb-3 transition-all duration-300">
-                    <i className={`${s.icon} text-[#03A9F4] text-lg sm:text-xl`} />
+            <div className="mt-9 grid grid-cols-2 gap-3">
+              {stats.map((s) => (
+                <div
+                  key={s.label}
+                  className="group relative min-h-[142px] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] p-4 transition duration-500 hover:-translate-y-1 hover:border-[#03A9F4]/45 hover:bg-[#03A9F4]/[0.055]"
+                >
+                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/[0.045] text-[#03A9F4] transition duration-500 group-hover:border-[#03A9F4]/40">
+                    <i className={`${s.icon} text-xl`} />
                   </div>
-                  <div className="text-[#03A9F4] text-xl sm:text-2xl font-bold mb-0.5">
+                  <div className="text-2xl font-bold text-[#03A9F4] sm:text-3xl">
                     <AnimatedCounter value={s.value} suffix={s.suffix} />
                   </div>
-                  <div className="text-white text-xs sm:text-sm font-semibold leading-tight">{s.label}</div>
-                  <div className="text-white/60 text-[10px] sm:text-xs mt-0.5 leading-tight">{s.desc}</div>
+                  <p className="mt-1 text-sm font-semibold uppercase tracking-wide text-white">{s.label}</p>
+                  <p className="mt-1 text-xs leading-5 text-white/48">{s.desc}</p>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
 
-            {/* Comparison table */}
-            <div className="col-span-2 bg-gradient-to-br from-[#1a1a1d] to-[#111114] rounded-2xl p-4 sm:p-5 border border-[#222]">
-              <p className="text-white text-sm font-semibold mb-3">NFC ID vs. Linktree</p>
-              <div className="space-y-2 max-h-[176px] overflow-hidden sm:max-h-none">
-                {comparison.map((c, i) => (
-                  <div key={i} className="flex items-start sm:items-center justify-between gap-3 text-[10px] sm:text-xs">
-                    <span className="text-white/65">{c.feature}</span>
-                    <div className="flex shrink-0 items-center gap-2 sm:gap-6">
-                      <span className={c.us ? "text-green-400" : "text-red-400/50"}>
-                        <i className={c.us ? "ri-check-line" : "ri-close-line"} />
-                        <span className="ml-1 text-white/60">NFC ID</span>
-                      </span>
-                      <span className={c.them ? "text-green-400/50" : "text-red-400/30"}>
-                        <i className={c.them ? "ri-check-line" : "ri-close-line"} />
-                        <span className="ml-1 text-white/50">Linktree</span>
-                      </span>
-                    </div>
+          <div className="group relative min-h-[560px] overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#070809] lg:col-span-4">
+            <Image
+              src="/assets/linkup/linkup-about-identity-scene.png"
+              alt="LinkUp NFC card, tag, and phone profile scene"
+              width={1536}
+              height={1024}
+              className="h-full w-full object-cover object-[64%_50%] opacity-90 transition duration-700 group-hover:scale-105"
+              priority={false}
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04),rgba(0,0,0,0.64))]" />
+            <div className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/10 bg-black/45 p-5 backdrop-blur-xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#03A9F4]">One profile</p>
+              <p className="mt-2 text-2xl font-bold uppercase leading-tight text-white">Many physical touchpoints</p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 lg:col-span-3">
+            <div className="rounded-[1.5rem] border border-[#03A9F4]/20 bg-[#03A9F4]/10 p-6">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#03A9F4]">Why it matters</p>
+              <p className="mt-5 text-3xl font-bold uppercase leading-none text-white">No reprint when the destination changes.</p>
+            </div>
+
+            <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.035] p-6">
+              <div className="space-y-5">
+                {insights.map((item, index) => (
+                  <div key={item} className="flex gap-4">
+                    <span className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#03A9F4]/35 text-xs font-bold text-[#03A9F4]">
+                      {index + 1}
+                    </span>
+                    <p className="text-sm leading-6 text-white/64">{item}</p>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
 
-          {/* Image */}
-          <div className="hidden md:flex md:w-1/2 justify-center items-center relative">
-            <div className="absolute w-48 h-48 bg-[#03A9F4]/10 rounded-full blur-3xl" />
-            <Image
-              src="/img/keychain-with-phone.webp"
-              alt="Keychain with phone"
-              width={280}
-              height={420}
-              className="relative z-10 drop-shadow-2xl"
-              style={{
-                WebkitBoxReflect:
-                  "below 8px linear-gradient(transparent 60%, rgba(0,0,0,0.2) 80%, transparent 100%)",
-              }}
-            />
+            <div className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-black p-6">
+              <div className="marquee-container text-[#03A9F4]">
+                <div className="marquee-content scroll-left gap-8 text-sm font-bold uppercase tracking-[0.28em]">
+                  {["Tap", "Scan", "Share", "Update", "Measure", "Tap", "Scan", "Share"].map((item, index) => (
+                    <span key={`${item}-${index}`}>{item}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -25,7 +25,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center gap-2 mb-3 w-fit">
-              <Image src="/img/logo.png" alt="NFC ID" width={36} height={36} />
+              <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={36} height={48} className="h-9 w-7 object-contain" />
               <span className="text-white font-bold text-lg tracking-wider">
                 NFC <span className="text-[#03a9f4]">ID</span>
               </span>
