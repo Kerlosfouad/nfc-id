@@ -50,7 +50,9 @@ export async function proxy(request: NextRequest) {
   if (pathname.startsWith("/api/v1/") && !user) {
     // Allow public endpoints: shop products, tag resolver, profile view, lead form POST, reports
     const publicApiPatterns = [
+      /^\/api\/v1\/auth\/signup$/,              // Create a new account
       /^\/api\/v1\/products$/,                  // GET public shop products
+      /^\/api\/v1\/nfc\/resolve$/,              // Resolve a scanned NFC UID
       /^\/api\/v1\/profiles\/[^/]+\/leads$/,   // POST lead form
       /^\/api\/v1\/reports$/,                   // POST report
     ];

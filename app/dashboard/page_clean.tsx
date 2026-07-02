@@ -2734,8 +2734,8 @@ export default function DashboardPage() {
           {!profile ? (
             <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
               <i className="ri-nfc-line text-5xl text-white/10" />
-              <p className="text-white/50">No profiles yet.</p>
-              <Link href="/admin/tags" className="px-5 py-2.5 rounded-full bg-[#03A9F4] text-white text-sm font-semibold hover:bg-[#03A9F4]/80">Generate a Tag</Link>
+              <p className="text-white/50">No profiles yet. Connect your NFC medal to create one.</p>
+              <Link href="/connect-nfc" className="px-5 py-2.5 rounded-full bg-[#03A9F4] text-white text-sm font-semibold hover:bg-[#03A9F4]/80">Connect Your NFC</Link>
             </div>
           ) : (
             <div className={"h-full " + (tab === "design" ? "overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 pb-24 md:pb-6" : "overflow-y-auto")}>

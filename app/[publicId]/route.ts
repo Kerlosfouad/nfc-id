@@ -9,6 +9,7 @@ const RESERVED_PUBLIC_PATHS = new Set([
   'auth',
   'checkout',
   'claim',
+  'connect-nfc',
   'dashboard',
   'login',
   'privacy',

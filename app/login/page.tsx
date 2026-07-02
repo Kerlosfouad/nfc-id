@@ -22,11 +22,11 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get("redirect");
-  const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/dashboard";
+  const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/connect-nfc";
   const resolveRedirect = useCallback((userEmail?: string | null) => {
-    if (isOwnerEmail(userEmail) && redirectTo === "/dashboard") return "/admin";
+    if (isOwnerEmail(userEmail) && !redirectParam) return "/admin";
     return redirectTo;
-  }, [redirectTo]);
+  }, [redirectParam, redirectTo]);
   const callbackError = searchParams.get("error");
   const supabase = useMemo(() => createClient(), []);
 
@@ -149,7 +149,9 @@ function LoginContent() {
         <div className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-2xl p-8 shadow-[0_8px_24px_rgba(0,0,0,0.42)]">
           <div className="mb-8">
             <h2 className="text-white text-3xl font-bold mb-1">Welcome back</h2>
-            <p className="text-white/65 text-sm">Sign in to your NFC ID account</p>
+            <p className="text-white/65 text-sm">
+              {redirectTo === "/connect-nfc" ? "Sign in first, then tap your medal once" : "Sign in to your NFC ID account"}
+            </p>
           </div>
           <form onSubmit={handleEmailLogin} className="space-y-5">
             <div className="group">
@@ -195,7 +197,7 @@ function LoginContent() {
           </div>
           <p className="text-white/65 text-sm text-center mt-6">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-[#03A9F4] font-semibold hover:text-white transition-colors">Create one free</Link>
+            <Link href={`/signup?redirect=${encodeURIComponent(redirectTo)}`} className="text-[#03A9F4] font-semibold hover:text-white transition-colors">Create one free</Link>
           </p>
         </div>
       </div>

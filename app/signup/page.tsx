@@ -18,7 +18,7 @@ function SignupContent() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") ?? "/dashboard";
+  const redirectTo = searchParams.get("redirect") ?? "/connect-nfc";
   const supabase = createClient();
 
   useEffect(() => {
@@ -100,7 +100,9 @@ function SignupContent() {
         <div className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-2xl p-8 shadow-[0_8px_24px_rgba(0,0,0,0.42)]">
           <div className="mb-8">
             <h2 className="text-white text-3xl font-bold mb-1">Create account</h2>
-            <p className="text-white/65 text-sm">Join thousands of NFC ID users</p>
+            <p className="text-white/65 text-sm">
+              {redirectTo === "/connect-nfc" ? "Create your account before linking your medal" : "Join thousands of NFC ID users"}
+            </p>
           </div>
 
           <form onSubmit={handleSignup} className="space-y-4">
@@ -180,7 +182,7 @@ function SignupContent() {
 
           <p className="text-white/65 text-sm text-center mt-6">
             Already have an account?{" "}
-            <Link href="/login" className="text-[#03A9F4] font-semibold hover:text-white transition-colors">Sign in</Link>
+            <Link href={`/login?redirect=${encodeURIComponent(redirectTo)}`} className="text-[#03A9F4] font-semibold hover:text-white transition-colors">Sign in</Link>
           </p>
         </div>
       </div>
