@@ -7,6 +7,7 @@ import HowItWorks from "@/components/HowItWorks";
 import Testimonials from "@/components/Testimonials";
 import CtaSection from "@/components/CtaSection";
 import Footer from "@/components/Footer";
+import TasteGsapMotion from "@/components/TasteGsapMotion";
 
 function SectionDivider() {
   return (
@@ -20,6 +21,7 @@ function SectionDivider() {
 export default function Home() {
   return (
     <main className="bg-[#0b0a0a] min-h-screen">
+      <TasteGsapMotion />
       <Navbar />
       <HeroSection />
       <SectionDivider />

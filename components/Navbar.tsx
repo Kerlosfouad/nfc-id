@@ -34,7 +34,7 @@ export default function Navbar() {
     { href: "/#PRODUCT", label: "PRODUCT" },
     { href: "/shop", label: "SHOP" },
     { href: "/#USE", label: "HOW TO USE" },
-    { href: "/#Testimonials", label: "TESTIMONIALS" },
+    { href: "/#download", label: "APP" },
   ];
 
   return (
