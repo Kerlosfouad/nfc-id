@@ -1581,7 +1581,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
 
   async function deleteProfile() {
     if (deleting) return;
-    const ok = window.confirm(`Delete ${profile.displayName}? This will remove its links and free the medal code for a new claim.`);
+    const ok = window.confirm(`Delete your account? This will remove your profile, free the NFC card, and allow this email to be registered again.`);
     if (!ok) return;
     setDeleting(true);
     try {
@@ -1591,8 +1591,9 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
       });
       const json = await readApiJson(res);
       if (!res.ok) throw new Error(json.error?.message ?? "Delete failed");
+      await createClient().auth.signOut();
       onDeleted(profile.id);
-      router.push("/dashboard");
+      router.push("/signup");
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Delete failed");
     } finally {
@@ -1887,7 +1888,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
               <div className="flex items-start gap-3">
                 <i className="ri-delete-bin-line mt-0.5 text-2xl text-red-400" />
                 <div>
-                  <p className="text-base font-bold text-red-400">Delete Profile</p>
+                  <p className="text-base font-bold text-red-400">Delete Account</p>
                   <p className="mt-2 text-sm leading-relaxed text-white/45">Permanently delete this profile, its links, and release the medal code for another claim.</p>
                   <button type="button" onClick={deleteProfile} disabled={deleting} className="mt-4 flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-red-600 px-4 text-sm font-bold text-white disabled:opacity-60">
                     <i className={deleting ? "ri-loader-4-line animate-spin" : "ri-delete-bin-line"} />
@@ -2052,7 +2053,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
         <SettingsRow icon="ri-shield-check-line" label="Privacy Policy & Terms" onClick={() => router.push("/terms")} />
         <SettingsRow icon="ri-phone-line" label="Contact & Support" onClick={() => setPanel("support")} />
         <SettingsRow icon="ri-logout-box-r-line" label="Sign Out" danger onClick={signOut} />
-        <SettingsRow icon={deleting ? "ri-loader-4-line animate-spin" : "ri-delete-bin-line"} label={deleting ? "Deleting..." : "Delete Profile"} danger onClick={deleteProfile} />
+        <SettingsRow icon={deleting ? "ri-loader-4-line animate-spin" : "ri-delete-bin-line"} label={deleting ? "Deleting..." : "Delete Account"} danger onClick={deleteProfile} />
       </div>
     </div>
   );

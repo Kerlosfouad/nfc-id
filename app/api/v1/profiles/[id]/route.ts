@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { del, profileCacheKey, tagCacheKey } from '@/lib/services/cacheService';
@@ -169,6 +170,26 @@ export async function DELETE(
   if (!existing) return notFound();
   if (existing.ownerId !== userId) return forbidden();
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) {
+    return NextResponse.json(
+      { data: null, error: { code: 'SERVER_ERROR', message: 'Auth service is not configured.' } },
+      { status: 500 },
+    );
+  }
+
+  const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+  if (authDeleteError) {
+    return NextResponse.json(
+      { data: null, error: { code: 'AUTH_DELETE_FAILED', message: authDeleteError.message } },
+      { status: 500 },
+    );
+  }
+
   await db.$transaction(async (tx) => {
     await tx.nfcTag.updateMany({
       where: {
@@ -186,11 +207,11 @@ export async function DELETE(
         linkedAt: null,
       },
     });
-    await tx.profile.delete({ where: { id } });
     await tx.tag.updateMany({
       where: { publicId: existing.publicId, ownerId: userId },
       data: { ownerId: null, state: 'SOLD' },
     });
+    await tx.user.deleteMany({ where: { id: userId } });
   });
 
   void del(profileCacheKey(existing.publicId));
