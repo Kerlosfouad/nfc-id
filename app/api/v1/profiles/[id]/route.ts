@@ -44,7 +44,7 @@ const UpdateProfileSchema = z.object({
       fontFamily: z.string().min(1),
       linksLayout: z.enum(['list', 'grid']).optional(),
       profileLayout: z.enum(['classic', 'hero']).optional(),
-      coverUrl: z.string().url().nullable().optional(),
+      coverUrl: z.union([z.string().url(), z.string().startsWith('/')]).nullable().optional(),
     })
     .optional(),
   passwordProtected: z.boolean().optional(),
