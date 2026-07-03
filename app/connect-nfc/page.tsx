@@ -346,7 +346,6 @@ export default function ConnectNfcPage() {
   useEffect(() => {
     if (status === "ready" && token) {
       if (prefilledUid) {
-        void linkCard({ uid: prefilledUid });
         return;
       }
       void startScan();
@@ -357,6 +356,12 @@ export default function ConnectNfcPage() {
   const isBusy = ["checking-auth", "waiting", "reading", "connecting"].includes(status);
   const isPositive = status === "success" || status === "already-linked";
   const canScan = status === "ready" || status === "error";
+  const canLinkSavedUid = !!prefilledUid && (status === "ready" || status === "error");
+  const handlePrimaryAction = canLinkSavedUid
+    ? () => void linkCard({ uid: prefilledUid })
+    : canScan
+      ? startScan
+      : undefined;
   const statusTitle =
     status === "unsupported"
       ? "Open on Android"
@@ -373,7 +378,7 @@ export default function ConnectNfcPage() {
               : "Ready to Scan";
   const statusBody =
     status === "ready" && prefilledUid
-      ? "We found the card UID from your first scan. Linking it now."
+      ? "We found the card UID from your first scan. Press once to finish linking."
       : status === "ready"
       ? "Bring your card closer to the back of your phone."
       : status === "unsupported"
@@ -507,12 +512,12 @@ export default function ConnectNfcPage() {
             </div>
 
             <h1 className="mt-4 text-[31px] font-black leading-[1.08] tracking-[-0.02em] text-white sm:mt-8 sm:text-[46px] lg:text-[64px]">
-              Scan Again
-              <span className="block text-[#088cff]">to Link</span>
+              Link Card
+              <span className="block text-[#088cff]">Now</span>
             </h1>
 
             <p className="mx-auto mt-3 max-w-[315px] text-[14px] leading-6 text-white/72 sm:mt-6 sm:max-w-[350px] sm:text-[17px] sm:leading-8 lg:mx-0 lg:max-w-[430px] lg:text-[19px]">
-              You created your account. Now scan the card once more so we can save the UID to your profile.
+              Your card was detected from the first scan. Press the button below to link it to this account.
             </p>
           </section>
 
@@ -532,15 +537,15 @@ export default function ConnectNfcPage() {
           <section className="lg:col-start-1 lg:row-start-2">
             <button
               type="button"
-              onClick={canScan ? startScan : undefined}
-              disabled={!canScan}
+              onClick={handlePrimaryAction}
+              disabled={!handlePrimaryAction}
               className="connect-status grid w-full grid-cols-[58px_1fr_48px] items-center gap-3 rounded-[18px] border border-white/10 bg-[#071725]/86 px-4 py-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition enabled:hover:border-[#03A9F4]/35 enabled:hover:bg-[#092033] enabled:active:scale-[0.99] disabled:cursor-default sm:gap-4 sm:rounded-[22px] sm:px-5 sm:py-5"
             >
               <span className="flex h-[38px] w-[38px] items-center justify-center rounded-full border border-white/10 bg-[#0a1824] sm:h-[52px] sm:w-[52px]">
                 <i className={`${copy.icon} ${status === "connecting" ? "animate-spin" : ""} text-2xl ${isPositive ? "text-green-300" : "text-[#03A9F4]"} sm:text-3xl`} />
               </span>
               <span>
-                <span className="block text-[17px] font-extrabold leading-tight text-white sm:text-[20px]">{statusTitle}</span>
+                <span className="block text-[17px] font-extrabold leading-tight text-white sm:text-[20px]">{canLinkSavedUid ? "Link NFC Card" : statusTitle}</span>
                 <span className="mt-1.5 block text-[13px] leading-5 text-white/65 sm:mt-2 sm:text-[15px] sm:leading-6">{statusBody}</span>
               </span>
               <span className={`connect-progress ${isPositive ? "connect-progress-done" : ""}`} aria-hidden="true" />
