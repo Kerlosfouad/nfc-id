@@ -189,7 +189,7 @@ function LoginContent() {
           </div>
           <p className="text-white/65 text-sm text-center mt-6">
             Don&apos;t have an account?{" "}
-            <Link href={`/signup?redirect=${encodeURIComponent(redirectTo)}`} className="text-[#03A9F4] font-semibold hover:text-white transition-colors">Create one free</Link>
+            <Link href={redirectParam?.startsWith("/") ? `/signup?redirect=${encodeURIComponent(redirectParam)}` : "/signup"} className="text-[#03A9F4] font-semibold hover:text-white transition-colors">Create one free</Link>
           </p>
         </div>
       </div>
