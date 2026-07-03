@@ -185,21 +185,55 @@ export default function ConnectNfcPage() {
   }, [extractPublicIdFromText]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        router.replace("/login?redirect=/connect-nfc");
-        return;
-      }
+    let cancelled = false;
 
+    async function prepareNfcFlow() {
+      const { data } = await supabase.auth.getSession();
       const uidFromRedirect = new URLSearchParams(window.location.search)
         .get("uid")
         ?.trim()
         .toUpperCase()
         .replace(/[^A-Z0-9:_-]/g, "") ?? "";
+
+      if (cancelled) return;
       setPrefilledUid(uidFromRedirect);
+
+      if (uidFromRedirect) {
+        try {
+          const response = await fetch(`/api/v1/nfc/resolve?uid=${encodeURIComponent(uidFromRedirect)}`);
+          const body = await response.json();
+          const destination = body?.data;
+
+          if (cancelled) return;
+
+          if ((destination?.kind === "profile" || destination?.kind === "suspended") && destination.href) {
+            router.replace(destination.href);
+            return;
+          }
+
+          if (!data.session && destination?.kind === "register" && destination.href) {
+            router.replace(destination.href);
+            return;
+          }
+        } catch {
+          if (cancelled) return;
+        }
+      }
+
+      if (!data.session) {
+        router.replace("/login?redirect=/connect-nfc");
+        return;
+      }
+
       setToken(data.session.access_token);
       setStatus(uidFromRedirect || (typeof window !== "undefined" && window.NDEFReader) ? "ready" : "unsupported");
-    });
+    }
+
+    void prepareNfcFlow();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router, supabase]);
 
   const linkCard = useCallback(async ({ uid, publicId }: { uid?: string; publicId?: string }) => {
