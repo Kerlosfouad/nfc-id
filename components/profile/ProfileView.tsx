@@ -144,11 +144,19 @@ function getThemeVars(theme: ProfileTheme) {
   }
 }
 
+const THEME_COVER_URLS: Partial<Record<ProfileTheme['style'], string>> = {
+  dark: '/assets/themes/dark-mode.jpeg',
+  minimal: '/assets/themes/minimal.png',
+  'purple-haze': '/assets/themes/purple-haze.png',
+  'rose-gold': '/assets/themes/rose-gold.png',
+};
+
 function getBgStyle(theme: ProfileTheme): React.CSSProperties {
   const pc = theme.primaryColor || '#03A9F4';
-  if (theme.coverUrl) {
+  const coverUrl = theme.coverUrl || THEME_COVER_URLS[theme.style];
+  if (coverUrl) {
     return {
-      backgroundImage: `url(${theme.coverUrl})`,
+      backgroundImage: `url(${coverUrl})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
     };

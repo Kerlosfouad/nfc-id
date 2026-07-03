@@ -222,10 +222,10 @@ function getLinkMeta(link: Pick<LinkItem, "type" | "title">): { icon: string; co
 }
 
 const PRESET_THEMES = [
-  { id: "dark", name: "Dark Mode", desc: "Sleek blue-black interface", colors: ["#020617", "#0f172a", "#1d4ed8", "#dbeafe"], premium: false, accent: "#1d4ed8" },
-  { id: "minimal", name: "Minimal", desc: "Soft monochrome elegance", colors: ["#111113", "#27272a", "#71717a", "#e4e4e7"], premium: false, accent: "#71717a" },
-  { id: "purple-haze", name: "Purple Haze", desc: "Deep purples and lavender", colors: ["#11102f", "#3b1d78", "#5b21b6", "#ddd6fe"], premium: false, accent: "#5b21b6" },
-  { id: "rose-gold", name: "Rose Gold", desc: "Elegant rose glow", colors: ["#21040c", "#7f1d1d", "#9f1239", "#fecdd3"], premium: false, accent: "#9f1239" },
+  { id: "dark", name: "Dark Mode", desc: "Sleek blue-black interface", colors: ["#020617", "#0f172a", "#1d4ed8", "#dbeafe"], premium: false, accent: "#1d4ed8", coverUrl: "/assets/themes/dark-mode.jpeg" },
+  { id: "minimal", name: "Minimal", desc: "Soft monochrome elegance", colors: ["#111113", "#27272a", "#71717a", "#e4e4e7"], premium: false, accent: "#71717a", coverUrl: "/assets/themes/minimal.png" },
+  { id: "purple-haze", name: "Purple Haze", desc: "Deep purples and lavender", colors: ["#11102f", "#3b1d78", "#5b21b6", "#ddd6fe"], premium: false, accent: "#5b21b6", coverUrl: "/assets/themes/purple-haze.png" },
+  { id: "rose-gold", name: "Rose Gold", desc: "Elegant rose glow", colors: ["#21040c", "#7f1d1d", "#9f1239", "#fecdd3"], premium: false, accent: "#9f1239", coverUrl: "/assets/themes/rose-gold.png" },
 ];
 function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { profile: ProfileData; saving: boolean; onSave: (p: Record<string, unknown>) => void; onClose: () => void; onAddLink?: (d: LinkDraft) => void }) {
   const [name, setName] = useState(profile.displayName);
@@ -2224,7 +2224,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
     }
     const accent = selectedTheme?.accent ?? theme.primaryColor;
     setStyle(themeId);
-    onSave({ style: themeId as ProfileTheme["style"], primaryColor: accent, fontFamily: theme.fontFamily, linksLayout, profileLayout, coverUrl: theme.coverUrl }, "Theme applied successfully");
+    onSave({ style: themeId as ProfileTheme["style"], primaryColor: accent, fontFamily: theme.fontFamily, linksLayout, profileLayout, coverUrl: selectedTheme?.coverUrl }, "Theme applied successfully");
   }
 
   function applyLayout(ll: "list" | "grid", pl: "classic" | "hero") {
@@ -2288,10 +2288,14 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
                 </div>
 
                 {/* Theme preview card */}
-                <div className="w-full h-24 rounded-xl overflow-hidden border border-white/5 flex flex-col items-center justify-center gap-1.5 relative" style={{ backgroundColor: t.colors[0] }}>
-                  <div className="w-7 h-7 rounded-full" style={{ backgroundColor: t.colors[1] }} />
-                  <div className="w-14 h-1.5 rounded-full" style={{ backgroundColor: t.colors[2] }} />
-                  <div className="w-10 h-1.5 rounded-full opacity-60" style={{ backgroundColor: t.colors[3] }} />
+                <div
+                  className="w-full h-24 rounded-xl overflow-hidden border border-white/5 flex flex-col items-center justify-center gap-1.5 relative bg-cover bg-center"
+                  style={{ backgroundColor: t.colors[0], backgroundImage: `url(${t.coverUrl})` }}
+                >
+                  <div className="absolute inset-0 bg-black/20" />
+                  <div className="relative w-7 h-7 rounded-full border border-white/20" style={{ backgroundColor: t.colors[1] }} />
+                  <div className="relative w-14 h-1.5 rounded-full" style={{ backgroundColor: t.colors[2] }} />
+                  <div className="relative w-10 h-1.5 rounded-full opacity-70" style={{ backgroundColor: t.colors[3] }} />
                   {style === t.id && (
                     <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-white flex items-center justify-center">
                       <i className="ri-check-line text-[9px] text-black font-bold" />
