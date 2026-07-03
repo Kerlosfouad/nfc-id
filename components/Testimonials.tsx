@@ -44,20 +44,11 @@ export default function Testimonials() {
             <div className="absolute left-1/2 top-0 h-full w-[78%] -translate-x-1/2 rounded-[3rem] border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.015] p-2 shadow-[0_40px_120px_rgba(0,0,0,0.65),0_0_80px_rgba(3,169,244,0.10)]">
               <div className="relative h-full overflow-hidden rounded-[2.55rem] border border-white/[0.06] bg-[#0a0d10]">
                 <div className="absolute left-1/2 top-4 h-7 w-24 -translate-x-1/2 rounded-full bg-black" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(3,169,244,0.22),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.05),transparent_28%)]" />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),transparent_28%)]" />
+                <div className="absolute inset-x-8 top-28 h-px bg-gradient-to-r from-transparent via-[#03A9F4]/35 to-transparent opacity-0 animate-[linkup-scan_4.8s_ease-in-out_infinite]" />
                 <div className="relative flex h-full flex-col items-center justify-center px-8 text-center">
-                  <div className="relative mb-9 h-40 w-40 sm:h-48 sm:w-48">
-                    <div className="absolute inset-0 rounded-[2rem] bg-[#03A9F4]/15 blur-2xl" />
-                    <Image src="/img/logo.png" alt="LinkUp" fill sizes="192px" className="object-contain drop-shadow-[0_0_34px_rgba(3,169,244,0.35)]" priority />
-                  </div>
-                  <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/40">Your smart identity</p>
-                  <h3 className="mt-3 text-2xl font-black text-white">LinkUp</h3>
-                  <div className="mt-8 grid w-full grid-cols-3 gap-2">
-                    {["Profile", "Scans", "Links"].map((item) => (
-                      <div key={item} className="rounded-2xl border border-white/8 bg-white/[0.035] px-2 py-3 text-[10px] font-semibold text-white/55">
-                        {item}
-                      </div>
-                    ))}
+                  <div className="relative h-64 w-64 animate-[linkup-float_5.5s_ease-in-out_infinite] sm:h-72 sm:w-72">
+                    <Image src="/img/logo.png" alt="LinkUp" fill sizes="288px" className="object-contain" priority />
                   </div>
                 </div>
               </div>
