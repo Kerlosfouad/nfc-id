@@ -19,7 +19,7 @@ function SignupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get("redirect");
-  const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/connect-nfc";
+  const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/dashboard";
   const supabase = createClient();
 
   async function handleSignup(e: React.FormEvent) {
@@ -92,7 +92,7 @@ function SignupContent() {
           <div className="mb-8">
             <h2 className="text-white text-3xl font-bold mb-1">Create account</h2>
             <p className="text-white/65 text-sm">
-              {redirectTo === "/connect-nfc" ? "Create your account before linking your medal" : "Join thousands of NFC ID users"}
+              {redirectTo.startsWith("/connect-nfc") ? "Create your account before linking your NFC card" : "Join thousands of NFC ID users"}
             </p>
           </div>
 

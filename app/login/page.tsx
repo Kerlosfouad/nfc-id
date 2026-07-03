@@ -22,7 +22,7 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get("redirect");
-  const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/connect-nfc";
+  const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/dashboard";
   const resolveRedirect = useCallback((userEmail?: string | null) => {
     if (isOwnerEmail(userEmail) && !redirectParam) return "/admin";
     return redirectTo;
@@ -142,7 +142,7 @@ function LoginContent() {
           <div className="mb-8">
             <h2 className="text-white text-3xl font-bold mb-1">Welcome back</h2>
             <p className="text-white/65 text-sm">
-              {redirectTo === "/connect-nfc" ? "Sign in first, then tap your medal once" : "Sign in to your NFC ID account"}
+              {redirectTo.startsWith("/connect-nfc") ? "Sign in first, then link your NFC card" : "Sign in to your NFC ID account"}
             </p>
           </div>
           <form onSubmit={handleEmailLogin} className="space-y-5">
