@@ -12,9 +12,17 @@ export class InvalidNfcUidError extends Error {
 
 export class NfcTagLinkedToAnotherUserError extends Error {
   readonly statusCode = 409;
-  constructor(message = 'This medal is already linked to another account') {
+  constructor(message = 'This NFC card is already linked to another account') {
     super(message);
     this.name = 'NfcTagLinkedToAnotherUserError';
+  }
+}
+
+export class UserAlreadyHasNfcTagError extends Error {
+  readonly statusCode = 409;
+  constructor(message = 'This account already has a linked NFC card') {
+    super(message);
+    this.name = 'UserAlreadyHasNfcTagError';
   }
 }
 
@@ -27,7 +35,7 @@ export interface LinkNfcTagResult {
     uid: string;
     userId: string;
     profileId: string | null;
-    linkedAt: Date;
+    linkedAt: Date | null;
   };
   profile: {
     id: string;
@@ -71,8 +79,13 @@ export async function linkNfcTag(userId: string, uid: string): Promise<LinkNfcTa
       include: { profile: true },
     });
 
-    if (existingTag && existingTag.userId !== userId) {
+    if (existingTag?.userId && existingTag.userId !== userId) {
       throw new NfcTagLinkedToAnotherUserError();
+    }
+
+    const usersLinkedTag = await tx.nfcTag.findUnique({ where: { userId } });
+    if (usersLinkedTag && usersLinkedTag.uid !== normalizedUid) {
+      throw new UserAlreadyHasNfcTagError();
     }
 
     const user = await tx.user.findUnique({ where: { id: userId }, select: { email: true } });
@@ -90,19 +103,26 @@ export async function linkNfcTag(userId: string, uid: string): Promise<LinkNfcTa
 
     if (existingTag) {
       const tag =
-        existingTag.profileId === profile.id
+        existingTag.userId === userId &&
+        existingTag.profileId === profile.id &&
+        existingTag.status === 'LINKED'
           ? existingTag
           : await tx.nfcTag.update({
               where: { uid: normalizedUid },
-              data: { profileId: profile.id, status: 'ACTIVE' },
+              data: {
+                userId,
+                profileId: profile.id,
+                status: 'LINKED',
+                linkedAt: existingTag.linkedAt ?? new Date(),
+              },
             });
 
       return {
-        status: 'already-linked' as const,
+        status: existingTag.userId === userId ? ('already-linked' as const) : ('linked' as const),
         tag: {
           id: tag.id,
           uid: tag.uid,
-          userId: tag.userId,
+          userId: tag.userId ?? userId,
           profileId: tag.profileId,
           linkedAt: tag.linkedAt,
         },
@@ -115,7 +135,8 @@ export async function linkNfcTag(userId: string, uid: string): Promise<LinkNfcTa
         uid: normalizedUid,
         userId,
         profileId: profile.id,
-        status: 'ACTIVE',
+        status: 'LINKED',
+        linkedAt: new Date(),
       },
     });
 
@@ -124,7 +145,7 @@ export async function linkNfcTag(userId: string, uid: string): Promise<LinkNfcTa
       tag: {
         id: tag.id,
         uid: tag.uid,
-        userId: tag.userId,
+        userId: tag.userId ?? userId,
         profileId: tag.profileId,
         linkedAt: tag.linkedAt,
       },
@@ -178,8 +199,13 @@ export async function linkPublicTag(
 
     const nfcTagUid = normalizedUid || `PUBLIC:${normalizedPublicId}`;
     const existingNfcTag = await tx.nfcTag.findUnique({ where: { uid: nfcTagUid } });
-    if (existingNfcTag && existingNfcTag.userId !== userId) {
+    if (existingNfcTag?.userId && existingNfcTag.userId !== userId) {
       throw new NfcTagLinkedToAnotherUserError();
+    }
+
+    const usersLinkedTag = await tx.nfcTag.findUnique({ where: { userId } });
+    if (usersLinkedTag && usersLinkedTag.uid !== nfcTagUid) {
+      throw new UserAlreadyHasNfcTagError();
     }
 
     const nfcTag = await tx.nfcTag.upsert({
@@ -188,12 +214,14 @@ export async function linkPublicTag(
         uid: nfcTagUid,
         userId,
         profileId: profile.id,
-        status: 'ACTIVE',
+        status: 'LINKED',
+        linkedAt: new Date(),
       },
       update: {
         userId,
         profileId: profile.id,
-        status: 'ACTIVE',
+        status: 'LINKED',
+        linkedAt: existingNfcTag?.linkedAt ?? new Date(),
       },
     });
 
@@ -202,7 +230,7 @@ export async function linkPublicTag(
       tag: {
         id: nfcTag.id,
         uid: nfcTag.uid,
-        userId: nfcTag.userId,
+        userId: nfcTag.userId ?? userId,
         profileId: nfcTag.profileId,
         linkedAt: nfcTag.linkedAt,
       },

@@ -15,7 +15,8 @@ enum TagState {
 }
 
 enum NfcTagStatus {
-  ACTIVE
+  UNLINKED
+  LINKED
   SUSPENDED
 }
 
@@ -77,24 +78,23 @@ model Tag {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  owner     User?        @relation(fields: [ownerId], references: [id])
+  owner     User?        @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   auditLogs TagAuditLog[]
 }
 
 model NfcTag {
   id        String       @id @default(uuid())
   uid       String       @unique
-  userId    String
+  userId    String?      @unique
   profileId String?
-  status    NfcTagStatus @default(ACTIVE)
-  linkedAt  DateTime     @default(now())
+  status    NfcTagStatus @default(UNLINKED)
+  linkedAt  DateTime?
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   profile Profile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
 
-  @@index([userId])
   @@index([profileId])
 }
 
@@ -117,7 +117,7 @@ model Profile {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  owner               User                  @relation(fields: [ownerId], references: [id])
+  owner               User                  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   nfcTags             NfcTag[]
   links               Link[]
   leadFormSubmissions LeadFormSubmission[]

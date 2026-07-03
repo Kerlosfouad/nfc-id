@@ -75,8 +75,8 @@ const statusCopy: Record<NfcStatus, { title: string; body: string; icon: string 
     icon: "ri-shield-check-line",
   },
   ready: {
-    title: "Connect your NFC medal",
-    body: "Tap Start, then hold the medal near the back of your phone until it is detected.",
+    title: "Link your NFC card",
+    body: "Tap Start, then scan the same NFC card again to link it to this account.",
     icon: "ri-nfc-line",
   },
   unsupported: {
@@ -86,27 +86,27 @@ const statusCopy: Record<NfcStatus, { title: string; body: string; icon: string 
   },
   waiting: {
     title: "Waiting for NFC",
-    body: "Keep this page open and move the medal slowly around the NFC area of your phone.",
+    body: "Keep this page open and move the card slowly around the NFC area of your phone.",
     icon: "ri-rfid-line",
   },
   reading: {
-    title: "Reading medal",
+    title: "Reading card",
     body: "The tag was detected. Capturing the hardware serial number now.",
     icon: "ri-scan-2-line",
   },
   connecting: {
-    title: "Connecting",
-    body: "We are securely linking this medal to your NFC ID account.",
+    title: "Linking card",
+    body: "We are securely saving this NFC card to your account.",
     icon: "ri-loader-4-line",
   },
   success: {
-    title: "Connected successfully",
-    body: "This physical medal is now permanently linked to your account.",
+    title: "Card linked successfully",
+    body: "Your NFC card has been successfully linked to your account.",
     icon: "ri-checkbox-circle-line",
   },
   "already-linked": {
     title: "Already connected",
-    body: "This medal is already linked to your account. You can manage it from your dashboard.",
+    body: "This NFC card is already linked to your account. Future scans will open your profile.",
     icon: "ri-checkbox-multiple-line",
   },
   error: {
@@ -127,7 +127,7 @@ export default function ConnectNfcPage() {
   const scanStartedRef = useRef(false);
   const readerRef = useRef<InstanceType<NDEFReaderConstructor> | null>(null);
 
-  const extractPublicIdFromText = useCallback((value: string) => {
+  const extractPublicIdFromText = useCallback((value: string): string => {
     const trimmed = value.replace(/[\u0000-\u001f]+/g, " ").trim();
     if (!trimmed) return "";
 
@@ -136,7 +136,7 @@ export default function ConnectNfcPage() {
 
     const embeddedUrl = trimmed.match(/https?:\/\/[^\s"'<>]+/i)?.[0];
     if (embeddedUrl && embeddedUrl !== trimmed) {
-      const publicId = extractPublicIdFromText(embeddedUrl);
+      const publicId: string = extractPublicIdFromText(embeddedUrl);
       if (publicId) return publicId;
     }
 
@@ -224,7 +224,7 @@ export default function ConnectNfcPage() {
 
     if (!response.ok) {
       setStatus("error");
-      setError(body?.error?.message ?? "This medal could not be linked.");
+      setError(body?.error?.message ?? "This NFC card could not be linked.");
       return;
     }
 
@@ -232,14 +232,14 @@ export default function ConnectNfcPage() {
     const absoluteProfileUrl = `${window.location.origin}${href}`;
 
     if (readerRef.current?.write) {
-      setNotice("Connected. Keep the medal still while we save your profile link to it.");
+      setNotice("Connected. Keep the card still while we save your profile link to it.");
       try {
         await readerRef.current.write({
           records: [{ recordType: "url", data: absoluteProfileUrl }],
         });
-        setNotice("Profile link saved to the medal.");
+        setNotice("Profile link saved to the card.");
       } catch {
-        setNotice("Connected. If the medal still opens this page, tap Try Again and hold it still until the profile link is saved.");
+        setNotice("Connected. If the card still opens this page, tap Try Again and hold it still until the profile link is saved.");
       }
     }
 
@@ -288,7 +288,7 @@ export default function ConnectNfcPage() {
         () => {
           scanStartedRef.current = false;
           setStatus("error");
-          setError("The medal was detected but could not be read. Try holding it still for a moment.");
+          setError("The card was detected but could not be read. Try holding it still for a moment.");
         },
         { once: true },
       );
@@ -456,16 +456,16 @@ export default function ConnectNfcPage() {
         <div className="connect-layout mx-auto grid w-full max-w-[430px] flex-1 items-center gap-4 sm:gap-7 lg:max-w-none lg:grid-cols-[0.9fr_1.1fr] lg:gap-x-12 lg:gap-y-8">
           <section className="text-center lg:text-left">
             <div className="inline-flex rounded-[13px] border border-[#03A9F4]/35 bg-[#03A9F4]/5 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#03A9F4] sm:px-6 sm:py-2 sm:text-[13px]">
-              Connect your card
+              Link your NFC card
             </div>
 
             <h1 className="mt-4 text-[31px] font-black leading-[1.08] tracking-[-0.02em] text-white sm:mt-8 sm:text-[46px] lg:text-[64px]">
-              Tap Your Card
-              <span className="block text-[#088cff]">to Connect</span>
+              Scan Again
+              <span className="block text-[#088cff]">to Link</span>
             </h1>
 
             <p className="mx-auto mt-3 max-w-[315px] text-[14px] leading-6 text-white/72 sm:mt-6 sm:max-w-[350px] sm:text-[17px] sm:leading-8 lg:mx-0 lg:max-w-[430px] lg:text-[19px]">
-              Keep this page open, then hold the card near the back of your phone.
+              You created your account. Now scan the card once more so we can save the UID to your profile.
             </p>
           </section>
 

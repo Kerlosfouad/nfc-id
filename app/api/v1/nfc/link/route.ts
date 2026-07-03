@@ -6,6 +6,7 @@ import {
   linkPublicTag,
   linkNfcTag,
   NfcTagLinkedToAnotherUserError,
+  UserAlreadyHasNfcTagError,
 } from '@/lib/use-cases/linkNfcTag';
 
 const LinkNfcSchema = z.object({
@@ -57,9 +58,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (error instanceof UserAlreadyHasNfcTagError) {
+      return NextResponse.json(
+        { data: null, error: { code: 'USER_ALREADY_HAS_NFC', message: error.message } },
+        { status: 409 },
+      );
+    }
+
     console.error('[nfc/link] Unexpected error:', error);
     return NextResponse.json(
-      { data: null, error: { code: 'INTERNAL_ERROR', message: 'Could not link this medal' } },
+      { data: null, error: { code: 'INTERNAL_ERROR', message: 'Could not link this NFC card' } },
       { status: 500 },
     );
   }

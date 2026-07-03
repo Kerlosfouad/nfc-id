@@ -170,7 +170,7 @@ export async function DELETE(
   if (existing.ownerId !== userId) return forbidden();
 
   await db.$transaction(async (tx) => {
-    await tx.nfcTag.deleteMany({
+    await tx.nfcTag.updateMany({
       where: {
         userId,
         OR: [
@@ -178,6 +178,12 @@ export async function DELETE(
           { profileId: null },
           { uid: `PUBLIC:${existing.publicId}` },
         ],
+      },
+      data: {
+        userId: null,
+        profileId: null,
+        status: 'UNLINKED',
+        linkedAt: null,
       },
     });
     await tx.profile.delete({ where: { id } });
