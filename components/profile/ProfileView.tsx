@@ -441,7 +441,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
         {/* Footer */}
         <div className="flex flex-col items-center gap-2 pt-8">
           <Link href="/" className="flex flex-col items-center gap-1.5 group transition-opacity hover:opacity-70">
-            <img src="/img/logo.png" alt="LinkUp" className="h-14 w-14 rounded-xl object-contain opacity-80" />
+            <img src="/img/logo.png" alt="LinkUp" className="h-20 w-20 rounded-2xl object-contain opacity-85" />
           </Link>
           <Link
             href="/"

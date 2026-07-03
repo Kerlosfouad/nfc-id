@@ -222,7 +222,6 @@ function getLinkMeta(link: Pick<LinkItem, "type" | "title">): { icon: string; co
 }
 
 const PRESET_THEMES = [
-  { id: "default", name: "Default", desc: "NFC blue glass look", colors: ["#04111c", "#0b2438", "#036083", "#b8d7e6"], premium: false, accent: "#036083" },
   { id: "dark", name: "Dark Mode", desc: "Sleek blue-black interface", colors: ["#020617", "#0f172a", "#1d4ed8", "#dbeafe"], premium: false, accent: "#1d4ed8" },
   { id: "minimal", name: "Minimal", desc: "Soft monochrome elegance", colors: ["#111113", "#27272a", "#71717a", "#e4e4e7"], premium: true, accent: "#71717a" },
   { id: "purple-haze", name: "Purple Haze", desc: "Deep purples and lavender", colors: ["#11102f", "#3b1d78", "#5b21b6", "#ddd6fe"], premium: true, accent: "#5b21b6" },
@@ -1000,7 +999,7 @@ function HomeTab({ profile, saving, pendingLinks, onPatch, onAddLink, onEditLink
         title="Cover Photo"
         current={profile.theme?.coverUrl ?? null}
         onSave={url => {
-          const theme = profile.theme ?? { style: "default", primaryColor: "#03A9F4", fontFamily: "Inter" };
+          const theme = profile.theme ?? { style: "dark", primaryColor: "#03A9F4", fontFamily: "Inter" };
           onPatch({ theme: { ...theme, coverUrl: url } });
           setCoverModal(false);
         }}
@@ -2203,8 +2202,8 @@ function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClo
 }
 
 function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: ProfileData; saving: boolean; onSave: (t: ProfileTheme, message?: string) => void; onRequestGold: (service?: GoldServiceId) => void }) {
-  const theme = profile.theme ?? { style: "default", primaryColor: "#03A9F4", fontFamily: "Inter" };
-  const [style, setStyle] = useState(theme.style || "default");
+  const theme = profile.theme ?? { style: "dark", primaryColor: "#03A9F4", fontFamily: "Inter" };
+  const [style, setStyle] = useState(theme.style || "dark");
   const [linksLayout, setLinksLayout] = useState<"list" | "grid">(theme.linksLayout || "list");
   const [profileLayout, setProfileLayout] = useState<"classic" | "hero">(theme.profileLayout || "classic");
   const [filter, setFilter] = useState<"all" | "free" | "premium">("all");

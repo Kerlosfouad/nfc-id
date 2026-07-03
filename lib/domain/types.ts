@@ -3,7 +3,7 @@ export type TagState = 'MANUFACTURED' | 'SOLD' | 'CLAIMED' | 'ACTIVE' | 'SUSPEND
 export type LinkType = 'URL' | 'VCF' | 'WHATSAPP' | 'YOUTUBE' | 'SPOTIFY' | 'TIKTOK';
 
 export interface ProfileTheme {
-  style: 'gradient' | 'glassmorphism' | 'minimal' | 'dark' | 'default' | 'purple-haze' | 'rose-gold';
+  style: 'gradient' | 'glassmorphism' | 'minimal' | 'dark' | 'purple-haze' | 'rose-gold';
   primaryColor: string;
   fontFamily: string;
   linksLayout?: 'list' | 'grid';
