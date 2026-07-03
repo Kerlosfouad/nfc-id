@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -34,12 +34,12 @@ const statusCopy: Record<NfcStatus, { title: string; body: string; icon: string 
   },
   ready: {
     title: "Link your NFC card",
-    body: "Press the button, then hold the card near your phone to write your profile link.",
+    body: "Hold the card near your phone. We will write your profile link automatically.",
     icon: "ri-nfc-line",
   },
   unsupported: {
     title: "Ready to link",
-    body: "Press the button to link the available NFC card to this account.",
+    body: "This step needs NFC writing support on Android Chrome.",
     icon: "ri-error-warning-line",
   },
   connecting: {
@@ -78,6 +78,7 @@ export default function ConnectNfcPage() {
   const [token, setToken] = useState<string | null>(null);
   const [prefilledUid, setPrefilledUid] = useState("");
   const [prefilledPublicId, setPrefilledPublicId] = useState("");
+  const autoLinkStartedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -189,15 +190,28 @@ export default function ConnectNfcPage() {
     window.setTimeout(() => router.push("/dashboard"), 1800);
   }, [router, token, writeProfileLink]);
 
+  useEffect(() => {
+    if (!token || status !== "ready" || autoLinkStartedRef.current) return;
+    autoLinkStartedRef.current = true;
+
+    void linkCard({
+      ...(prefilledUid ? { uid: prefilledUid } : {}),
+      ...(prefilledPublicId ? { publicId: prefilledPublicId } : {}),
+    });
+  }, [linkCard, prefilledPublicId, prefilledUid, status, token]);
+
   const copy = statusCopy[status];
   const isBusy = ["checking-auth", "connecting", "writing"].includes(status);
   const isPositive = status === "success" || status === "already-linked";
-  const canLinkCard = status === "ready" || status === "error" || status === "unsupported";
-  const handlePrimaryAction = canLinkCard
-    ? () => void linkCard({
-        ...(prefilledUid ? { uid: prefilledUid } : {}),
-        ...(prefilledPublicId ? { publicId: prefilledPublicId } : {}),
-      })
+  const canRetry = status === "error";
+  const handlePrimaryAction = canRetry
+    ? () => {
+        autoLinkStartedRef.current = false;
+        void linkCard({
+          ...(prefilledUid ? { uid: prefilledUid } : {}),
+          ...(prefilledPublicId ? { publicId: prefilledPublicId } : {}),
+        });
+      }
     : undefined;
   const statusTitle =
     status === "unsupported"
@@ -213,11 +227,11 @@ export default function ConnectNfcPage() {
               : "Ready to Link";
   const statusBody =
     status === "ready" && prefilledUid
-      ? "We found the card UID from your first scan. Press once to finish linking."
+      ? "We found the card UID from your first scan. Hold the card near your phone."
       : status === "ready" && prefilledPublicId
-        ? "We found the card link from your first scan. Press once to finish linking."
+        ? "We found the card link from your first scan. Hold the card near your phone."
       : status === "ready"
-      ? "Press once, then hold the card near your phone while we write your profile link."
+      ? "Hold the card near your phone. Writing starts automatically."
       : status === "unsupported"
         ? "This step needs NFC writing. Use Chrome on an Android phone with NFC enabled."
         : copy.body;
@@ -354,7 +368,7 @@ export default function ConnectNfcPage() {
             </h1>
 
             <p className="mx-auto mt-3 max-w-[315px] text-[14px] leading-6 text-white/72 sm:mt-6 sm:max-w-[350px] sm:text-[17px] sm:leading-8 lg:mx-0 lg:max-w-[430px] lg:text-[19px]">
-              Press the button below, then hold the card near your phone while we write your profile link to it.
+              Hold the card near your phone. We will write your profile link automatically.
             </p>
           </section>
 
@@ -372,21 +386,27 @@ export default function ConnectNfcPage() {
           </section>
 
           <section className="lg:col-start-1 lg:row-start-2">
-            <button
-              type="button"
+            <div
+              role={handlePrimaryAction ? "button" : "status"}
+              tabIndex={handlePrimaryAction ? 0 : -1}
               onClick={handlePrimaryAction}
-              disabled={!handlePrimaryAction}
-              className="connect-status grid w-full grid-cols-[58px_1fr_48px] items-center gap-3 rounded-[18px] border border-white/10 bg-[#071725]/86 px-4 py-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition enabled:hover:border-[#03A9F4]/35 enabled:hover:bg-[#092033] enabled:active:scale-[0.99] disabled:cursor-default sm:gap-4 sm:rounded-[22px] sm:px-5 sm:py-5"
+              onKeyDown={(event) => {
+                if (handlePrimaryAction && (event.key === "Enter" || event.key === " ")) {
+                  event.preventDefault();
+                  handlePrimaryAction();
+                }
+              }}
+              className={`connect-status grid w-full grid-cols-[58px_1fr_48px] items-center gap-3 rounded-[18px] border border-white/10 bg-[#071725]/86 px-4 py-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition sm:gap-4 sm:rounded-[22px] sm:px-5 sm:py-5 ${handlePrimaryAction ? "cursor-pointer hover:border-[#03A9F4]/35 hover:bg-[#092033] active:scale-[0.99]" : "cursor-default"}`}
             >
               <span className="flex h-[38px] w-[38px] items-center justify-center rounded-full border border-white/10 bg-[#0a1824] sm:h-[52px] sm:w-[52px]">
                 <i className={`${copy.icon} ${status === "connecting" ? "animate-spin" : ""} text-2xl ${isPositive ? "text-green-300" : "text-[#03A9F4]"} sm:text-3xl`} />
               </span>
               <span>
-                <span className="block text-[17px] font-extrabold leading-tight text-white sm:text-[20px]">{canLinkCard ? "Link NFC Card" : statusTitle}</span>
+                <span className="block text-[17px] font-extrabold leading-tight text-white sm:text-[20px]">{canRetry ? "Try Again" : statusTitle}</span>
                 <span className="mt-1.5 block text-[13px] leading-5 text-white/65 sm:mt-2 sm:text-[15px] sm:leading-6">{statusBody}</span>
               </span>
               <span className={`connect-progress ${isPositive ? "connect-progress-done" : ""}`} aria-hidden="true" />
-            </button>
+            </div>
 
             <div className="lg:mt-7">
               {error && (
