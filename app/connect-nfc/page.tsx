@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -10,63 +10,10 @@ type NfcStatus =
   | "checking-auth"
   | "ready"
   | "unsupported"
-  | "waiting"
-  | "reading"
   | "connecting"
   | "success"
   | "already-linked"
   | "error";
-
-type NDEFReadingEventWithSerial = Event & {
-  serialNumber?: string;
-  message?: {
-    records?: Array<{
-      recordType?: string;
-      data?: DataView;
-    }>;
-  };
-};
-
-type NDEFReaderConstructor = new () => {
-  scan: (options?: { signal?: AbortSignal }) => Promise<void>;
-  write?: (message: string | { records: Array<{ recordType: string; data: string }> }) => Promise<void>;
-  addEventListener: (
-    type: "reading" | "readingerror",
-    listener: EventListenerOrEventListenerObject,
-    options?: AddEventListenerOptions,
-  ) => void;
-};
-
-const NFC_URI_PREFIXES: Record<number, string> = {
-  0x01: "http://www.",
-  0x02: "https://www.",
-  0x03: "http://",
-  0x04: "https://",
-};
-
-const RESERVED_PUBLIC_PATHS = new Set([
-  "admin",
-  "api",
-  "auth",
-  "checkout",
-  "claim",
-  "connect-nfc",
-  "dashboard",
-  "login",
-  "privacy",
-  "profile",
-  "scan",
-  "shop",
-  "signup",
-  "suspended",
-  "terms",
-]);
-
-declare global {
-  interface Window {
-    NDEFReader?: NDEFReaderConstructor;
-  }
-}
 
 const statusCopy: Record<NfcStatus, { title: string; body: string; icon: string }> = {
   "checking-auth": {
@@ -76,23 +23,13 @@ const statusCopy: Record<NfcStatus, { title: string; body: string; icon: string 
   },
   ready: {
     title: "Link your NFC card",
-    body: "Tap Start, then scan the same NFC card again to link it to this account.",
+    body: "Press the button to link the NFC card detected from your first scan.",
     icon: "ri-nfc-line",
   },
   unsupported: {
-    title: "NFC reading is not available here",
-    body: "Use Chrome on an Android phone with NFC enabled, then open this page again.",
+    title: "Card UID is missing",
+    body: "Open this page from the NFC card scan link, then press the link button.",
     icon: "ri-error-warning-line",
-  },
-  waiting: {
-    title: "Waiting for NFC",
-    body: "Keep this page open and move the card slowly around the NFC area of your phone.",
-    icon: "ri-rfid-line",
-  },
-  reading: {
-    title: "Reading card",
-    body: "The tag was detected. Capturing the hardware serial number now.",
-    icon: "ri-scan-2-line",
   },
   connecting: {
     title: "Linking card",
@@ -121,68 +58,9 @@ export default function ConnectNfcPage() {
   const supabase = useMemo(() => createClient(), []);
   const [status, setStatus] = useState<NfcStatus>("checking-auth");
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const [profileHref, setProfileHref] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [prefilledUid, setPrefilledUid] = useState("");
-  const scanStartedRef = useRef(false);
-  const readerRef = useRef<InstanceType<NDEFReaderConstructor> | null>(null);
-
-  const extractPublicIdFromText = useCallback((value: string): string => {
-    const trimmed = value.replace(/[\u0000-\u001f]+/g, " ").trim();
-    if (!trimmed) return "";
-
-    const directRouteMatch = trimmed.match(/(?:^|[^\w-])(?:claim|scan)\/([a-zA-Z0-9_-]{3,128})(?:[^\w-]|$)/);
-    if (directRouteMatch?.[1]) return directRouteMatch[1];
-
-    const embeddedUrl = trimmed.match(/https?:\/\/[^\s"'<>]+/i)?.[0];
-    if (embeddedUrl && embeddedUrl !== trimmed) {
-      const publicId: string = extractPublicIdFromText(embeddedUrl);
-      if (publicId) return publicId;
-    }
-
-    try {
-      const url = new URL(trimmed, window.location.origin);
-      const parts = url.pathname.split("/").filter(Boolean);
-      if (parts[0] === "claim" && parts[1]) return parts[1];
-      if (parts[0] === "scan" && parts[1]) return parts[1];
-      if (parts[0] && !RESERVED_PUBLIC_PATHS.has(parts[0].toLowerCase())) {
-        return parts[0];
-      }
-    } catch {
-      const looseCode = trimmed.match(/\b([a-zA-Z0-9][a-zA-Z0-9_-]{2,127})\b/)?.[1] ?? "";
-      return looseCode && !RESERVED_PUBLIC_PATHS.has(looseCode.toLowerCase()) ? looseCode : "";
-    }
-
-    return "";
-  }, []);
-
-  const extractPublicIdFromEvent = useCallback((event: NDEFReadingEventWithSerial) => {
-    const records = event.message?.records ?? [];
-    for (const record of records) {
-      if (!record.data) continue;
-
-      const bytes = new Uint8Array(record.data.buffer, record.data.byteOffset, record.data.byteLength);
-      const raw = new TextDecoder().decode(bytes);
-      const uriPrefix = record.recordType === "url" ? NFC_URI_PREFIXES[bytes[0]] ?? "" : "";
-      const uriValue = record.recordType === "url" && uriPrefix ? `${uriPrefix}${new TextDecoder().decode(bytes.slice(1))}` : raw;
-      const candidates =
-        record.recordType === "url"
-          ? [uriValue, raw, raw.replace(/^[\u0000-\u001f]+/, "")]
-          : [
-              raw,
-              new TextDecoder().decode(bytes.slice(1)),
-              new TextDecoder().decode(bytes.slice(3)),
-            ];
-
-      for (const candidate of candidates) {
-        const publicId = extractPublicIdFromText(candidate);
-        if (publicId) return publicId;
-      }
-    }
-
-    return "";
-  }, [extractPublicIdFromText]);
 
   useEffect(() => {
     let cancelled = false;
@@ -226,7 +104,7 @@ export default function ConnectNfcPage() {
       }
 
       setToken(data.session.access_token);
-      setStatus(uidFromRedirect || (typeof window !== "undefined" && window.NDEFReader) ? "ready" : "unsupported");
+      setStatus(uidFromRedirect ? "ready" : "unsupported");
     }
 
     void prepareNfcFlow();
@@ -241,9 +119,8 @@ export default function ConnectNfcPage() {
     const normalizedUid = uid?.trim();
     const normalizedPublicId = publicId?.trim();
     if (!normalizedUid && !normalizedPublicId) {
-      scanStartedRef.current = false;
       setStatus("error");
-      setError("The card was detected, but Chrome did not expose a readable UID or LinkUp link. Tap Try Again and hold the card still.");
+      setError("The card UID is missing. Open this page from the NFC card scan link, then press Link NFC Card.");
       return;
     }
 
@@ -270,119 +147,38 @@ export default function ConnectNfcPage() {
     }
 
     const href = `/profile/${body.data.profile.publicId}`;
-    const absoluteProfileUrl = `${window.location.origin}${href}`;
-
-    if (readerRef.current?.write) {
-      setNotice("Connected. Keep the card still while we save your profile link to it.");
-      try {
-        await readerRef.current.write({
-          records: [{ recordType: "url", data: absoluteProfileUrl }],
-        });
-        setNotice("Profile link saved to the card.");
-      } catch {
-        setNotice("Connected. If the card still opens this page, tap Try Again and hold it still until the profile link is saved.");
-      }
-    }
 
     setProfileHref(href);
     setStatus(body.data.status === "already-linked" ? "already-linked" : "success");
     window.setTimeout(() => router.push("/dashboard"), 1800);
   }, [router, token]);
 
-  const startScan = useCallback(async () => {
-    if (!window.NDEFReader) {
-      setStatus("unsupported");
-      return;
-    }
-    if (scanStartedRef.current) return;
-    scanStartedRef.current = true;
-
-    try {
-      setStatus("waiting");
-      setError("");
-      setNotice("");
-      const controller = new AbortController();
-      const reader = new window.NDEFReader();
-      readerRef.current = reader;
-
-      reader.addEventListener(
-        "reading",
-        (event) => {
-          setStatus("reading");
-          controller.abort();
-          const readingEvent = event as NDEFReadingEventWithSerial;
-          const uid = readingEvent.serialNumber;
-          const publicId = extractPublicIdFromEvent(readingEvent);
-          if (!uid && !publicId) {
-            scanStartedRef.current = false;
-            setStatus("error");
-            setError("The card was detected, but Chrome could not read its UID or saved LinkUp URL.");
-            return;
-          }
-          void linkCard({ uid, publicId });
-        },
-        { once: true },
-      );
-
-      reader.addEventListener(
-        "readingerror",
-        () => {
-          scanStartedRef.current = false;
-          setStatus("error");
-          setError("The card was detected but could not be read. Try holding it still for a moment.");
-        },
-        { once: true },
-      );
-
-      await reader.scan({ signal: controller.signal });
-    } catch (scanError) {
-      if (scanError instanceof DOMException && scanError.name === "AbortError") return;
-      scanStartedRef.current = false;
-      setStatus("error");
-      setError(scanError instanceof Error ? scanError.message : "Tap Start Scan, allow NFC access, then hold the card still.");
-    }
-  }, [extractPublicIdFromEvent, linkCard]);
-
-  useEffect(() => {
-    if (status === "ready" && token) {
-      if (prefilledUid) {
-        return;
-      }
-      void startScan();
-    }
-  }, [linkCard, prefilledUid, startScan, status, token]);
-
   const copy = statusCopy[status];
-  const isBusy = ["checking-auth", "waiting", "reading", "connecting"].includes(status);
+  const isBusy = ["checking-auth", "connecting"].includes(status);
   const isPositive = status === "success" || status === "already-linked";
-  const canScan = status === "ready" || status === "error";
   const canLinkSavedUid = !!prefilledUid && (status === "ready" || status === "error");
   const handlePrimaryAction = canLinkSavedUid
     ? () => void linkCard({ uid: prefilledUid })
-    : canScan
-      ? startScan
-      : undefined;
+    : undefined;
   const statusTitle =
     status === "unsupported"
-      ? "Open on Android"
+      ? "Missing Card UID"
       : status === "success"
         ? "Connected"
         : status === "already-linked"
           ? "Already Linked"
           : status === "error"
             ? "Try Again"
-            : status === "waiting"
-              ? "Ready to Scan"
-              : isBusy
+            : isBusy
               ? copy.title
-              : "Ready to Scan";
+              : "Ready to Link";
   const statusBody =
     status === "ready" && prefilledUid
       ? "We found the card UID from your first scan. Press once to finish linking."
       : status === "ready"
-      ? "Bring your card closer to the back of your phone."
+      ? "Open this page from the first NFC scan link so we can identify the card."
       : status === "unsupported"
-        ? "Use Chrome on an Android phone with NFC enabled."
+        ? "No scan is needed here. The card UID must come from the first scan link."
         : copy.body;
 
   return (
@@ -517,7 +313,7 @@ export default function ConnectNfcPage() {
             </h1>
 
             <p className="mx-auto mt-3 max-w-[315px] text-[14px] leading-6 text-white/72 sm:mt-6 sm:max-w-[350px] sm:text-[17px] sm:leading-8 lg:mx-0 lg:max-w-[430px] lg:text-[19px]">
-              Your card was detected from the first scan. Press the button below to link it to this account.
+              Press the button below to link the card detected from your first scan. No second scan is needed.
             </p>
           </section>
 
@@ -555,12 +351,6 @@ export default function ConnectNfcPage() {
               {error && (
                 <p className="mt-4 rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm leading-6 text-red-100 lg:mt-0">
                   {error}
-                </p>
-              )}
-
-              {notice && !error && (
-                <p className="mt-4 rounded-2xl border border-[#03A9F4]/20 bg-[#03A9F4]/10 px-4 py-3 text-sm leading-6 text-sky-100 lg:mt-0">
-                  {notice}
                 </p>
               )}
 
