@@ -124,6 +124,7 @@ export default function ConnectNfcPage() {
   const [notice, setNotice] = useState("");
   const [profileHref, setProfileHref] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [prefilledUid, setPrefilledUid] = useState("");
   const scanStartedRef = useRef(false);
   const readerRef = useRef<InstanceType<NDEFReaderConstructor> | null>(null);
 
@@ -190,8 +191,14 @@ export default function ConnectNfcPage() {
         return;
       }
 
+      const uidFromRedirect = new URLSearchParams(window.location.search)
+        .get("uid")
+        ?.trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9:_-]/g, "") ?? "";
+      setPrefilledUid(uidFromRedirect);
       setToken(data.session.access_token);
-      setStatus(typeof window !== "undefined" && window.NDEFReader ? "ready" : "unsupported");
+      setStatus(uidFromRedirect || (typeof window !== "undefined" && window.NDEFReader) ? "ready" : "unsupported");
     });
   }, [router, supabase]);
 
@@ -304,9 +311,13 @@ export default function ConnectNfcPage() {
 
   useEffect(() => {
     if (status === "ready" && token) {
+      if (prefilledUid) {
+        void linkCard({ uid: prefilledUid });
+        return;
+      }
       void startScan();
     }
-  }, [startScan, status, token]);
+  }, [linkCard, prefilledUid, startScan, status, token]);
 
   const copy = statusCopy[status];
   const isBusy = ["checking-auth", "waiting", "reading", "connecting"].includes(status);
@@ -327,7 +338,9 @@ export default function ConnectNfcPage() {
               ? copy.title
               : "Ready to Scan";
   const statusBody =
-    status === "ready"
+    status === "ready" && prefilledUid
+      ? "We found the card UID from your first scan. Linking it now."
+      : status === "ready"
       ? "Bring your card closer to the back of your phone."
       : status === "unsupported"
         ? "Use Chrome on an Android phone with NFC enabled."

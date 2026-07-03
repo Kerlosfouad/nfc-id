@@ -8,6 +8,7 @@ export type NfcUidDestination =
 export async function resolveNfcUidDestination(uid: string): Promise<NfcUidDestination> {
   const normalizedUid = uid.trim().toUpperCase().replace(/[^A-Z0-9:_-]/g, '');
   if (!normalizedUid) return { kind: 'register', href: '/signup?redirect=%2Fconnect-nfc' };
+  const registerHref = `/signup?redirect=${encodeURIComponent(`/connect-nfc?uid=${encodeURIComponent(normalizedUid)}`)}`;
 
   const tag = await db.nfcTag.findUnique({
     where: { uid: normalizedUid },
@@ -19,12 +20,12 @@ export async function resolveNfcUidDestination(uid: string): Promise<NfcUidDesti
   });
 
   if (!tag || !tag.userId || tag.status === 'UNLINKED') {
-    return { kind: 'register', href: '/signup?redirect=%2Fconnect-nfc' };
+    return { kind: 'register', href: registerHref };
   }
   if (tag.status === 'SUSPENDED' || tag.profile?.isSuspended || tag.profile?.isActive === false) {
     return { kind: 'suspended', href: '/suspended' };
   }
-  if (!tag.profile) return { kind: 'register', href: '/signup?redirect=%2Fconnect-nfc' };
+  if (!tag.profile) return { kind: 'register', href: registerHref };
 
   return { kind: 'profile', href: `/profile/${tag.profile.publicId}`, publicId: tag.profile.publicId };
 }

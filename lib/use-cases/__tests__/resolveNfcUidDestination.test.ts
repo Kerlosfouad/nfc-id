@@ -24,7 +24,7 @@ describe('resolveNfcUidDestination', () => {
 
     await expect(resolveNfcUidDestination('04:AA:BB')).resolves.toEqual({
       kind: 'register',
-      href: '/signup?redirect=%2Fconnect-nfc',
+      href: '/signup?redirect=%2Fconnect-nfc%3Fuid%3D04%253AAA%253ABB',
     });
   });
 
@@ -37,7 +37,7 @@ describe('resolveNfcUidDestination', () => {
 
     await expect(resolveNfcUidDestination('04:AA:BB')).resolves.toEqual({
       kind: 'register',
-      href: '/signup?redirect=%2Fconnect-nfc',
+      href: '/signup?redirect=%2Fconnect-nfc%3Fuid%3D04%253AAA%253ABB',
     });
   });
 
