@@ -224,7 +224,6 @@ function getLinkMeta(link: Pick<LinkItem, "type" | "title">): { icon: string; co
 const PRESET_THEMES = [
   { id: "default", name: "Default", desc: "NFC blue glass look", colors: ["#04111c", "#0b2438", "#036083", "#b8d7e6"], premium: false, accent: "#036083" },
   { id: "dark", name: "Dark Mode", desc: "Sleek blue-black interface", colors: ["#020617", "#0f172a", "#1d4ed8", "#dbeafe"], premium: false, accent: "#1d4ed8" },
-  { id: "neon", name: "Neon", desc: "Vibrant electric violet", colors: ["#030306", "#111827", "#4c1d95", "#c4b5fd"], premium: true, accent: "#4c1d95" },
   { id: "minimal", name: "Minimal", desc: "Soft monochrome elegance", colors: ["#111113", "#27272a", "#71717a", "#e4e4e7"], premium: true, accent: "#71717a" },
   { id: "purple-haze", name: "Purple Haze", desc: "Deep purples and lavender", colors: ["#11102f", "#3b1d78", "#5b21b6", "#ddd6fe"], premium: true, accent: "#5b21b6" },
   { id: "rose-gold", name: "Rose Gold", desc: "Elegant rose glow", colors: ["#21040c", "#7f1d1d", "#9f1239", "#fecdd3"], premium: true, accent: "#9f1239" },

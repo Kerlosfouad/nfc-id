@@ -156,7 +156,6 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
   switch (theme.style) {
     case 'rose-gold': return { background: 'radial-gradient(circle at 72% 18%, rgba(190,52,85,0.28), transparent 34%), linear-gradient(150deg,#21040c,#7f1d1d 52%,#130207)' };
     case 'minimal':   return { background: 'radial-gradient(circle at 72% 18%, rgba(161,161,170,0.16), transparent 34%), linear-gradient(150deg,#111113,#27272a 54%,#070708)' };
-    case 'neon':      return { background: `radial-gradient(circle at 72% 18%, ${pc}4d, transparent 34%), linear-gradient(150deg,#030306,#111827 50%,#01030a)` };
     case 'purple-haze': return { background: 'radial-gradient(circle at 72% 18%, rgba(124,58,237,0.28), transparent 34%), linear-gradient(150deg,#11102f,#3b1d78 54%,#0c071d)' };
     case 'dark':      return { background: `radial-gradient(circle at 72% 18%, ${pc}44, transparent 34%), linear-gradient(150deg,#030712,#111827 52%,#020617)` };
     default:          return { background: `radial-gradient(circle at 72% 18%, ${pc}3d, transparent 34%), linear-gradient(150deg,#04111c,#0b2438 52%,#020617)` };
