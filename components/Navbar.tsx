@@ -48,8 +48,8 @@ export default function Navbar() {
       >
         <div className="w-full sm:w-auto flex items-center justify-between md:justify-center gap-3 md:gap-8 px-3.5 sm:px-5 py-2.5 md:py-3 min-h-[52px] md:min-h-0">
           {/* Logo */}
-          <Link href="/" className="flex h-14 w-12 shrink-0 items-center justify-center group" aria-label="LinkUp home">
-            <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={78} height={104} className="h-14 w-11 object-contain group-hover:drop-shadow-[0_0_8px_#03A9F4] transition-all duration-300" priority />
+          <Link href="/" className="flex items-center group" aria-label="LinkUp home">
+            <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={54} height={72} className="h-9 w-7 object-contain group-hover:drop-shadow-[0_0_8px_#03A9F4] transition-all duration-300" />
           </Link>
 
           {/* Desktop Links */}
