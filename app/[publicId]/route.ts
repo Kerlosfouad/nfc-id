@@ -23,7 +23,7 @@ const RESERVED_PUBLIC_PATHS = new Set([
 
 function resolveDestination(state: TagState, publicId: string): string {
   if (state === 'MANUFACTURED' || state === 'SOLD') {
-    return `/signup?redirect=${encodeURIComponent('/connect-nfc')}`;
+    return `/signup?redirect=${encodeURIComponent(`/connect-nfc?publicId=${encodeURIComponent(publicId)}`)}`;
   }
   if (state === 'CLAIMED' || state === 'ACTIVE') return `/profile/${publicId}`;
   return '/suspended';

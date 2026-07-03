@@ -7,7 +7,7 @@ export interface ScannableTag {
 
 export function resolveTagScanDestination(tag: ScannableTag): string {
   if (tag.state === 'MANUFACTURED' || tag.state === 'SOLD') {
-    return `/signup?redirect=${encodeURIComponent('/connect-nfc')}`;
+    return `/signup?redirect=${encodeURIComponent(`/connect-nfc?publicId=${encodeURIComponent(tag.publicId)}`)}`;
   }
 
   if (tag.state === 'CLAIMED' || tag.state === 'ACTIVE') {

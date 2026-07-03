@@ -6,7 +6,9 @@ describe('resolveTagScanDestination', () => {
   it.each<TagState>(['MANUFACTURED', 'SOLD'])(
     'routes %s tags to claim onboarding',
     (state) => {
-      expect(resolveTagScanDestination({ publicId: 'ABC123', state })).toBe('/claim/ABC123');
+      expect(resolveTagScanDestination({ publicId: 'ABC123', state })).toBe(
+        '/signup?redirect=%2Fconnect-nfc%3FpublicId%3DABC123',
+      );
     },
   );
 

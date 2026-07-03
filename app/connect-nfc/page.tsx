@@ -61,6 +61,7 @@ export default function ConnectNfcPage() {
   const [profileHref, setProfileHref] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [prefilledUid, setPrefilledUid] = useState("");
+  const [prefilledPublicId, setPrefilledPublicId] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -72,9 +73,14 @@ export default function ConnectNfcPage() {
         ?.trim()
         .toUpperCase()
         .replace(/[^A-Z0-9:_-]/g, "") ?? "";
+      const publicIdFromRedirect = new URLSearchParams(window.location.search)
+        .get("publicId")
+        ?.trim()
+        .replace(/[^a-zA-Z0-9_-]/g, "") ?? "";
 
       if (cancelled) return;
       setPrefilledUid(uidFromRedirect);
+      setPrefilledPublicId(publicIdFromRedirect);
 
       if (uidFromRedirect) {
         try {
@@ -152,7 +158,10 @@ export default function ConnectNfcPage() {
   const isPositive = status === "success" || status === "already-linked";
   const canLinkCard = status === "ready" || status === "error" || status === "unsupported";
   const handlePrimaryAction = canLinkCard
-    ? () => void linkCard(prefilledUid ? { uid: prefilledUid } : {})
+    ? () => void linkCard({
+        ...(prefilledUid ? { uid: prefilledUid } : {}),
+        ...(prefilledPublicId ? { publicId: prefilledPublicId } : {}),
+      })
     : undefined;
   const statusTitle =
     status === "unsupported"
@@ -169,6 +178,8 @@ export default function ConnectNfcPage() {
   const statusBody =
     status === "ready" && prefilledUid
       ? "We found the card UID from your first scan. Press once to finish linking."
+      : status === "ready" && prefilledPublicId
+        ? "We found the card link from your first scan. Press once to finish linking."
       : status === "ready"
       ? "Press once to link the available NFC card to this account."
       : status === "unsupported"
