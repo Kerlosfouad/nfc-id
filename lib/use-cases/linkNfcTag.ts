@@ -171,6 +171,15 @@ export async function linkNfcTag(userId: string, uid: string): Promise<LinkNfcTa
 }
 
 export async function linkOnlyAvailableNfcTag(userId: string): Promise<LinkNfcTagResult> {
+  const usersLinkedTag = await db.nfcTag.findUnique({
+    where: { userId },
+    select: { uid: true },
+  });
+
+  if (usersLinkedTag) {
+    return linkNfcTag(userId, usersLinkedTag.uid);
+  }
+
   const availableTags = await db.nfcTag.findMany({
     where: {
       userId: null,

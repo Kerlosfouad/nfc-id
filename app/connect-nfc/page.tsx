@@ -11,9 +11,20 @@ type NfcStatus =
   | "ready"
   | "unsupported"
   | "connecting"
+  | "writing"
   | "success"
   | "already-linked"
   | "error";
+
+type NDEFReaderConstructor = new () => {
+  write: (message: string | { records: Array<{ recordType: string; data: string }> }) => Promise<void>;
+};
+
+declare global {
+  interface Window {
+    NDEFReader?: NDEFReaderConstructor;
+  }
+}
 
 const statusCopy: Record<NfcStatus, { title: string; body: string; icon: string }> = {
   "checking-auth": {
@@ -23,7 +34,7 @@ const statusCopy: Record<NfcStatus, { title: string; body: string; icon: string 
   },
   ready: {
     title: "Link your NFC card",
-    body: "Press the button to link the NFC card detected from your first scan.",
+    body: "Press the button, then hold the card near your phone to write your profile link.",
     icon: "ri-nfc-line",
   },
   unsupported: {
@@ -35,6 +46,11 @@ const statusCopy: Record<NfcStatus, { title: string; body: string; icon: string 
     title: "Linking card",
     body: "We are securely saving this NFC card to your account.",
     icon: "ri-loader-4-line",
+  },
+  writing: {
+    title: "Writing profile link",
+    body: "Keep the card near your phone while we write the new profile link to it.",
+    icon: "ri-rfid-line",
   },
   success: {
     title: "Card linked successfully",
@@ -110,7 +126,7 @@ export default function ConnectNfcPage() {
       }
 
       setToken(data.session.access_token);
-      setStatus("ready");
+      setStatus(typeof window !== "undefined" && window.NDEFReader ? "ready" : "unsupported");
     }
 
     void prepareNfcFlow();
@@ -119,6 +135,18 @@ export default function ConnectNfcPage() {
       cancelled = true;
     };
   }, [router, supabase]);
+
+  const writeProfileLink = useCallback(async (href: string) => {
+    if (!window.NDEFReader) {
+      throw new Error("NFC writing is not available here. Use Chrome on an Android phone with NFC enabled.");
+    }
+
+    setStatus("writing");
+    const writer = new window.NDEFReader();
+    await writer.write({
+      records: [{ recordType: "url", data: `${window.location.origin}${href}` }],
+    });
+  }, []);
 
   const linkCard = useCallback(async ({ uid, publicId }: { uid?: string; publicId?: string }) => {
     if (!token) return;
@@ -148,13 +176,21 @@ export default function ConnectNfcPage() {
 
     const href = `/profile/${body.data.profile.publicId}`;
 
+    try {
+      await writeProfileLink(href);
+    } catch (writeError) {
+      setStatus("error");
+      setError(writeError instanceof Error ? writeError.message : "The card was linked, but the profile link could not be written to it.");
+      return;
+    }
+
     setProfileHref(href);
     setStatus(body.data.status === "already-linked" ? "already-linked" : "success");
     window.setTimeout(() => router.push("/dashboard"), 1800);
-  }, [router, token]);
+  }, [router, token, writeProfileLink]);
 
   const copy = statusCopy[status];
-  const isBusy = ["checking-auth", "connecting"].includes(status);
+  const isBusy = ["checking-auth", "connecting", "writing"].includes(status);
   const isPositive = status === "success" || status === "already-linked";
   const canLinkCard = status === "ready" || status === "error" || status === "unsupported";
   const handlePrimaryAction = canLinkCard
@@ -181,9 +217,9 @@ export default function ConnectNfcPage() {
       : status === "ready" && prefilledPublicId
         ? "We found the card link from your first scan. Press once to finish linking."
       : status === "ready"
-      ? "Press once to link the available NFC card to this account."
+      ? "Press once, then hold the card near your phone while we write your profile link."
       : status === "unsupported"
-        ? "No scan is needed here. The button will link the available unlinked card."
+        ? "This step needs NFC writing. Use Chrome on an Android phone with NFC enabled."
         : copy.body;
 
   return (
@@ -318,7 +354,7 @@ export default function ConnectNfcPage() {
             </h1>
 
             <p className="mx-auto mt-3 max-w-[315px] text-[14px] leading-6 text-white/72 sm:mt-6 sm:max-w-[350px] sm:text-[17px] sm:leading-8 lg:mx-0 lg:max-w-[430px] lg:text-[19px]">
-              Press the button below to link the card detected from your first scan. No second scan is needed.
+              Press the button below, then hold the card near your phone while we write your profile link to it.
             </p>
           </section>
 
