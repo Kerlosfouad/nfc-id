@@ -47,8 +47,8 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
       <div className="fixed inset-0 pointer-events-none hero-grid opacity-50" />
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[220px] border-r border-white/5 bg-[#0f0f0f] lg:flex lg:flex-col">
         <div className="px-4 py-5">
-          <Link href="/" className="inline-flex group" aria-label="NFC ID home">
-            <Image src="/img/logo.png" alt="NFC ID" width={36} height={36} className="group-hover:drop-shadow-[0_0_10px_#03A9F4] transition-all" />
+          <Link href="/" className="inline-flex group" aria-label="LinkUp home">
+            <Image src="/img/logo.png" alt="LinkUp" width={36} height={36} className="group-hover:drop-shadow-[0_0_10px_#03A9F4] transition-all" />
           </Link>
         </div>
 
@@ -89,7 +89,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
               <Link href="/" className="inline-flex shrink-0 group" aria-label="Back to website">
-                <Image src="/img/logo.png" alt="NFC ID" width={38} height={38} className="transition-all group-hover:drop-shadow-[0_0_10px_#03A9F4]" />
+                <Image src="/img/logo.png" alt="LinkUp" width={38} height={38} className="transition-all group-hover:drop-shadow-[0_0_10px_#03A9F4]" />
               </Link>
               <div className="min-w-0">
                 <h1 className="truncate text-base font-bold text-white sm:text-lg">{title}</h1>

@@ -195,7 +195,7 @@ export default function ShopSection() {
       <div className="container relative z-10 mx-auto">
         <div className="mb-10 text-center sm:mb-12">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#03A9F4]">
-            NFC ID Shop
+            LinkUp Shop
           </div>
           <h2 className="mb-4 text-3xl font-bold uppercase text-white sm:text-4xl md:text-5xl">Choose Your Smart Product</h2>
           <p className="mx-auto max-w-xl text-sm leading-relaxed text-white/40 md:text-base">

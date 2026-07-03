@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NFC ID",
+  title: "LinkUp",
   description: "Connect with the outside world smarter",
   icons: { icon: "/img/logo.png" },
 };

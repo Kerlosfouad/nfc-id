@@ -100,8 +100,8 @@ function LoginContent() {
         <div className="relative z-10 w-full max-w-[440px]">
           <div className="flex justify-center mb-8">
             <Link href="/" className="flex items-center gap-2 group">
-              <Image src="/img/logo.png" alt="NFC ID" width={40} height={40} className="group-hover:drop-shadow-[0_0_10px_#03A9F4] transition-all" />
-              <span className="text-white font-bold text-xl tracking-wider">NFC <span className="text-[#03A9F4]">ID</span></span>
+              <Image src="/img/logo.png" alt="LinkUp" width={40} height={40} className="group-hover:drop-shadow-[0_0_10px_#03A9F4] transition-all" />
+              <span className="text-white font-bold text-xl tracking-wider">Link<span className="text-[#03A9F4]">Up</span></span>
             </Link>
           </div>
           <div className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-2xl p-8 shadow-[0_8px_24px_rgba(0,0,0,0.42)]">
@@ -134,15 +134,15 @@ function LoginContent() {
       <div className="relative z-10 w-full max-w-[440px]">
         <div className="flex justify-center mb-8">
           <Link href="/" className="flex items-center gap-2 group">
-            <Image src="/img/logo.png" alt="NFC ID" width={40} height={40} className="group-hover:drop-shadow-[0_0_10px_#03A9F4] transition-all" />
-            <span className="text-white font-bold text-xl tracking-wider">NFC <span className="text-[#03A9F4]">ID</span></span>
+            <Image src="/img/logo.png" alt="LinkUp" width={40} height={40} className="group-hover:drop-shadow-[0_0_10px_#03A9F4] transition-all" />
+            <span className="text-white font-bold text-xl tracking-wider">Link<span className="text-[#03A9F4]">Up</span></span>
           </Link>
         </div>
         <div className="bg-[#0f0f0f] border border-[#1e1e1e] rounded-2xl p-8 shadow-[0_8px_24px_rgba(0,0,0,0.42)]">
           <div className="mb-8">
             <h2 className="text-white text-3xl font-bold mb-1">Welcome back</h2>
             <p className="text-white/65 text-sm">
-              Sign in to your NFC ID account
+              Sign in to your LinkUp account
             </p>
           </div>
           <form onSubmit={handleEmailLogin} className="space-y-5">

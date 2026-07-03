@@ -105,7 +105,7 @@ function buildCustomersExcel(customers: CustomerExportRow[]) {
       <col style="width: 170px" />
       <col style="width: 110px" />
     </colgroup>
-    <tr><td class="title" colspan="9">NFC ID - Customer Data</td></tr>
+    <tr><td class="title" colspan="9">LinkUp - Customer Data</td></tr>
     <tr><td colspan="9"></td></tr>
     <tr>
       <th>#</th>

@@ -164,7 +164,7 @@ export default function CheckoutPage() {
         <div className="container relative z-10 mx-auto">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#03A9F4]">NFC ID Checkout</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#03A9F4]">LinkUp Checkout</p>
               <h1 className="mt-2 text-3xl font-bold uppercase sm:text-4xl">Complete Your Order</h1>
             </div>
             <Link href="/shop" className="inline-flex h-10 items-center gap-2 rounded-full border border-white/10 px-4 text-xs font-bold uppercase tracking-wider text-white/70 transition-all hover:border-[#03A9F4]/40 hover:text-[#03A9F4]">

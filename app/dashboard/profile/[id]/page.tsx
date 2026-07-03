@@ -381,7 +381,7 @@ function ProfilePreview({ profile }: { profile: ProfileData }) {
           </div>
 
           <div className="text-center pt-2">
-            <span className="text-white/20 text-xs">Powered by <span style={{ color: primaryColor }}>NFC ID</span></span>
+            <span className="text-white/20 text-xs">Powered by <span style={{ color: primaryColor }}>LinkUp</span></span>
           </div>
         </div>
       </div>

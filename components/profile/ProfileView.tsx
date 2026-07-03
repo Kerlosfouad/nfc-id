@@ -393,7 +393,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
             </p>
           )}
           <p className={`text-xs font-semibold tracking-widest uppercase ${isHero ? '' : 'mb-6'}`} style={{ color: primaryColor }}>
-            NFC ID
+            LinkUp
           </p>
         </div>
 
@@ -456,9 +456,9 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
         {/* Footer */}
         <div className="flex flex-col items-center gap-2 pt-8">
           <Link href="/" className="flex flex-col items-center gap-1.5 group transition-opacity hover:opacity-70">
-            <img src="/img/logo.png" alt="NFC ID" className="w-8 h-8 rounded-lg opacity-70" />
+            <img src="/img/logo.png" alt="LinkUp" className="w-8 h-8 rounded-lg opacity-70" />
             <span className="text-[10px] font-semibold tracking-widest uppercase" style={{ color: themeVars.textSecondary }}>
-              NFC · ID
+              LinkUp
             </span>
           </Link>
           <Link

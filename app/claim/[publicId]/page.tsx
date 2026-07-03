@@ -115,13 +115,13 @@ export default function ClaimPage({ params }: ClaimPageProps) {
           <Link href="/" className="flex items-center gap-2 group">
             <Image
               src="/img/logo.png"
-              alt="NFC ID"
+              alt="LinkUp"
               width={40}
               height={40}
               className="group-hover:drop-shadow-[0_0_10px_#03A9F4] transition-all"
             />
             <span className="text-white font-bold text-xl tracking-wider">
-              NFC <span className="text-[#03A9F4]">ID</span>
+              Link<span className="text-[#03A9F4]">Up</span>
             </span>
           </Link>
         </div>

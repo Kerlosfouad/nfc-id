@@ -163,7 +163,7 @@ export default function AnalyticsPage() {
           <div className="w-7 h-7 bg-white/10 rounded flex items-center justify-center">
             <i className="ri-nfc-line text-sm text-white/60" />
           </div>
-          <span className="font-bold text-sm">NFC<span className="text-[#03A9F4]">·ID</span></span>
+          <span className="font-bold text-sm">Link<span className="text-[#03A9F4]">Up</span></span>
         </div>
         <nav className="flex-1 px-2 py-3 space-y-0.5">
           {[

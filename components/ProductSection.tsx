@@ -217,7 +217,7 @@ export default function ProductSection() {
         <div className="mx-auto mb-8 max-w-3xl text-center sm:mb-10">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-[#03A9F4] sm:text-xs">
             <span className="h-1.5 w-1.5 rounded-full bg-[#20E7FF] shadow-[0_0_12px_rgba(32,231,255,0.8)]" />
-            NFC ID Shop
+            LinkUp Shop
           </div>
           <h2 className="text-3xl font-black uppercase leading-none text-white sm:text-6xl">
             Choose Your Smart Medal

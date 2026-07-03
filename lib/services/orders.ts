@@ -438,7 +438,7 @@ export function ordersToExcel(orders: AdminOrder[]) {
     <colgroup>
       ${EXCEL_COLUMNS.map((column) => `<col width="${column.width}" style="width:${column.width}px" />`).join('')}
     </colgroup>
-    <tr><td class="title" colspan="15">NFC ID - Accepted Orders</td></tr>
+    <tr><td class="title" colspan="15">LinkUp - Accepted Orders</td></tr>
     <tr><td class="subtitle" colspan="15">One row per product. Order Total is repeated for all products in the same order.</td></tr>
     <tr>${headerCells}</tr>
     ${bodyRows || '<tr><td colspan="15" class="center">No orders found</td></tr>'}
@@ -477,7 +477,7 @@ export function ordersToPrintHtml(orders: AdminOrder[]) {
 <html lang="ar">
 <head>
   <meta charset="utf-8" />
-  <title>NFC ID Orders</title>
+  <title>LinkUp Orders</title>
   <style>
     @page { size: A4 landscape; margin: 10mm; }
     * { box-sizing: border-box; }
@@ -557,7 +557,7 @@ export function ordersToPrintHtml(orders: AdminOrder[]) {
 <body>
   <section class="top">
     <div>
-      <h1>NFC ID - Accepted Orders</h1>
+      <h1>LinkUp - Accepted Orders</h1>
       <p class="meta">Generated ${htmlCell(new Date().toLocaleString('en-US'))} · ${orders.length} orders</p>
     </div>
     <div class="total">

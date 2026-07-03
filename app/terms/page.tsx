@@ -3,8 +3,8 @@ import Image from "next/image";
 
 const sections = [
   {
-    title: "Using NFC ID",
-    body: "NFC ID lets you create and share a digital profile through NFC and QR links. Keep your profile information accurate and only publish content you have the right to share.",
+    title: "Using LinkUp",
+    body: "LinkUp lets you create and share a digital profile through NFC and QR links. Keep your profile information accurate and only publish content you have the right to share.",
   },
   {
     title: "Accounts and tags",
@@ -16,7 +16,7 @@ const sections = [
   },
   {
     title: "Acceptable use",
-    body: "Do not use NFC ID for impersonation, harmful content, spam, illegal activity, or attempts to interfere with the platform. We may restrict profiles or tags that violate these rules.",
+    body: "Do not use LinkUp for impersonation, harmful content, spam, illegal activity, or attempts to interfere with the platform. We may restrict profiles or tags that violate these rules.",
   },
   {
     title: "Changes",
@@ -30,8 +30,8 @@ export default function TermsPage() {
       <section className="mx-auto flex min-h-screen w-full max-w-4xl flex-col px-6 py-10 sm:px-8 lg:px-10">
         <nav className="mb-12 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-3 text-white">
-            <Image src="/img/logo.png" alt="NFC ID" width={40} height={40} className="rounded-full object-contain" />
-            <span className="text-lg font-bold tracking-wide">NFC ID</span>
+            <Image src="/img/logo.png" alt="LinkUp" width={40} height={40} className="rounded-full object-contain" />
+            <span className="text-lg font-bold tracking-wide">LinkUp</span>
           </Link>
           <Link href="/dashboard" className="boton-elegante boton-tow px-5 text-sm">
             Dashboard
@@ -44,7 +44,7 @@ export default function TermsPage() {
           </p>
           <h1 className="mb-4 text-4xl font-bold sm:text-5xl">Terms and Privacy</h1>
           <p className="max-w-2xl font-['Inter'] text-base leading-7 text-white/60">
-            A clear summary of the basic rules for using NFC ID profiles, tags, and dashboard features.
+            A clear summary of the basic rules for using LinkUp profiles, tags, and dashboard features.
           </p>
         </div>
 

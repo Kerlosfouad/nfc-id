@@ -20,7 +20,7 @@ export default function CtaSection() {
             </h2>
 
             <p className="text-white/65 text-sm sm:text-base max-w-[330px] sm:max-w-md mx-auto mb-6 sm:mb-8 leading-relaxed text-pretty">
-              Join thousands of creators, professionals, and businesses who use NFC ID to share everything with one tap.
+              Join thousands of creators, professionals, and businesses who use LinkUp to share everything with one tap.
             </p>
 
             <div className="flex gap-2.5 sm:gap-4 justify-center flex-col sm:flex-row">

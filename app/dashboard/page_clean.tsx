@@ -1431,7 +1431,7 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
 
   async function shareUrl() {
     if (navigator.share) {
-      await navigator.share({ title: profile.displayName, text: "My NFC ID profile", url });
+      await navigator.share({ title: profile.displayName, text: "My LinkUp profile", url });
       return;
     }
     copyUrl();
@@ -1646,7 +1646,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
       return;
     }
     const message = [
-      "NFC ID support request",
+      "LinkUp support request",
       `Name: ${name}`,
       `Email: ${contactEmail}`,
       `Profile: /${profile.publicId}`,
@@ -1741,7 +1741,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
           <div className="px-4 pb-2">
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Product</p>
           </div>
-          <DetailRow label="Product type" value="NFC ID Tag" />
+          <DetailRow label="Product type" value="LinkUp Tag" />
           <DetailRow label="Tag ID" value={profile.publicId} mono />
           <DetailRow label="Status" value={profile.isSuspended ? "Suspended" : profile.isActive ? "Active" : "Inactive"} />
           <DetailRow label="Public profile" value={`/${profile.publicId}`} mono />
@@ -1944,7 +1944,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
     return (
       <div className="mx-auto w-full max-w-md pb-4">
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
-          <BackHeader title="Contact & Support" subtitle="Talk to NFC ID support" />
+          <BackHeader title="Contact & Support" subtitle="Talk to LinkUp support" />
 
           <div className="p-4">
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
@@ -2186,7 +2186,7 @@ function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClo
         <div className="relative z-20 shrink-0 px-5 pb-4 pt-8">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold">Preview NFC ID</h2>
+              <h2 className="text-2xl font-bold">Preview LinkUp</h2>
               <p className="mt-1 text-sm text-white/45">See how your profile will look</p>
             </div>
             <button onClick={closePreview} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/50 hover:text-white" aria-label="Close preview">
@@ -2682,8 +2682,8 @@ export default function DashboardPage() {
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
         <div className="px-4 py-4 border-b border-white/5 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-0">
-            <img src="/img/logo.png" alt="NFC ID" className="w-8 h-8" />
-            <span className="hidden font-bold text-base">NFC<span className="text-[#03A9F4]">·ID</span></span>
+            <img src="/img/logo.png" alt="LinkUp" className="w-8 h-8" />
+            <span className="hidden font-bold text-base">Link<span className="text-[#03A9F4]">Up</span></span>
           </Link>
           <button type="button" onClick={() => setSidebarOpen(false)} className="md:hidden text-white/55 hover:text-white" aria-label="Close dashboard navigation">
             <i className="ri-close-line text-lg" />
@@ -2722,8 +2722,8 @@ export default function DashboardPage() {
         {/* Mobile top bar */}
         <div className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-[#0f0f0f] flex-shrink-0">
           <Link href="/" className="flex items-center gap-0">
-            <img src="/img/logo.png" alt="NFC ID" className="h-8 w-8 object-contain" />
-            <span className="hidden font-bold text-sm">NFC<span className="text-[#03A9F4]">·ID</span></span>
+            <img src="/img/logo.png" alt="LinkUp" className="h-8 w-8 object-contain" />
+            <span className="hidden font-bold text-sm">Link<span className="text-[#03A9F4]">Up</span></span>
           </Link>
           <button type="button" onClick={() => setGoldRequest("design")} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#03A9F4]/40 px-3 text-xs font-semibold text-[#03A9F4]">
             <i className="ri-sparkling-2-line" />

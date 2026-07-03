@@ -27,7 +27,7 @@ export default function Footer() {
             <Link href="/" className="flex items-center gap-2 mb-3 w-fit">
               <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={36} height={48} className="h-9 w-7 object-contain" />
               <span className="text-white font-bold text-lg tracking-wider">
-                NFC <span className="text-[#03a9f4]">ID</span>
+                Link<span className="text-[#03a9f4]">Up</span>
               </span>
             </Link>
             <p className="text-white/65 text-sm leading-relaxed max-w-xs">
@@ -85,7 +85,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-[#111] pt-6 flex flex-col md:flex-row justify-between items-center gap-2 text-white/55 text-xs">
-          <span>© 2026 NFC ID · All rights reserved.</span>
+          <span>© 2026 LinkUp · All rights reserved.</span>
           <span>
             Made with <span className="text-[#03A9F4]">♥</span> by{" "}
             <a href="https://www.facebook.com/kerlos.foudi" className="text-white/70 hover:text-white transition-colors font-medium">

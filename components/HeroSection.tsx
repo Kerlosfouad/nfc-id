@@ -27,7 +27,7 @@ export default function HeroSection() {
           </div>
 
           <h1 className="font-bold text-white uppercase leading-[0.92] mb-4 sm:mb-4 text-balance" style={{ fontSize: "clamp(54px, 15vw, 96px)" }}>
-            NFC <span className="text-[#03a9f4] drop-shadow-[0_0_40px_rgba(3,169,244,0.5)]">ID</span>
+            Link<span className="text-[#03a9f4] drop-shadow-[0_0_40px_rgba(3,169,244,0.5)]">Up</span>
           </h1>
 
           <p className="text-white/75 text-lg sm:text-xl md:text-xl mb-3 sm:mb-4 max-w-xl mx-auto leading-snug sm:leading-relaxed text-pretty">

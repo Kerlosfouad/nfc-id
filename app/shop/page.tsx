@@ -3,8 +3,8 @@ import ShopSection from "@/components/ShopSection";
 import Footer from "@/components/Footer";
 
 export const metadata = {
-  title: "Shop | NFC ID",
-  description: "Shop NFC ID cards, keychains, and business bundles.",
+  title: "Shop | LinkUp",
+  description: "Shop LinkUp cards, keychains, and business bundles.",
 };
 
 export const dynamic = "force-dynamic";
