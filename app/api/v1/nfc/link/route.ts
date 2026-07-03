@@ -3,8 +3,11 @@ import { z } from 'zod';
 import { requireAuth } from '@/lib/middleware/auth';
 import {
   InvalidNfcUidError,
+  linkOnlyAvailableNfcTag,
   linkPublicTag,
   linkNfcTag,
+  MultipleAvailableNfcTagsError,
+  NoAvailableNfcTagError,
   NfcTagLinkedToAnotherUserError,
   UserAlreadyHasNfcTagError,
 } from '@/lib/use-cases/linkNfcTag';
@@ -12,8 +15,6 @@ import {
 const LinkNfcSchema = z.object({
   uid: z.string().min(1).max(128).optional(),
   publicId: z.string().min(1).max(128).optional(),
-}).refine((value) => value.uid || value.publicId, {
-  message: 'A valid NFC UID or card link is required',
 });
 
 export async function POST(request: NextRequest) {
@@ -41,7 +42,9 @@ export async function POST(request: NextRequest) {
   try {
     const result = parsed.data.publicId
       ? await linkPublicTag(auth.userId, parsed.data.publicId, parsed.data.uid)
-      : await linkNfcTag(auth.userId, parsed.data.uid!);
+      : parsed.data.uid
+        ? await linkNfcTag(auth.userId, parsed.data.uid)
+        : await linkOnlyAvailableNfcTag(auth.userId);
     return NextResponse.json({ data: result, error: null }, { status: 200 });
   } catch (error) {
     if (error instanceof InvalidNfcUidError) {
@@ -61,6 +64,20 @@ export async function POST(request: NextRequest) {
     if (error instanceof UserAlreadyHasNfcTagError) {
       return NextResponse.json(
         { data: null, error: { code: 'USER_ALREADY_HAS_NFC', message: error.message } },
+        { status: 409 },
+      );
+    }
+
+    if (error instanceof NoAvailableNfcTagError) {
+      return NextResponse.json(
+        { data: null, error: { code: 'NO_AVAILABLE_NFC', message: error.message } },
+        { status: 404 },
+      );
+    }
+
+    if (error instanceof MultipleAvailableNfcTagsError) {
+      return NextResponse.json(
+        { data: null, error: { code: 'MULTIPLE_AVAILABLE_NFC', message: error.message } },
         { status: 409 },
       );
     }

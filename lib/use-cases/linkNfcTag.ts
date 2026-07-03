@@ -26,6 +26,22 @@ export class UserAlreadyHasNfcTagError extends Error {
   }
 }
 
+export class NoAvailableNfcTagError extends Error {
+  readonly statusCode = 404;
+  constructor(message = 'No available NFC card was found to link') {
+    super(message);
+    this.name = 'NoAvailableNfcTagError';
+  }
+}
+
+export class MultipleAvailableNfcTagsError extends Error {
+  readonly statusCode = 409;
+  constructor(message = 'More than one unlinked NFC card is available. Open this page from the card scan link.') {
+    super(message);
+    this.name = 'MultipleAvailableNfcTagsError';
+  }
+}
+
 export type LinkNfcTagStatus = 'linked' | 'already-linked';
 
 export interface LinkNfcTagResult {
@@ -152,6 +168,28 @@ export async function linkNfcTag(userId: string, uid: string): Promise<LinkNfcTa
       profile,
     };
   });
+}
+
+export async function linkOnlyAvailableNfcTag(userId: string): Promise<LinkNfcTagResult> {
+  const availableTags = await db.nfcTag.findMany({
+    where: {
+      userId: null,
+      status: 'UNLINKED',
+    },
+    orderBy: { createdAt: 'asc' },
+    take: 2,
+    select: { uid: true },
+  });
+
+  if (availableTags.length === 0) {
+    throw new NoAvailableNfcTagError();
+  }
+
+  if (availableTags.length > 1) {
+    throw new MultipleAvailableNfcTagsError();
+  }
+
+  return linkNfcTag(userId, availableTags[0].uid);
 }
 
 export async function linkPublicTag(

@@ -27,8 +27,8 @@ const statusCopy: Record<NfcStatus, { title: string; body: string; icon: string 
     icon: "ri-nfc-line",
   },
   unsupported: {
-    title: "Card UID is missing",
-    body: "Open this page from the NFC card scan link, then press the link button.",
+    title: "Ready to link",
+    body: "Press the button to link the available NFC card to this account.",
     icon: "ri-error-warning-line",
   },
   connecting: {
@@ -104,7 +104,7 @@ export default function ConnectNfcPage() {
       }
 
       setToken(data.session.access_token);
-      setStatus(uidFromRedirect ? "ready" : "unsupported");
+      setStatus("ready");
     }
 
     void prepareNfcFlow();
@@ -118,12 +118,6 @@ export default function ConnectNfcPage() {
     if (!token) return;
     const normalizedUid = uid?.trim();
     const normalizedPublicId = publicId?.trim();
-    if (!normalizedUid && !normalizedPublicId) {
-      setStatus("error");
-      setError("The card UID is missing. Open this page from the NFC card scan link, then press Link NFC Card.");
-      return;
-    }
-
     setStatus("connecting");
     setError("");
 
@@ -156,13 +150,13 @@ export default function ConnectNfcPage() {
   const copy = statusCopy[status];
   const isBusy = ["checking-auth", "connecting"].includes(status);
   const isPositive = status === "success" || status === "already-linked";
-  const canLinkSavedUid = !!prefilledUid && (status === "ready" || status === "error");
-  const handlePrimaryAction = canLinkSavedUid
-    ? () => void linkCard({ uid: prefilledUid })
+  const canLinkCard = status === "ready" || status === "error" || status === "unsupported";
+  const handlePrimaryAction = canLinkCard
+    ? () => void linkCard(prefilledUid ? { uid: prefilledUid } : {})
     : undefined;
   const statusTitle =
     status === "unsupported"
-      ? "Missing Card UID"
+      ? "Ready to Link"
       : status === "success"
         ? "Connected"
         : status === "already-linked"
@@ -176,9 +170,9 @@ export default function ConnectNfcPage() {
     status === "ready" && prefilledUid
       ? "We found the card UID from your first scan. Press once to finish linking."
       : status === "ready"
-      ? "Open this page from the first NFC scan link so we can identify the card."
+      ? "Press once to link the available NFC card to this account."
       : status === "unsupported"
-        ? "No scan is needed here. The card UID must come from the first scan link."
+        ? "No scan is needed here. The button will link the available unlinked card."
         : copy.body;
 
   return (
@@ -341,7 +335,7 @@ export default function ConnectNfcPage() {
                 <i className={`${copy.icon} ${status === "connecting" ? "animate-spin" : ""} text-2xl ${isPositive ? "text-green-300" : "text-[#03A9F4]"} sm:text-3xl`} />
               </span>
               <span>
-                <span className="block text-[17px] font-extrabold leading-tight text-white sm:text-[20px]">{canLinkSavedUid ? "Link NFC Card" : statusTitle}</span>
+                <span className="block text-[17px] font-extrabold leading-tight text-white sm:text-[20px]">{canLinkCard ? "Link NFC Card" : statusTitle}</span>
                 <span className="mt-1.5 block text-[13px] leading-5 text-white/65 sm:mt-2 sm:text-[15px] sm:leading-6">{statusBody}</span>
               </span>
               <span className={`connect-progress ${isPositive ? "connect-progress-done" : ""}`} aria-hidden="true" />
