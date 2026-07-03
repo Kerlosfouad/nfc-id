@@ -2210,6 +2210,12 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
   const isPrime = isFutureDate(profile.primeDesignUntil);
   const { previewProfile, previewLinks } = buildPreviewData(profile);
 
+  useEffect(() => {
+    setStyle(theme.style || "dark");
+    setLinksLayout(theme.linksLayout || "list");
+    setProfileLayout(theme.profileLayout || "classic");
+  }, [profile.id, theme.style, theme.linksLayout, theme.profileLayout]);
+
   function applyTheme(themeId: string) {
     const selectedTheme = PRESET_THEMES.find(t => t.id === themeId);
     if (selectedTheme?.premium && !isPrime) {
@@ -2445,6 +2451,7 @@ export default function DashboardPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const toastIdRef = useRef(0);
   const toastTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>[]>>({});
+  const patchSeqRef = useRef(0);
   const profile = profiles.find(p => p.id === selId) ?? profiles[0] ?? null;
 
   function showToast(msg: string, ok = true) {
@@ -2543,6 +2550,7 @@ export default function DashboardPage() {
     if (!profile) return;
     const profileId = profile.id;
     const previousProfile = profile;
+    const patchSeq = ++patchSeqRef.current;
     setSaving(true);
     setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, ...patch } : p));
     if (optimisticMessage) showToast(optimisticMessage);
@@ -2550,13 +2558,17 @@ export default function DashboardPage() {
       const r = await fetch("/api/v1/profiles/" + profileId, { method: "PATCH", headers: hdrs(), body: JSON.stringify(patch) });
       const j = await readApiJson(r);
       if (!r.ok) throw new Error(j.error?.message ?? "Failed");
+      if (patchSeq !== patchSeqRef.current) return;
       setProfiles(prev => prev.map(p => p.id === profileId ? { ...j.data, links: j.data.links ?? p.links ?? [] } : p));
       if (!optimisticMessage) showToast("Saved");
     }
     catch (e: unknown) {
+      if (patchSeq !== patchSeqRef.current) return;
       setProfiles(prev => prev.map(p => p.id === profileId ? previousProfile : p));
       showToast(e instanceof Error ? e.message : "Error", false);
-    } finally { setSaving(false); }
+    } finally {
+      if (patchSeq === patchSeqRef.current) setSaving(false);
+    }
   }
   async function addLink(data: LinkDraft) {
     if (!profile) return;
