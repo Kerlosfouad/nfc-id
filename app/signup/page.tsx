@@ -19,7 +19,10 @@ function SignupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get("redirect");
-  const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/dashboard";
+  const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/connect-nfc";
+  const loginHref = redirectParam?.startsWith("/")
+    ? `/login?redirect=${encodeURIComponent(redirectParam)}`
+    : "/login";
   const supabase = createClient();
 
   async function handleSignup(e: React.FormEvent) {
@@ -173,7 +176,7 @@ function SignupContent() {
 
           <p className="text-white/65 text-sm text-center mt-6">
             Already have an account?{" "}
-            <Link href={`/login?redirect=${encodeURIComponent(redirectTo)}`} className="text-[#03A9F4] font-semibold hover:text-white transition-colors">Sign in</Link>
+            <Link href={loginHref} className="text-[#03A9F4] font-semibold hover:text-white transition-colors">Sign in</Link>
           </p>
         </div>
       </div>
