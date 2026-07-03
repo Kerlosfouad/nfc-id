@@ -9,6 +9,36 @@ function badRequest(message: string, status = 400) {
   );
 }
 
+type SupabaseAdminClient = ReturnType<typeof createClient>;
+
+async function findAuthUserByEmail(supabase: SupabaseAdminClient, email: string) {
+  let page = 1;
+  const perPage = 1000;
+
+  while (true) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+    if (error) throw error;
+
+    const found = data.users.find((user) => user.email?.toLowerCase() === email);
+    if (found) return found;
+    if (data.users.length < perPage) return null;
+
+    page += 1;
+  }
+}
+
+async function createConfirmedAuthUser(
+  supabase: SupabaseAdminClient,
+  input: { email: string; password: string; fullName: string },
+) {
+  return supabase.auth.admin.createUser({
+    email: input.email,
+    password: input.password,
+    email_confirm: true,
+    user_metadata: { full_name: input.fullName },
+  });
+}
+
 export async function POST(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -38,12 +68,40 @@ export async function POST(request: NextRequest) {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const { data, error } = await supabase.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { full_name: fullName },
-  });
+  const existingAppUser = await db.user.findUnique({ where: { email }, select: { id: true } });
+  const existingAuthUser = await findAuthUserByEmail(supabase, email);
+  const existingProfileCount = existingAppUser
+    ? await db.profile.count({ where: { ownerId: existingAppUser.id } })
+    : 0;
+
+  if (existingAuthUser && existingAppUser?.id === existingAuthUser.id && existingProfileCount > 0) {
+    return NextResponse.json(
+      {
+        data: null,
+        error: {
+          code: 'USER_EXISTS',
+          message: 'This email already has an account. Please sign in.',
+        },
+      },
+      { status: 409 },
+    );
+  }
+
+  if (existingAuthUser && (existingAppUser?.id !== existingAuthUser.id || existingProfileCount === 0)) {
+    const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(existingAuthUser.id);
+    if (deleteAuthError) {
+      return NextResponse.json(
+        { data: null, error: { code: 'SIGNUP_FAILED', message: deleteAuthError.message } },
+        { status: 400 },
+      );
+    }
+  }
+
+  if (existingAppUser && (existingAppUser.id !== existingAuthUser?.id || existingProfileCount === 0)) {
+    await db.user.deleteMany({ where: { email } });
+  }
+
+  const { data, error } = await createConfirmedAuthUser(supabase, { email, password, fullName });
 
   if (error) {
     const alreadyExists = error.message.toLowerCase().includes('already');
