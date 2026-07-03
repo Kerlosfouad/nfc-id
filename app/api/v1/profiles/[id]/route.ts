@@ -52,7 +52,7 @@ const UpdateProfileSchema = z.object({
   sensitiveContent: z.boolean().optional(),
 });
 
-const PRIME_THEME_STYLES = new Set(['minimal', 'purple-haze', 'rose-gold']);
+const PRIME_THEME_STYLES = new Set<string>();
 
 function isFuture(date: Date | null): boolean {
   return !!date && date.getTime() > Date.now();
