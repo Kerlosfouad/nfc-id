@@ -2540,10 +2540,6 @@ export default function DashboardPage() {
             return j.data ? { ...j.data, links: j.data.links ?? [] } : { ...p, links: [] };
           } catch { return p; }
         }));
-        if (full.length === 0) {
-          router.replace("/connect-nfc");
-          return;
-        }
         setProfiles(full);
       } catch (e) {
         showToast(e instanceof Error ? e.message : "Failed to load profiles", false);

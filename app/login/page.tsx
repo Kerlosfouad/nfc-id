@@ -22,7 +22,7 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get("redirect");
-  const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/dashboard";
+  const redirectTo = redirectParam?.startsWith("/") && !redirectParam.startsWith("/connect-nfc") ? redirectParam : "/dashboard";
   const resolveRedirect = useCallback((userEmail?: string | null) => {
     if (isOwnerEmail(userEmail) && !redirectParam) return "/admin";
     return redirectTo;
@@ -142,7 +142,7 @@ function LoginContent() {
           <div className="mb-8">
             <h2 className="text-white text-3xl font-bold mb-1">Welcome back</h2>
             <p className="text-white/65 text-sm">
-              {redirectTo.startsWith("/connect-nfc") ? "Sign in first, then link your NFC card" : "Sign in to your NFC ID account"}
+              Sign in to your NFC ID account
             </p>
           </div>
           <form onSubmit={handleEmailLogin} className="space-y-5">
@@ -189,7 +189,7 @@ function LoginContent() {
           </div>
           <p className="text-white/65 text-sm text-center mt-6">
             Don&apos;t have an account?{" "}
-            <Link href={redirectParam?.startsWith("/") ? `/signup?redirect=${encodeURIComponent(redirectParam)}` : "/signup"} className="text-[#03A9F4] font-semibold hover:text-white transition-colors">Create one free</Link>
+            <Link href={redirectParam?.startsWith("/connect-nfc") ? `/signup?redirect=${encodeURIComponent(redirectParam)}` : "/signup"} className="text-[#03A9F4] font-semibold hover:text-white transition-colors">Create one free</Link>
           </p>
         </div>
       </div>
