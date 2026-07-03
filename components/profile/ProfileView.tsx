@@ -137,14 +137,6 @@ function getThemeVars(theme: ProfileTheme) {
   switch (theme.style) {
     case 'minimal':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.72)', isDark: true, glass: 'rgba(255,255,255,0.12)', glassBorder: 'rgba(255,255,255,0.16)' };
-    case 'nature':
-      return { textPrimary: '#ecfdf5', textSecondary: 'rgba(236,253,245,0.72)', isDark: true, glass: 'rgba(6,78,59,0.28)', glassBorder: 'rgba(167,243,208,0.18)' };
-    case 'ocean':
-      return { textPrimary: '#f0f9ff', textSecondary: 'rgba(224,242,254,0.72)', isDark: true, glass: 'rgba(8,47,73,0.30)', glassBorder: 'rgba(125,211,252,0.20)' };
-    case 'sunset':
-      return { textPrimary: '#fff7ed', textSecondary: 'rgba(255,237,213,0.72)', isDark: true, glass: 'rgba(124,45,18,0.26)', glassBorder: 'rgba(253,186,116,0.20)' };
-    case 'retro':
-      return { textPrimary: '#fffbeb', textSecondary: 'rgba(254,243,199,0.72)', isDark: true, glass: 'rgba(120,53,15,0.28)', glassBorder: 'rgba(251,191,36,0.20)' };
     case 'rose-gold':
       return { textPrimary: '#fff1f2', textSecondary: 'rgba(255,228,230,0.72)', isDark: true, glass: 'rgba(159,18,57,0.26)', glassBorder: 'rgba(251,113,133,0.20)' };
     default:
@@ -162,16 +154,10 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
     };
   }
   switch (theme.style) {
-    case 'nature':    return { background: 'radial-gradient(circle at 70% 18%, rgba(21,128,61,0.24), transparent 32%), linear-gradient(150deg,#03180d,#0a3f27 48%,#010f09)' };
-    case 'ocean':     return { background: 'radial-gradient(circle at 72% 18%, rgba(8,145,178,0.26), transparent 34%), linear-gradient(150deg,#031926,#075064 50%,#021018)' };
-    case 'sunset':    return { background: 'radial-gradient(circle at 72% 18%, rgba(194,65,12,0.28), transparent 34%), linear-gradient(150deg,#1f0803,#5f1d0b 52%,#120502)' };
-    case 'retro':     return { background: 'radial-gradient(circle at 72% 18%, rgba(180,83,9,0.28), transparent 34%), linear-gradient(150deg,#1c0c03,#5f3512 52%,#100802)' };
     case 'rose-gold': return { background: 'radial-gradient(circle at 72% 18%, rgba(190,52,85,0.28), transparent 34%), linear-gradient(150deg,#21040c,#7f1d1d 52%,#130207)' };
     case 'minimal':   return { background: 'radial-gradient(circle at 72% 18%, rgba(161,161,170,0.16), transparent 34%), linear-gradient(150deg,#111113,#27272a 54%,#070708)' };
     case 'neon':      return { background: `radial-gradient(circle at 72% 18%, ${pc}4d, transparent 34%), linear-gradient(150deg,#030306,#111827 50%,#01030a)` };
     case 'purple-haze': return { background: 'radial-gradient(circle at 72% 18%, rgba(124,58,237,0.28), transparent 34%), linear-gradient(150deg,#11102f,#3b1d78 54%,#0c071d)' };
-    case 'midnight':  return { background: 'radial-gradient(circle at 72% 18%, rgba(2,132,199,0.24), transparent 34%), linear-gradient(150deg,#020617,#153255 54%,#020617)' };
-    case 'forest':    return { background: 'radial-gradient(circle at 72% 18%, rgba(21,128,61,0.24), transparent 34%), linear-gradient(150deg,#01140d,#064e3b 52%,#010d08)' };
     case 'dark':      return { background: `radial-gradient(circle at 72% 18%, ${pc}44, transparent 34%), linear-gradient(150deg,#030712,#111827 52%,#020617)` };
     default:          return { background: `radial-gradient(circle at 72% 18%, ${pc}3d, transparent 34%), linear-gradient(150deg,#04111c,#0b2438 52%,#020617)` };
   }

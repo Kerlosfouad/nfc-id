@@ -39,7 +39,7 @@ const UpdateProfileSchema = z.object({
   avatarUrl: z.string().url().nullable().optional(),
   theme: z
     .object({
-      style: z.enum(['gradient', 'glassmorphism', 'minimal', 'default', 'dark', 'nature', 'ocean', 'sunset', 'neon', 'purple-haze', 'retro', 'midnight', 'rose-gold', 'forest']),
+      style: z.enum(['gradient', 'glassmorphism', 'minimal', 'default', 'dark', 'neon', 'purple-haze', 'rose-gold']),
       primaryColor: z.string().min(1),
       fontFamily: z.string().min(1),
       linksLayout: z.enum(['list', 'grid']).optional(),
@@ -52,7 +52,7 @@ const UpdateProfileSchema = z.object({
   sensitiveContent: z.boolean().optional(),
 });
 
-const PRIME_THEME_STYLES = new Set(['sunset', 'neon', 'minimal', 'purple-haze', 'retro', 'midnight', 'rose-gold', 'forest']);
+const PRIME_THEME_STYLES = new Set(['neon', 'minimal', 'purple-haze', 'rose-gold']);
 
 function isFuture(date: Date | null): boolean {
   return !!date && date.getTime() > Date.now();
