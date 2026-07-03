@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -41,33 +40,26 @@ function priceLabel(value: string) {
 
 function ProductCard({ product, onAdd, onBuyNow }: { product: ShopProduct; onAdd: () => void; onBuyNow: () => void }) {
   return (
-    <article className="group relative flex min-h-[520px] flex-col overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#0d1114] transition-all duration-500 hover:-translate-y-1 hover:border-[#03A9F4]/45 hover:shadow-[0_28px_90px_rgba(3,169,244,0.12)]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(3,169,244,0.16),transparent_36%)] opacity-70 transition-opacity duration-500 group-hover:opacity-100" />
+    <article className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#101010] transition-all duration-300 hover:border-[#03A9F4]/40">
+      <div className="absolute inset-0 bg-gradient-to-b from-[#03A9F4]/8 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-      <div className="relative aspect-[1.05] overflow-hidden bg-[#07090b]">
+      <div className="relative aspect-[4/3] overflow-hidden bg-[#070707]">
         <img
           src={product.imageUrl}
           alt={product.name}
-          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0d1114] to-transparent" />
-        <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-[#03A9F4]/30 bg-black/50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#03A9F4] backdrop-blur-md">
+        <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-[#03A9F4]/30 bg-black/50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#03A9F4] backdrop-blur-md">
           <i className="ri-archive-stack-line" />
           {product.stockQuantity ?? (Number(product.badge) || 0)}
         </div>
-        {product.discountLabel && (
-          <div className="absolute right-4 top-4 rounded-full bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-black">
-            {product.discountLabel}
-          </div>
-        )}
       </div>
 
-      <div className="relative flex flex-1 flex-col p-5 sm:p-6">
-        <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#03A9F4]/80">{product.category}</p>
-        <h3 className="mb-3 text-xl font-black text-white sm:text-2xl">{product.name}</h3>
-        <p className="line-clamp-3 min-h-[68px] text-sm leading-7 text-white/46">{product.description}</p>
+      <div className="relative p-4 sm:p-5">
+        <h3 className="mb-2 text-base font-bold uppercase text-white sm:text-lg">{product.name}</h3>
+        <p className="line-clamp-2 min-h-[44px] text-sm leading-relaxed text-white/40">{product.description}</p>
 
-        <div className="mt-auto flex items-end justify-between gap-3 pt-7">
+        <div className="mt-5 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-widest text-white/25">Starting at</p>
             <div className="mt-1 flex flex-wrap items-baseline gap-2">
@@ -88,7 +80,7 @@ function ProductCard({ product, onAdd, onBuyNow }: { product: ShopProduct; onAdd
             <button
               type="button"
               onClick={onBuyNow}
-              className="inline-flex h-11 items-center rounded-full bg-white px-4 text-[11px] font-bold uppercase tracking-wider text-black transition-all duration-300 hover:bg-[#03A9F4] hover:text-white"
+              className="inline-flex h-10 items-center rounded-full bg-white px-3.5 text-[11px] font-bold uppercase tracking-wider text-black transition-all duration-300 hover:bg-[#03A9F4] hover:text-white"
             >
               Buy Now
             </button>
@@ -120,7 +112,6 @@ export default function ShopSection() {
     [cart],
   );
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const featuredProduct = products[0];
 
   useEffect(() => {
     let alive = true;
@@ -183,10 +174,9 @@ export default function ShopSection() {
   }
 
   return (
-    <section id="SHOP" className="relative overflow-hidden px-4 py-24 scroll-mt-24 sm:py-32">
+    <section id="SHOP" className="relative overflow-hidden px-4 py-20 scroll-mt-24 sm:py-24">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#03A9F4]/30 to-transparent" />
-      <div className="pointer-events-none absolute left-[-12%] top-24 h-[420px] w-[420px] rounded-full bg-[#03A9F4]/7 blur-[90px]" />
-      <div className="pointer-events-none absolute right-[-10%] top-1/2 h-[360px] w-[520px] rounded-full bg-cyan-400/6 blur-[100px]" />
+      <div className="pointer-events-none absolute left-1/2 top-24 h-[260px] w-[520px] -translate-x-1/2 rounded-full bg-[#03A9F4]/8 blur-3xl" />
 
       <button
         type="button"
@@ -203,63 +193,20 @@ export default function ShopSection() {
       </button>
 
       <div className="container relative z-10 mx-auto">
-        <div className="mb-12 grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14">
-          <div className="group relative min-h-[440px] overflow-hidden rounded-[2rem] border border-white/10 bg-[#070a0d] shadow-[0_40px_140px_rgba(0,0,0,0.45)] sm:min-h-[560px]">
-            <Image
-              src="/assets/linkup/linkup-phone-tap-scene.png"
-              alt="LinkUp NFC products beside a phone"
-              fill
-              sizes="(min-width: 1024px) 58vw, 100vw"
-              className="object-cover opacity-[0.86] transition-transform duration-1000 ease-out group-hover:scale-105"
-              priority
-            />
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,7,9,0.08),rgba(5,7,9,0.58)),radial-gradient(circle_at_78%_24%,rgba(3,169,244,0.18),transparent_28%)]" />
-            <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/45 px-4 py-3 backdrop-blur-xl sm:bottom-7 sm:left-7 sm:right-auto sm:min-w-[330px]">
-              <span>
-                <span className="block text-[10px] font-semibold uppercase tracking-[0.24em] text-[#03A9F4]">Tap-ready hardware</span>
-                <span className="mt-1 block text-sm font-bold text-white">Card, medal, and key tag kits</span>
-              </span>
-              <i className="ri-nfc-line text-3xl text-[#03A9F4]" />
-            </div>
+        <div className="mb-10 text-center sm:mb-12">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#03A9F4]">
+            LinkUp Shop
           </div>
-
-          <div className="lg:pb-10">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#03A9F4]">
-              LinkUp Shop
-            </div>
-            <h2 className="max-w-xl text-balance text-[clamp(2.6rem,6vw,5.8rem)] font-black leading-[0.92] tracking-normal text-white">
-              Smart products for one-tap sharing
-            </h2>
-            <p className="mt-6 max-w-lg text-base leading-8 text-white/48">
-              Pick the NFC card, medal, or key tag that fits how people meet you. Every product is built to open your live LinkUp profile instantly.
-            </p>
-            <div className="mt-8 grid max-w-lg grid-cols-3 gap-3">
-              {["Profile ready", "NFC + QR", "Reusable"].map((item) => (
-                <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.035] px-3 py-4 text-center text-xs font-bold text-white/70">
-                  {item}
-                </div>
-              ))}
-            </div>
-            {featuredProduct && (
-              <button
-                type="button"
-                onClick={() => {
-                  addToCart(featuredProduct);
-                  setCartOpen(true);
-                }}
-                className="mt-8 inline-flex h-[52px] items-center gap-3 rounded-full bg-white px-6 text-sm font-black uppercase tracking-[0.14em] text-black transition-all duration-300 hover:bg-[#03A9F4] hover:text-white active:scale-[0.98]"
-              >
-                Add featured product
-                <i className="ri-arrow-right-line text-lg" />
-              </button>
-            )}
-          </div>
+          <h2 className="mb-4 text-3xl font-bold uppercase text-white sm:text-4xl md:text-5xl">Choose Your Smart Product</h2>
+          <p className="mx-auto max-w-xl text-sm leading-relaxed text-white/40 md:text-base">
+            Pick the NFC product that fits how your customers, clients, or followers meet you.
+          </p>
         </div>
 
         {loading ? (
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 md:grid-cols-3">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="h-[520px] animate-pulse rounded-[1.75rem] border border-white/10 bg-white/[0.03]" />
+              <div key={index} className="h-[480px] animate-pulse rounded-3xl border border-white/10 bg-white/[0.03]" />
             ))}
           </div>
         ) : error ? (
@@ -275,7 +222,7 @@ export default function ShopSection() {
             <p className="mt-2 text-sm text-white/40">Visible products added from the owner dashboard will appear here.</p>
           </div>
         ) : (
-          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 md:grid-cols-3">
             {products.map((product) => (
               <ProductCard
                 key={product.id}
