@@ -22,7 +22,7 @@ export const LinkTypeSchema = z.enum([
 // ── ProfileTheme ─────────────────────────────────────────────────────────────
 
 export const ProfileThemeSchema = z.object({
-  style: z.enum(['gradient', 'glassmorphism', 'minimal']),
+  style: z.enum(['gradient', 'glassmorphism', 'minimal', 'dark', 'purple-haze', 'rose-gold', 'm-motorsport']),
   primaryColor: z.string().min(1),
   fontFamily: z.string().min(1),
 });

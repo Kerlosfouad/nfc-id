@@ -229,6 +229,7 @@ const PRESET_THEMES = [
   { id: "minimal", name: "Minimal", desc: "Soft monochrome elegance", colors: ["#111113", "#27272a", "#71717a", "#e4e4e7"], premium: false, accent: "#71717a", coverUrl: "/assets/themes/minimal.png" },
   { id: "purple-haze", name: "Purple Haze", desc: "Deep purples and lavender", colors: ["#11102f", "#3b1d78", "#5b21b6", "#ddd6fe"], premium: false, accent: "#5b21b6", coverUrl: "/assets/themes/purple-haze.png" },
   { id: "rose-gold", name: "Rose Gold", desc: "Elegant rose glow", colors: ["#21040c", "#7f1d1d", "#9f1239", "#fecdd3"], premium: false, accent: "#9f1239", coverUrl: "/assets/themes/rose-gold.png" },
+  { id: "m-motorsport", name: "M Motorsport", desc: "White gloss, navy, sky blue, and red", colors: ["#f8fafc", "#07111f", "#0ea5e9", "#dc2626"], premium: false, accent: "#0ea5e9", coverUrl: "/assets/themes/motorsport-m.jpg" },
 ];
 function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { profile: ProfileData; saving: boolean; onSave: (p: Record<string, unknown>) => void; onClose: () => void; onAddLink?: (d: LinkDraft) => void }) {
   const [name, setName] = useState(profile.displayName);

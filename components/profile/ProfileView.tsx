@@ -139,6 +139,8 @@ function getThemeVars(theme: ProfileTheme) {
       return { textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.72)', isDark: true, glass: 'rgba(255,255,255,0.12)', glassBorder: 'rgba(255,255,255,0.16)' };
     case 'rose-gold':
       return { textPrimary: '#fff1f2', textSecondary: 'rgba(255,228,230,0.72)', isDark: true, glass: 'rgba(159,18,57,0.26)', glassBorder: 'rgba(251,113,133,0.20)' };
+    case 'm-motorsport':
+      return { textPrimary: '#ffffff', textSecondary: 'rgba(226,232,240,0.76)', isDark: true, glass: 'rgba(2,6,23,0.54)', glassBorder: 'rgba(14,165,233,0.28)' };
     default:
       return { textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.64)', isDark: true, glass: 'rgba(255,255,255,0.12)', glassBorder: 'rgba(255,255,255,0.14)' };
   }
@@ -149,6 +151,7 @@ const THEME_COVER_URLS: Partial<Record<ProfileTheme['style'], string>> = {
   minimal: '/assets/themes/minimal.png',
   'purple-haze': '/assets/themes/purple-haze.png',
   'rose-gold': '/assets/themes/rose-gold.png',
+  'm-motorsport': '/assets/themes/motorsport-m.jpg',
 };
 
 function getBgStyle(theme: ProfileTheme): React.CSSProperties {
@@ -165,6 +168,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
     case 'rose-gold': return { background: 'radial-gradient(circle at 72% 18%, rgba(190,52,85,0.28), transparent 34%), linear-gradient(150deg,#21040c,#7f1d1d 52%,#130207)' };
     case 'minimal':   return { background: 'radial-gradient(circle at 72% 18%, rgba(161,161,170,0.16), transparent 34%), linear-gradient(150deg,#111113,#27272a 54%,#070708)' };
     case 'purple-haze': return { background: 'radial-gradient(circle at 72% 18%, rgba(124,58,237,0.28), transparent 34%), linear-gradient(150deg,#11102f,#3b1d78 54%,#0c071d)' };
+    case 'm-motorsport': return { background: 'radial-gradient(circle at 18% 12%, rgba(14,165,233,0.24), transparent 30%), radial-gradient(circle at 86% 20%, rgba(220,38,38,0.22), transparent 30%), linear-gradient(155deg,#f8fafc 0%,#dbe3ee 34%,#07111f 100%)' };
     case 'dark':      return { background: `radial-gradient(circle at 72% 18%, ${pc}44, transparent 34%), linear-gradient(150deg,#030712,#111827 52%,#020617)` };
     default:          return { background: `radial-gradient(circle at 72% 18%, ${pc}3d, transparent 34%), linear-gradient(150deg,#04111c,#0b2438 52%,#020617)` };
   }
