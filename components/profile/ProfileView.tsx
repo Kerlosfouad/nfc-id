@@ -160,7 +160,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
   if (coverUrl) {
     if (theme.style === 'm-motorsport') {
       return {
-        backgroundImage: `linear-gradient(180deg, rgba(248,250,252,0.08) 0%, rgba(2,6,23,0.58) 46%, rgba(2,6,23,0.94) 100%), linear-gradient(132deg, rgba(220,38,38,0.36) 0%, transparent 28%, rgba(0,84,166,0.34) 72%, transparent 100%), url(${coverUrl})`,
+        backgroundImage: `linear-gradient(180deg, rgba(248,250,252,0.18) 0%, rgba(2,6,23,0.42) 44%, rgba(2,6,23,0.88) 100%), linear-gradient(132deg, rgba(220,38,38,0.28) 0%, transparent 28%, rgba(0,84,166,0.28) 72%, transparent 100%), url(${coverUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center top',
       };
@@ -190,7 +190,7 @@ function motorsportSurface() {
     cyan: '#0EA5E9',
     red: '#DC2626',
     navy: '#050B14',
-    white: '#0054A6',
+    white: '#EAF2FF',
   };
 }
 
