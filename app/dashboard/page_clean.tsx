@@ -30,6 +30,8 @@ type LinkDraft = { type: string; title: string; url: string };
 type PendingLinks = Record<string, "add" | "update" | "delete" | "toggle">;
 type GoldServiceId = "design" | "verification";
 type ToastItem = { id: number; msg: string; ok: boolean; visible: boolean };
+type ProfileInboxMessage = { id: string; senderName: string; message: string; readAt: string | null; createdAt: string };
+type ProfileInbox = { messages: ProfileInboxMessage[]; unreadCount: number };
 
 const CLOSED_LINK_TIMESTAMP = "2000-01-01T00:00:00.000Z";
 const COMPANY_WHATSAPP = "201211632456";
@@ -39,6 +41,7 @@ const GOLD_SERVICES: { id: GoldServiceId; name: string; price: number; icon: str
 ];
 
 const analyticsMemoryCache = new Map<string, AnalyticsSummary>();
+const inboxMemoryCache = new Map<string, ProfileInbox>();
 
 function isFutureDate(value: string | null | undefined): boolean {
   return !!value && new Date(value).getTime() > Date.now();
@@ -806,9 +809,11 @@ function SortableLinks({ links, onMoveTo, onEditLink, onUpdateLink, onDeleteLink
   );
 }
 
-function HomeTab({ profile, saving, pendingLinks, onPatch, onAddLink, onEditLink, onDeleteLink, onMove, onMoveTo, onPreview, editOpen, setEditOpen, addOpen, setAddOpen, editLink, setEditLink, onUpdateLink, onAddLinkSubmit }: {
+function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, onPatch, onAddLink, onEditLink, onDeleteLink, onMove, onMoveTo, onPreview, editOpen, setEditOpen, addOpen, setAddOpen, editLink, setEditLink, onUpdateLink, onAddLinkSubmit }: {
   profile: ProfileData; saving: boolean; onPatch: (p: Record<string, unknown>) => void; onAddLink: () => void; onEditLink: (l: LinkItem) => void; onDeleteLink: (id: string) => void; onMove: (i: number, d: "up" | "down") => void; onMoveTo: (from: number, to: number) => void; onPreview: () => void;
   pendingLinks: PendingLinks;
+  unreadMessages: number;
+  onOpenInbox: () => void;
   editOpen: boolean; setEditOpen: (v: boolean) => void; addOpen: boolean; setAddOpen: (v: boolean) => void; editLink: LinkItem | null; setEditLink: (l: LinkItem | null) => void;
   onUpdateLink: (id: string, p: Record<string, unknown>) => void; onAddLinkSubmit: (d: LinkDraft) => void;
 }) {
@@ -886,6 +891,19 @@ function HomeTab({ profile, saving, pendingLinks, onPatch, onAddLink, onEditLink
                 className="flex h-9 shrink-0 items-center justify-center rounded-full bg-[#03A9F4] px-3 text-xs font-bold text-white shadow-lg lg:hidden"
               >
                 Edit Profile
+              </button>
+              <button
+                type="button"
+                onClick={onOpenInbox}
+                className="relative hidden h-9 shrink-0 items-center justify-center rounded-full border border-[#03A9F4]/35 bg-[#03A9F4]/10 px-3 text-xs font-bold text-[#03A9F4] transition hover:bg-[#03A9F4]/15 sm:flex"
+              >
+                <i className="ri-message-3-line mr-1.5 text-base" />
+                Messages
+                {unreadMessages > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#03A9F4] px-1.5 text-[10px] font-black text-white shadow-lg">
+                    {unreadMessages > 9 ? "9+" : unreadMessages}
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -2201,6 +2219,95 @@ function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClo
   );
 }
 
+function MessageInboxSheet({
+  inbox,
+  loading,
+  onClose,
+  onMarkRead,
+}: {
+  inbox: ProfileInbox;
+  loading: boolean;
+  onClose: () => void;
+  onMarkRead: () => void;
+}) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setVisible(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  function closeSheet() {
+    setVisible(false);
+    window.setTimeout(onClose, 220);
+  }
+
+  return (
+    <div
+      className={`fixed inset-0 z-[95] flex items-end justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-200 md:items-center ${visible ? "opacity-100" : "opacity-0"}`}
+      onClick={closeSheet}
+    >
+      <section
+        className={`flex max-h-[82svh] w-full flex-col overflow-hidden rounded-t-[24px] border border-white/10 bg-[#111] text-white shadow-2xl transition-transform duration-200 md:max-h-[720px] md:max-w-[440px] md:rounded-[24px] ${visible ? "translate-y-0" : "translate-y-full md:translate-y-4"}`}
+        onClick={event => event.stopPropagation()}
+        aria-label="Profile messages"
+      >
+        <div className="mx-auto mt-3 h-1.5 w-24 rounded-full bg-white/10" />
+        <header className="flex items-start justify-between gap-4 border-b border-white/10 px-5 pb-4 pt-5">
+          <div>
+            <p className="text-xs font-semibold text-[#03A9F4]">Inbox</p>
+            <h2 className="mt-1 text-xl font-bold">Profile messages</h2>
+            <p className="mt-1 text-xs text-white/45">{inbox.unreadCount} unread message{inbox.unreadCount === 1 ? "" : "s"}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onMarkRead}
+              disabled={inbox.unreadCount === 0 || loading}
+              className="h-9 rounded-full border border-white/10 px-3 text-xs font-semibold text-white/65 transition hover:bg-white/5 hover:text-white disabled:opacity-35"
+            >
+              Mark read
+            </button>
+            <button onClick={closeSheet} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/55 hover:text-white" aria-label="Close messages">
+              <i className="ri-close-line text-lg" />
+            </button>
+          </div>
+        </header>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          {loading ? (
+            <div className="py-12 text-center">
+              <div className="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-[#03A9F4] border-t-transparent" />
+              <p className="mt-3 text-sm text-white/45">Loading messages...</p>
+            </div>
+          ) : inbox.messages.length === 0 ? (
+            <div className="py-14 text-center">
+              <i className="ri-chat-3-line text-5xl text-white/10" />
+              <p className="mt-3 text-sm font-semibold text-white/70">No messages yet</p>
+              <p className="mt-1 text-xs text-white/40">Messages from your public profile will appear here.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {inbox.messages.map(message => (
+                <article key={message.id} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                  <div className="mb-2 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-white">{message.senderName}</p>
+                      <p className="text-[11px] text-white/35">{new Date(message.createdAt).toLocaleString()}</p>
+                    </div>
+                    {!message.readAt && <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-[#03A9F4] shadow-[0_0_12px_rgba(3,169,244,0.8)]" />}
+                  </div>
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/75">{message.message}</p>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: ProfileData; saving: boolean; onSave: (t: ProfileTheme, message?: string) => void; onRequestGold: (service?: GoldServiceId) => void }) {
   const theme = profile.theme ?? { style: "dark", primaryColor: "#03A9F4", fontFamily: "Inter" };
   const [style, setStyle] = useState(theme.style || "dark");
@@ -2453,10 +2560,14 @@ export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [goldRequest, setGoldRequest] = useState<GoldServiceId | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [inboxOpen, setInboxOpen] = useState(false);
+  const [inboxes, setInboxes] = useState<Record<string, ProfileInbox>>({});
+  const [inboxLoading, setInboxLoading] = useState(false);
   const toastIdRef = useRef(0);
   const toastTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>[]>>({});
   const patchSeqRef = useRef(0);
   const profile = profiles.find(p => p.id === selId) ?? profiles[0] ?? null;
+  const activeInbox = profile ? (inboxes[profile.id] ?? inboxMemoryCache.get(profile.id) ?? { messages: [], unreadCount: 0 }) : { messages: [], unreadCount: 0 };
 
   function showToast(msg: string, ok = true) {
     const id = ++toastIdRef.current;
@@ -2501,6 +2612,52 @@ export default function DashboardPage() {
     toastTimersRef.current[id] = [enterTimer, dismissTimer];
   }
   function hdrs() { return { "Content-Type": "application/json", Authorization: "Bearer " + token, "x-user-id": uid }; }
+  async function loadInbox(profileId: string, quiet = false) {
+    if (!token || !uid) return;
+    if (!quiet) setInboxLoading(true);
+    try {
+      const response = await fetch(`/api/v1/profiles/${profileId}/messages`, { headers: hdrs() });
+      const json = await readApiJson(response);
+      if (!response.ok) throw new Error(json.error?.message ?? "Failed to load messages");
+      const inbox: ProfileInbox = {
+        messages: json.data?.messages ?? [],
+        unreadCount: json.data?.unreadCount ?? 0,
+      };
+      inboxMemoryCache.set(profileId, inbox);
+      setInboxes(prev => ({ ...prev, [profileId]: inbox }));
+    } catch (error) {
+      if (!quiet) showToast(error instanceof Error ? error.message : "Failed to load messages", false);
+    } finally {
+      if (!quiet) setInboxLoading(false);
+    }
+  }
+  async function markInboxRead() {
+    if (!profile || activeInbox.unreadCount === 0) return;
+    const profileId = profile.id;
+    const readAt = new Date().toISOString();
+    setInboxes(prev => ({
+      ...prev,
+      [profileId]: {
+        ...(prev[profileId] ?? activeInbox),
+        unreadCount: 0,
+        messages: (prev[profileId] ?? activeInbox).messages.map(message => ({ ...message, readAt: message.readAt ?? readAt })),
+      },
+    }));
+    try {
+      const response = await fetch(`/api/v1/profiles/${profileId}/messages`, { method: "PATCH", headers: hdrs() });
+      const json = await readApiJson(response);
+      if (!response.ok) throw new Error(json.error?.message ?? "Failed to update messages");
+      await loadInbox(profileId, true);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Failed to update messages", false);
+      await loadInbox(profileId, true);
+    }
+  }
+  function openInbox() {
+    if (!profile) return;
+    setInboxOpen(true);
+    void loadInbox(profile.id);
+  }
   function removeProfile(profileId: string) {
     setProfiles(prev => {
       const next = prev.filter(p => p.id !== profileId);
@@ -2549,6 +2706,13 @@ export default function DashboardPage() {
       } finally { setLoading(false); }
     }).catch(() => router.push("/login"));
   }, [router]);
+
+  useEffect(() => {
+    if (!profile || !token || !uid) return;
+    void loadInbox(profile.id, true);
+    // loadInbox closes over the latest auth headers and toast handler; this effect only needs to follow the selected profile.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id, token, uid]);
 
   async function patchProfile(patch: Record<string, unknown>, optimisticMessage?: string) {
     if (!profile) return;
@@ -2758,7 +2922,7 @@ export default function DashboardPage() {
                     </div>
                     <button onClick={copyLink} className="text-xs text-white/40 hover:text-white flex items-center gap-1 flex-shrink-0 ml-2"><i className={copied ? "ri-check-line text-green-400" : "ri-file-copy-line"} />{copied ? "Copied!" : "Copy"}</button>
                   </div>
-                  {tab === "home" && <HomeTab profile={profile} saving={saving} pendingLinks={pendingLinks} onPatch={patchProfile} onAddLink={() => setAddOpen(true)} onEditLink={setEditLink} onDeleteLink={deleteLink} onMove={moveLink} onMoveTo={moveLinkTo} onPreview={() => setPreviewOpen(true)} editOpen={editOpen} setEditOpen={setEditOpen} addOpen={addOpen} setAddOpen={setAddOpen} editLink={editLink} setEditLink={setEditLink} onUpdateLink={updateLink} onAddLinkSubmit={addLink} />}
+                  {tab === "home" && <HomeTab profile={profile} saving={saving} pendingLinks={pendingLinks} unreadMessages={activeInbox.unreadCount} onOpenInbox={openInbox} onPatch={patchProfile} onAddLink={() => setAddOpen(true)} onEditLink={setEditLink} onDeleteLink={deleteLink} onMove={moveLink} onMoveTo={moveLinkTo} onPreview={() => setPreviewOpen(true)} editOpen={editOpen} setEditOpen={setEditOpen} addOpen={addOpen} setAddOpen={setAddOpen} editLink={editLink} setEditLink={setEditLink} onUpdateLink={updateLink} onAddLinkSubmit={addLink} />}
                   {tab === "analytics" && <AnalyticsTab profile={profile} token={token} uid={uid} />}
                   {tab === "share" && <ShareTab profile={profile} onCopy={copyLink} copied={copied} />}
                   {tab === "settings" && (
@@ -2792,6 +2956,15 @@ export default function DashboardPage() {
           <ProfilePreviewModal profile={profile} onClose={() => setPreviewOpen(false)} />
         )}
 
+        {profile && inboxOpen && (
+          <MessageInboxSheet
+            inbox={activeInbox}
+            loading={inboxLoading}
+            onClose={() => setInboxOpen(false)}
+            onMarkRead={markInboxRead}
+          />
+        )}
+
         {profile && (tab === "home" || tab === "design") && (
           <button
             type="button"
@@ -2800,6 +2973,22 @@ export default function DashboardPage() {
           >
             <i className="ri-eye-line text-lg" />
             Preview
+          </button>
+        )}
+
+        {profile && tab === "home" && (
+          <button
+            type="button"
+            onClick={openInbox}
+            className="fixed bottom-[82px] left-4 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-[#03A9F4]/35 bg-[#101010]/95 text-[#03A9F4] shadow-xl backdrop-blur-xl md:hidden"
+            aria-label="Open messages"
+          >
+            <i className="ri-message-3-line text-xl" />
+            {activeInbox.unreadCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#03A9F4] px-1.5 text-[10px] font-black text-white shadow-lg">
+                {activeInbox.unreadCount > 9 ? "9+" : activeInbox.unreadCount}
+              </span>
+            )}
           </button>
         )}
 

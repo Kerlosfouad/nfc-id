@@ -84,6 +84,17 @@ export const LeadFormSubmissionSchema = z.object({
   submittedAt: z.coerce.date(),
 });
 
+export const ProfileMessageSchema = z.object({
+  id: z.string().uuid(),
+  profileId: z.string().uuid(),
+  senderName: z.string().min(1),
+  message: z.string().min(1),
+  sourceIpHash: z.string().min(1),
+  publicId: z.string().min(1),
+  readAt: z.coerce.date().nullable(),
+  createdAt: z.coerce.date(),
+});
+
 // ── Input / mutation schemas ─────────────────────────────────────────────────
 
 /**
@@ -140,6 +151,11 @@ export const LeadFormInputSchema = z.object({
   email: z.string().email('Invalid email address'),
 });
 
+export const ProfileMessageInputSchema = z.object({
+  senderName: z.string().trim().min(2, 'Name must be at least 2 characters').max(80, 'Name is too long'),
+  message: z.string().trim().min(2, 'Message must be at least 2 characters').max(1000, 'Message is too long'),
+});
+
 // ── API Response wrapper ─────────────────────────────────────────────────────
 
 export const ApiErrorSchema = z.object({
@@ -165,7 +181,9 @@ export type TagSchemaType = z.infer<typeof TagSchema>;
 export type ProfileSchemaType = z.infer<typeof ProfileSchema>;
 export type LinkSchemaType = z.infer<typeof LinkSchema>;
 export type LeadFormSubmissionSchemaType = z.infer<typeof LeadFormSubmissionSchema>;
+export type ProfileMessageSchemaType = z.infer<typeof ProfileMessageSchema>;
 export type CreateLinkInput = z.infer<typeof CreateLinkSchema>;
 export type BatchGenerateInput = z.infer<typeof BatchGenerateSchema>;
 export type LeadFormInput = z.infer<typeof LeadFormInputSchema>;
+export type ProfileMessageInput = z.infer<typeof ProfileMessageInputSchema>;
 export type ApiError = z.infer<typeof ApiErrorSchema>;

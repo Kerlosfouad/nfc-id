@@ -5,7 +5,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { Profile, Link as ProfileLink, ProfileTheme } from '@/lib/domain/types';
 import LeadForm from './LeadForm';
 
@@ -278,6 +278,138 @@ interface ProfileViewProps {
   disableAnalytics?: boolean;
 }
 
+type MessageState = 'idle' | 'submitting' | 'success' | 'error';
+
+function ProfileMessageForm({
+  profileId,
+  accentColor,
+  themeVars,
+  previewOnly = false,
+}: {
+  profileId: string;
+  accentColor: string;
+  themeVars: ReturnType<typeof getThemeVars>;
+  previewOnly?: boolean;
+}) {
+  const [senderName, setSenderName] = useState('');
+  const [message, setMessage] = useState('');
+  const [state, setState] = useState<MessageState>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (previewOnly) {
+      setState('success');
+      window.setTimeout(() => setState('idle'), 1600);
+      return;
+    }
+
+    setState('submitting');
+    setErrorMessage('');
+
+    try {
+      const response = await fetch(`/api/v1/profiles/${profileId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderName, message }),
+      });
+      const json = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(
+          json?.error?.fields?.senderName ??
+          json?.error?.fields?.message ??
+          json?.error?.message ??
+          'Message could not be sent.'
+        );
+        setState('error');
+        return;
+      }
+
+      setSenderName('');
+      setMessage('');
+      setState('success');
+    } catch {
+      setErrorMessage('Network error. Please try again.');
+      setState('error');
+    }
+  }
+
+  const canSubmit = senderName.trim().length >= 2 && message.trim().length >= 2 && state !== 'submitting';
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="w-full rounded-[22px] border p-4"
+      style={{
+        backgroundColor: withAlpha(accentColor, 0.14),
+        borderColor: withAlpha(accentColor, 0.26),
+        backdropFilter: 'blur(14px)',
+        WebkitBackdropFilter: 'blur(14px)',
+        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
+      }}
+    >
+      <div className="mb-3 flex items-center gap-2">
+        <span
+          className="flex h-9 w-9 items-center justify-center rounded-full"
+          style={{ backgroundColor: accentColor, boxShadow: `0 5px 18px ${withAlpha(accentColor, 0.35)}` }}
+        >
+          <i className="ri-message-3-line text-lg text-white" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-white">Send a message</p>
+          <p className="text-xs" style={{ color: themeVars.textSecondary }}>Name and message only</p>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <input
+          value={senderName}
+          onChange={(event) => setSenderName(event.target.value)}
+          placeholder="Your name"
+          disabled={state === 'submitting'}
+          className="h-11 w-full rounded-xl border px-3 text-sm font-medium text-white outline-none transition disabled:opacity-60"
+          style={{
+            backgroundColor: withAlpha(accentColor, 0.13),
+            borderColor: withAlpha(accentColor, 0.25),
+            caretColor: accentColor,
+          }}
+        />
+        <textarea
+          value={message}
+          onChange={(event) => setMessage(event.target.value)}
+          placeholder="Write your message..."
+          rows={3}
+          disabled={state === 'submitting'}
+          className="w-full resize-none rounded-xl border px-3 py-3 text-sm font-medium text-white outline-none transition disabled:opacity-60"
+          style={{
+            backgroundColor: withAlpha(accentColor, 0.13),
+            borderColor: withAlpha(accentColor, 0.25),
+            caretColor: accentColor,
+          }}
+        />
+      </div>
+
+      {state === 'error' && <p className="mt-2 text-xs font-medium text-red-200">{errorMessage}</p>}
+      {state === 'success' && (
+        <p className="mt-2 text-xs font-semibold text-white">
+          {previewOnly ? 'Preview only - message not sent.' : 'Message sent.'}
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={!canSubmit}
+        className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
+        style={{ backgroundColor: accentColor, boxShadow: `0 4px 16px ${withAlpha(accentColor, 0.45)}` }}
+      >
+        <i className={state === 'submitting' ? 'ri-loader-4-line animate-spin text-base' : 'ri-send-plane-2-line text-base'} />
+        {state === 'submitting' ? 'Sending...' : 'Send Message'}
+      </button>
+    </form>
+  );
+}
+
 export default function ProfileView({ profile, links, showLeadForm = false, disableAnalytics = false }: ProfileViewProps) {
   const { primaryColor: rawPrimaryColor = '#03A9F4', fontFamily } = profile.theme;
   const primaryColor = darkenHex(rawPrimaryColor);
@@ -441,6 +573,15 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
           ) : (
             <LinkRow key={link.id} link={link} primaryColor={primaryColor} compact={isHero} onOpen={recordLinkClick} />
           ))}
+        </div>
+
+        <div className="w-full mb-5">
+          <ProfileMessageForm
+            profileId={profile.id}
+            accentColor={primaryColor}
+            themeVars={themeVars}
+            previewOnly={disableAnalytics}
+          />
         </div>
 
         {/* Lead form */}

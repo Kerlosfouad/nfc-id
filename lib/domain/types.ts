@@ -63,6 +63,17 @@ export interface LeadFormSubmission {
   submittedAt: Date;
 }
 
+export interface ProfileMessage {
+  id: string;
+  profileId: string;
+  senderName: string;
+  message: string;
+  sourceIpHash: string;
+  publicId: string;
+  readAt: Date | null;
+  createdAt: Date;
+}
+
 export interface AnalyticsEvent {
   id: string;
   profileId: string;

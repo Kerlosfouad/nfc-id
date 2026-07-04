@@ -121,6 +121,7 @@ model Profile {
   nfcTags             NfcTag[]
   links               Link[]
   leadFormSubmissions LeadFormSubmission[]
+  messages            ProfileMessage[]
   analyticsEvents     AnalyticsEvent[]
   moderationTickets   ModerationTicket[]
 }
@@ -151,6 +152,22 @@ model LeadFormSubmission {
   submittedAt  DateTime @default(now())
 
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model ProfileMessage {
+  id           String    @id @default(uuid())
+  profileId    String
+  senderName   String
+  message      String
+  sourceIpHash String
+  publicId     String
+  readAt       DateTime?
+  createdAt    DateTime  @default(now())
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId, readAt])
+  @@index([profileId, createdAt])
 }
 
 model AnalyticsEvent {
