@@ -160,7 +160,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
   if (coverUrl) {
     if (theme.style === 'm-motorsport') {
       return {
-        backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.26) 0%, rgba(2,6,23,0.72) 46%, rgba(2,6,23,0.96) 100%), linear-gradient(132deg, rgba(127,29,29,0.34) 0%, transparent 30%, rgba(2,132,199,0.26) 74%, transparent 100%), url(${coverUrl})`,
+        backgroundImage: `linear-gradient(180deg, rgba(248,250,252,0.08) 0%, rgba(2,6,23,0.58) 46%, rgba(2,6,23,0.94) 100%), linear-gradient(132deg, rgba(220,38,38,0.36) 0%, transparent 28%, rgba(0,84,166,0.34) 72%, transparent 100%), url(${coverUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center top',
       };
@@ -175,7 +175,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
     case 'rose-gold': return { background: 'radial-gradient(circle at 72% 18%, rgba(190,52,85,0.28), transparent 34%), linear-gradient(150deg,#21040c,#7f1d1d 52%,#130207)' };
     case 'minimal':   return { background: 'radial-gradient(circle at 72% 18%, rgba(161,161,170,0.16), transparent 34%), linear-gradient(150deg,#111113,#27272a 54%,#070708)' };
     case 'purple-haze': return { background: 'radial-gradient(circle at 72% 18%, rgba(124,58,237,0.28), transparent 34%), linear-gradient(150deg,#11102f,#3b1d78 54%,#0c071d)' };
-    case 'm-motorsport': return { background: 'radial-gradient(circle at 18% 12%, rgba(2,132,199,0.22), transparent 30%), radial-gradient(circle at 86% 20%, rgba(127,29,29,0.24), transparent 30%), linear-gradient(155deg,#1f2937 0%,#0f172a 42%,#020617 100%)' };
+    case 'm-motorsport': return { background: 'radial-gradient(circle at 18% 12%, rgba(0,84,166,0.28), transparent 30%), radial-gradient(circle at 86% 20%, rgba(220,38,38,0.22), transparent 30%), linear-gradient(155deg,#dbeafe 0%,#0f2f57 38%,#07111f 100%)' };
     case 'dark':      return { background: `radial-gradient(circle at 72% 18%, ${pc}44, transparent 34%), linear-gradient(150deg,#030712,#111827 52%,#020617)` };
     default:          return { background: `radial-gradient(circle at 72% 18%, ${pc}3d, transparent 34%), linear-gradient(150deg,#04111c,#0b2438 52%,#020617)` };
   }
@@ -187,10 +187,10 @@ function isMotorsportTheme(style?: ProfileTheme['style']): boolean {
 
 function motorsportSurface() {
   return {
-    cyan: '#0284C7',
-    red: '#991B1B',
-    navy: '#020617',
-    white: '#CBD5E1',
+    cyan: '#0EA5E9',
+    red: '#DC2626',
+    navy: '#050B14',
+    white: '#0054A6',
   };
 }
 
