@@ -141,6 +141,8 @@ function getThemeVars(theme: ProfileTheme) {
       return { textPrimary: '#fff1f2', textSecondary: 'rgba(255,228,230,0.72)', isDark: true, glass: 'rgba(159,18,57,0.26)', glassBorder: 'rgba(251,113,133,0.20)' };
     case 'm-motorsport':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(226,232,240,0.76)', isDark: true, glass: 'rgba(2,6,23,0.54)', glassBorder: 'rgba(14,165,233,0.28)' };
+    case 'royal-wave':
+      return { textPrimary: '#ffffff', textSecondary: 'rgba(226,232,240,0.78)', isDark: true, glass: 'rgba(4,36,92,0.48)', glassBorder: 'rgba(212,167,44,0.30)' };
     default:
       return { textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.64)', isDark: true, glass: 'rgba(255,255,255,0.12)', glassBorder: 'rgba(255,255,255,0.14)' };
   }
@@ -152,6 +154,7 @@ const THEME_COVER_URLS: Partial<Record<ProfileTheme['style'], string>> = {
   'purple-haze': '/assets/themes/purple-haze.png',
   'rose-gold': '/assets/themes/rose-gold.png',
   'm-motorsport': '/assets/themes/motorsport-m.jpg',
+  'royal-wave': '/assets/themes/royal-wave.png',
 };
 
 function getBgStyle(theme: ProfileTheme): React.CSSProperties {
@@ -161,6 +164,13 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
     if (theme.style === 'm-motorsport') {
       return {
         backgroundImage: `linear-gradient(180deg, rgba(248,250,252,0.18) 0%, rgba(2,6,23,0.42) 44%, rgba(2,6,23,0.88) 100%), linear-gradient(132deg, rgba(220,38,38,0.28) 0%, transparent 28%, rgba(0,84,166,0.28) 72%, transparent 100%), url(${coverUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+      };
+    }
+    if (theme.style === 'royal-wave') {
+      return {
+        backgroundImage: `linear-gradient(180deg, rgba(248,250,252,0.12) 0%, rgba(4,36,92,0.40) 48%, rgba(2,8,23,0.90) 100%), linear-gradient(135deg, rgba(212,167,44,0.22) 0%, transparent 32%, rgba(14,165,233,0.26) 72%, transparent 100%), url(${coverUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center top',
       };
@@ -176,6 +186,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
     case 'minimal':   return { background: 'radial-gradient(circle at 72% 18%, rgba(161,161,170,0.16), transparent 34%), linear-gradient(150deg,#111113,#27272a 54%,#070708)' };
     case 'purple-haze': return { background: 'radial-gradient(circle at 72% 18%, rgba(124,58,237,0.28), transparent 34%), linear-gradient(150deg,#11102f,#3b1d78 54%,#0c071d)' };
     case 'm-motorsport': return { background: 'radial-gradient(circle at 18% 12%, rgba(0,84,166,0.28), transparent 30%), radial-gradient(circle at 86% 20%, rgba(220,38,38,0.22), transparent 30%), linear-gradient(155deg,#dbeafe 0%,#0f2f57 38%,#07111f 100%)' };
+    case 'royal-wave': return { background: 'radial-gradient(circle at 18% 12%, rgba(14,165,233,0.22), transparent 30%), radial-gradient(circle at 80% 18%, rgba(212,167,44,0.22), transparent 32%), linear-gradient(155deg,#f8fafc 0%,#0b3b79 38%,#020817 100%)' };
     case 'dark':      return { background: `radial-gradient(circle at 72% 18%, ${pc}44, transparent 34%), linear-gradient(150deg,#030712,#111827 52%,#020617)` };
     default:          return { background: `radial-gradient(circle at 72% 18%, ${pc}3d, transparent 34%), linear-gradient(150deg,#04111c,#0b2438 52%,#020617)` };
   }
@@ -183,6 +194,10 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
 
 function isMotorsportTheme(style?: ProfileTheme['style']): boolean {
   return style === 'm-motorsport';
+}
+
+function isRoyalWaveTheme(style?: ProfileTheme['style']): boolean {
+  return style === 'royal-wave';
 }
 
 function motorsportSurface() {
@@ -194,6 +209,15 @@ function motorsportSurface() {
   };
 }
 
+function royalWaveSurface() {
+  return {
+    blue: '#04245C',
+    cyan: '#0EA5E9',
+    gold: '#D4A72C',
+    pearl: '#F8FAFC',
+  };
+}
+
 /* ── Link Row ─────────────────────────────────────────────── */
 
 function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { link: ProfileLink; primaryColor: string; themeStyle?: ProfileTheme['style']; compact?: boolean; onOpen?: (link: ProfileLink) => void }) {
@@ -201,6 +225,10 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
   const accentColor = darkenHex(primaryColor || '#03A9F4');
   const motorsport = motorsportSurface();
   const isMotorsport = isMotorsportTheme(themeStyle);
+  const royal = royalWaveSurface();
+  const isRoyal = isRoyalWaveTheme(themeStyle);
+  const royal = royalWaveSurface();
+  const isRoyal = isRoyalWaveTheme(themeStyle);
 
   return (
     <a
@@ -214,8 +242,16 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
       <div
         className={`${compact ? 'w-12 h-12' : 'w-[52px] h-[52px]'} rounded-full flex items-center justify-center flex-shrink-0 z-10 overflow-hidden`}
         style={{
-          background: isMotorsport ? `linear-gradient(135deg, ${motorsport.white} 0%, ${motorsport.cyan} 42%, ${motorsport.red} 100%)` : accentColor,
-          boxShadow: isMotorsport ? `0 6px 20px ${withAlpha(motorsport.cyan, 0.34)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.22)}` : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
+          background: isMotorsport
+            ? `linear-gradient(135deg, ${motorsport.white} 0%, ${motorsport.cyan} 42%, ${motorsport.red} 100%)`
+            : isRoyal
+              ? `linear-gradient(135deg, ${royal.pearl} 0%, ${royal.gold} 36%, ${royal.cyan} 68%, ${royal.blue} 100%)`
+              : accentColor,
+          boxShadow: isMotorsport
+            ? `0 6px 20px ${withAlpha(motorsport.cyan, 0.34)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.22)}`
+            : isRoyal
+              ? `0 6px 20px ${withAlpha(royal.gold, 0.32)}, 0 0 0 1px ${withAlpha(royal.pearl, 0.22)}`
+              : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
         }}
       >
         {link.thumbnailUrl
@@ -229,12 +265,16 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
         style={{
           background: isMotorsport
             ? `linear-gradient(90deg, ${withAlpha(motorsport.navy, 0.74)} 0%, ${withAlpha(motorsport.cyan, 0.20)} 62%, ${withAlpha(motorsport.red, 0.18)} 100%)`
+            : isRoyal
+              ? `linear-gradient(90deg, ${withAlpha(royal.blue, 0.72)} 0%, ${withAlpha(royal.cyan, 0.18)} 60%, ${withAlpha(royal.gold, 0.20)} 100%)`
             : withAlpha(accentColor, 0.14),
-          borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : withAlpha(accentColor, 0.26),
+          borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : isRoyal ? withAlpha(royal.gold, 0.36) : withAlpha(accentColor, 0.26),
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
           boxShadow: isMotorsport
             ? `inset 0 1px 0 rgba(255,255,255,0.16), 0 8px 24px ${withAlpha(motorsport.navy, 0.28)}`
+            : isRoyal
+              ? `inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 24px ${withAlpha(royal.blue, 0.28)}`
             : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
         }}
       >
@@ -265,18 +305,20 @@ function LinkGridTile({ link, primaryColor, themeStyle, onOpen }: { link: Profil
       style={{
         background: isMotorsport
           ? `linear-gradient(145deg, ${withAlpha(motorsport.white, 0.13)} 0%, ${withAlpha(motorsport.navy, 0.76)} 48%, ${withAlpha(motorsport.red, 0.20)} 100%)`
+          : isRoyal
+            ? `linear-gradient(145deg, ${withAlpha(royal.pearl, 0.16)} 0%, ${withAlpha(royal.blue, 0.74)} 50%, ${withAlpha(royal.gold, 0.18)} 100%)`
           : withAlpha(accentColor, 0.14),
-        borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : withAlpha(accentColor, 0.26),
+        borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : isRoyal ? withAlpha(royal.gold, 0.34) : withAlpha(accentColor, 0.26),
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
-        boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 24px ${withAlpha(motorsport.navy, 0.30)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
+        boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 24px ${withAlpha(motorsport.navy, 0.30)}` : isRoyal ? `inset 0 1px 0 rgba(255,255,255,0.16), 0 8px 24px ${withAlpha(royal.blue, 0.30)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
       }}
     >
       <div
         className="h-11 w-11 rounded-full flex items-center justify-center overflow-hidden"
         style={{
-          background: isMotorsport ? `linear-gradient(135deg, ${motorsport.cyan}, ${motorsport.red})` : accentColor,
-          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.35)}` : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
+          background: isMotorsport ? `linear-gradient(135deg, ${motorsport.cyan}, ${motorsport.red})` : isRoyal ? `linear-gradient(135deg, ${royal.gold}, ${royal.cyan})` : accentColor,
+          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.35)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.34)}` : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
         }}
       >
         {link.thumbnailUrl
@@ -380,6 +422,8 @@ function ProfileMessageForm({
   const canSubmit = senderName.trim().length >= 2 && message.trim().length >= 2 && state !== 'submitting';
   const motorsport = motorsportSurface();
   const isMotorsport = isMotorsportTheme(themeStyle);
+  const royal = royalWaveSurface();
+  const isRoyal = isRoyalWaveTheme(themeStyle);
 
   return (
     <form
@@ -388,19 +432,21 @@ function ProfileMessageForm({
       style={{
         background: isMotorsport
           ? `linear-gradient(145deg, ${withAlpha(motorsport.white, 0.14)} 0%, ${withAlpha(motorsport.navy, 0.78)} 52%, ${withAlpha(motorsport.cyan, 0.16)} 100%)`
+          : isRoyal
+            ? `linear-gradient(145deg, ${withAlpha(royal.pearl, 0.18)} 0%, ${withAlpha(royal.blue, 0.74)} 54%, ${withAlpha(royal.gold, 0.16)} 100%)`
           : withAlpha(accentColor, 0.14),
-        borderColor: isMotorsport ? withAlpha(motorsport.white, 0.22) : withAlpha(accentColor, 0.26),
+        borderColor: isMotorsport ? withAlpha(motorsport.white, 0.22) : isRoyal ? withAlpha(royal.gold, 0.30) : withAlpha(accentColor, 0.26),
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
-        boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.18), 0 10px 28px ${withAlpha(motorsport.navy, 0.34)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
+        boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.18), 0 10px 28px ${withAlpha(motorsport.navy, 0.34)}` : isRoyal ? `inset 0 1px 0 rgba(255,255,255,0.20), 0 10px 28px ${withAlpha(royal.blue, 0.34)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
       }}
     >
       <div className="mb-3 flex items-center gap-2">
         <span
           className="flex h-9 w-9 items-center justify-center rounded-full"
           style={{
-            background: isMotorsport ? `linear-gradient(135deg, ${motorsport.cyan}, ${motorsport.red})` : accentColor,
-            boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.35)}` : `0 5px 18px ${withAlpha(accentColor, 0.35)}`,
+            background: isMotorsport ? `linear-gradient(135deg, ${motorsport.cyan}, ${motorsport.red})` : isRoyal ? `linear-gradient(135deg, ${royal.gold}, ${royal.cyan})` : accentColor,
+            boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.35)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.34)}` : `0 5px 18px ${withAlpha(accentColor, 0.35)}`,
           }}
         >
           <i className="ri-message-3-line text-lg text-white" />
@@ -419,8 +465,8 @@ function ProfileMessageForm({
           disabled={state === 'submitting'}
           className="h-11 w-full rounded-xl border px-3 text-sm font-medium text-white outline-none transition disabled:opacity-60"
           style={{
-            backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : withAlpha(accentColor, 0.13),
-            borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : withAlpha(accentColor, 0.25),
+            backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : isRoyal ? withAlpha(royal.blue, 0.58) : withAlpha(accentColor, 0.13),
+            borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : isRoyal ? withAlpha(royal.gold, 0.25) : withAlpha(accentColor, 0.25),
             caretColor: accentColor,
           }}
         />
@@ -432,8 +478,8 @@ function ProfileMessageForm({
           disabled={state === 'submitting'}
           className="w-full resize-none rounded-xl border px-3 py-3 text-sm font-medium text-white outline-none transition disabled:opacity-60"
           style={{
-            backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : withAlpha(accentColor, 0.13),
-            borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : withAlpha(accentColor, 0.25),
+            backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : isRoyal ? withAlpha(royal.blue, 0.58) : withAlpha(accentColor, 0.13),
+            borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : isRoyal ? withAlpha(royal.gold, 0.25) : withAlpha(accentColor, 0.25),
             caretColor: accentColor,
           }}
         />
@@ -451,8 +497,8 @@ function ProfileMessageForm({
         disabled={!canSubmit}
         className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
         style={{
-          background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red}, ${motorsport.cyan})` : accentColor,
-          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : `0 4px 16px ${withAlpha(accentColor, 0.45)}`,
+          background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red}, ${motorsport.cyan})` : isRoyal ? `linear-gradient(90deg, ${royal.gold}, ${royal.cyan}, ${royal.blue})` : accentColor,
+          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.34)}` : `0 4px 16px ${withAlpha(accentColor, 0.45)}`,
         }}
       >
         <i className={state === 'submitting' ? 'ri-loader-4-line animate-spin text-base' : 'ri-send-plane-2-line text-base'} />
@@ -471,6 +517,8 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
   const isHero = profile.theme.profileLayout === 'hero';
   const isMotorsport = isMotorsportTheme(profile.theme.style);
   const motorsport = motorsportSurface();
+  const isRoyal = isRoyalWaveTheme(profile.theme.style);
+  const royal = royalWaveSurface();
 
   const activeLinks = links.filter(link => !isHiddenLink(link));
   const cvLink = activeLinks.find(isCvLink);
@@ -525,7 +573,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
     >
       {/* Dark overlay for readability when cover image is set */}
       {profile.theme.coverUrl && (
-        <div className={`fixed inset-0 z-0 ${isMotorsport ? 'bg-black/20' : 'bg-black/40'}`} />
+        <div className={`fixed inset-0 z-0 ${isMotorsport || isRoyal ? 'bg-black/20' : 'bg-black/40'}`} />
       )}
 
       <div className={`relative z-10 flex min-h-screen w-full max-w-[390px] flex-col items-center mx-auto px-7 ${isHero ? 'pt-7' : 'pt-16'} pb-8`}>
@@ -540,8 +588,8 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
           <div
             className={`${isHero ? 'w-[112px] h-[112px]' : 'w-[126px] h-[126px]'} rounded-full p-[3px] mb-4 mx-auto`}
             style={{
-              background: isMotorsport ? `linear-gradient(135deg, ${motorsport.white} 0%, ${motorsport.cyan} 34%, ${motorsport.navy} 58%, ${motorsport.red} 100%)` : `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
-              boxShadow: isMotorsport ? `0 0 34px ${withAlpha(motorsport.cyan, 0.42)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.28)}` : `0 0 32px ${primaryColor}60`,
+              background: isMotorsport ? `linear-gradient(135deg, ${motorsport.white} 0%, ${motorsport.cyan} 34%, ${motorsport.navy} 58%, ${motorsport.red} 100%)` : isRoyal ? `linear-gradient(135deg, ${royal.pearl} 0%, ${royal.gold} 32%, ${royal.cyan} 66%, ${royal.blue} 100%)` : `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
+              boxShadow: isMotorsport ? `0 0 34px ${withAlpha(motorsport.cyan, 0.42)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.28)}` : isRoyal ? `0 0 34px ${withAlpha(royal.gold, 0.36)}, 0 0 0 1px ${withAlpha(royal.pearl, 0.26)}` : `0 0 32px ${primaryColor}60`,
             }}
           >
             <div
@@ -571,7 +619,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
               {profile.bio}
             </p>
           )}
-          <p className={`text-xs font-semibold tracking-widest uppercase ${isHero ? '' : 'mb-6'}`} style={{ color: isMotorsport ? motorsport.cyan : primaryColor }}>
+          <p className={`text-xs font-semibold tracking-widest uppercase ${isHero ? '' : 'mb-6'}`} style={{ color: isMotorsport ? motorsport.cyan : isRoyal ? royal.gold : primaryColor }}>
             LinkUp
           </p>
         </div>
@@ -610,9 +658,9 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
             }}
             className={`${cvLink ? 'flex-1' : 'w-full'} min-w-0 flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold transition-all active:scale-95`}
             style={{
-              background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red} 0%, ${motorsport.navy} 46%, ${motorsport.cyan} 100%)` : primaryColor,
+              background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red} 0%, ${motorsport.navy} 46%, ${motorsport.cyan} 100%)` : isRoyal ? `linear-gradient(90deg, ${royal.gold} 0%, ${royal.cyan} 52%, ${royal.blue} 100%)` : primaryColor,
               color: '#fff',
-              boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : `0 4px 16px ${primaryColor}60`,
+              boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.32)}` : `0 4px 16px ${primaryColor}60`,
             }}
           >
             <i className="ri-contacts-line text-base" />
