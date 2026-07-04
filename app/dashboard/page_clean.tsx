@@ -2894,7 +2894,7 @@ export default function DashboardPage() {
         {/* Mobile top bar */}
         <div className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-[#0f0f0f] flex-shrink-0">
           <Link href="/" className="flex items-center gap-0">
-            <img src="/img/logo.png" alt="LinkUp" className="h-8 w-8 object-contain" />
+            <img src="/img/linkup-nav-mark.png" alt="LinkUp" className="h-11 w-9 object-contain" />
             <span className="hidden font-bold text-sm">Link<span className="text-[#03A9F4]">Up</span></span>
           </Link>
           <button type="button" onClick={() => setGoldRequest("design")} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#03A9F4]/40 px-3 text-xs font-semibold text-[#03A9F4]">
