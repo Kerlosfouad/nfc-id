@@ -9,9 +9,9 @@ const stats = [
 ];
 
 const insights = [
-  "Cards, medals, and QR codes all point to one editable profile.",
-  "Every scan can route to contacts, links, offers, or lead capture.",
-  "Teams can ship physical products first and update destinations later.",
+  "One editable profile for every device.",
+  "Route taps to links, contacts, or leads.",
+  "Update destinations without reprints.",
 ];
 
 export default function AboutSection() {
@@ -29,7 +29,7 @@ export default function AboutSection() {
               Built for live identity.
             </h2>
             <p className="mt-6 max-w-[520px] text-base leading-7 text-white/60 sm:text-lg">
-              LinkUp turns a physical tap into a flexible digital destination: profile, contact card, lead form, shop link, or campaign.
+              One tap opens your live profile, links, leads, or campaign.
             </p>
 
             <div className="mt-9 grid grid-cols-2 gap-3">

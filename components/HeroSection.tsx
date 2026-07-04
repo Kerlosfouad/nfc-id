@@ -34,7 +34,7 @@ export default function HeroSection() {
             One link for everything you create, share, and sell.
           </p>
           <p className="text-white/60 text-sm sm:text-sm mb-8 sm:mb-10 max-w-[330px] sm:max-w-md mx-auto leading-relaxed text-pretty">
-            Share your links, social profiles, contact info, and more - all from a single NFC tap or QR scan.
+            NFC tap. QR scan. One live profile.
           </p>
 
           <div className="flex gap-2.5 sm:gap-4 justify-center flex-col sm:flex-row mb-10 sm:mb-14">

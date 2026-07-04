@@ -70,7 +70,7 @@ export default function FeaturesSection() {
               Control the destination after the card ships.
             </h2>
             <p className="mt-8 max-w-[520px] text-xl leading-8 text-white/62">
-              Update your profile, content, and privacy settings anytime. No reprint. No hassle.
+              Edit links, profile, and privacy anytime.
             </p>
           </div>
 
@@ -78,7 +78,7 @@ export default function FeaturesSection() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_54%_34%,rgba(3,169,244,0.12),transparent_24rem)]" />
             <div className="relative z-10 max-w-[180px]">
               <h3 className="text-3xl font-semibold text-white">NFC + QR</h3>
-              <p className="mt-5 text-lg leading-7 text-white/58">Tap or scan. Every card comes ready for instant connections.</p>
+              <p className="mt-5 text-lg leading-7 text-white/58">Tap or scan instantly.</p>
             </div>
             <div className="feature-float-card absolute left-[24%] top-[12%] h-[290px] w-[320px] rotate-[-8deg]">
               <Image
@@ -98,7 +98,7 @@ export default function FeaturesSection() {
           <article className="feature-panel group relative min-h-[390px] overflow-hidden border border-white/14 bg-black p-7 lg:col-span-4">
             <h3 className="text-3xl font-semibold text-white">Editable profile</h3>
             <p className="mt-5 max-w-[230px] text-lg leading-7 text-white/62">
-              Update your info, links, and content anytime. Changes go live instantly.
+              Edit once. Live instantly.
             </p>
             <EditProfilePhone />
           </article>
@@ -107,7 +107,7 @@ export default function FeaturesSection() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-3xl font-semibold text-white">Analytics</h3>
-                <p className="mt-5 max-w-[230px] text-lg leading-7 text-white/62">See taps, scans, and engagement across time.</p>
+                <p className="mt-5 max-w-[230px] text-lg leading-7 text-white/62">Track taps and scans.</p>
               </div>
               <div className="border-l border-white/12 pl-7">
                 <p className="text-sm text-white/60">Taps</p>
@@ -137,7 +137,7 @@ export default function FeaturesSection() {
               <div className="grid gap-8 md:grid-cols-[0.72fr_1fr]">
                 <div>
                   <h3 className="text-3xl font-semibold text-white">Lead capture</h3>
-                  <p className="mt-4 text-lg leading-7 text-white/62">Collect leads when your card is tapped or scanned.</p>
+                  <p className="mt-4 text-lg leading-7 text-white/62">Capture leads on tap.</p>
                 </div>
                 <div className="rounded-2xl border border-white/12 bg-white/[0.035] p-4">
                   <div className="flex gap-3">
@@ -156,7 +156,7 @@ export default function FeaturesSection() {
               <div className="grid gap-8 md:grid-cols-[0.72fr_1fr]">
                 <div>
                   <h3 className="text-3xl font-semibold text-white">Private controls</h3>
-                  <p className="mt-4 text-lg leading-7 text-white/62">Choose what&apos;s shared and who can see it.</p>
+                  <p className="mt-4 text-lg leading-7 text-white/62">Control what is shared.</p>
                 </div>
                 <div className="overflow-hidden rounded-2xl border border-white/12 bg-white/[0.035]">
                   <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 text-sm text-white/74">

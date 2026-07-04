@@ -31,7 +31,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-white/65 text-sm leading-relaxed max-w-xs">
-              The all-in-one platform for smart NFC connections. One tap, infinite possibilities.
+              Smart NFC identity in one tap.
             </p>
           </div>
 

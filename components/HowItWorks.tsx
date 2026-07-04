@@ -1,111 +1,148 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 const steps = [
   {
     title: "Tap",
-    desc: "Tap your LinkUp device on any NFC-enabled smartphone.",
+    eyebrow: "01",
+    desc: "Hold LinkUp near an NFC phone.",
     icon: "ri-wifi-line",
+    stat: "0.3s",
+    statLabel: "read time",
   },
   {
-    title: "Connect",
-    desc: "The phone instantly opens your live profile or selected destination.",
-    icon: "ri-user-line",
+    title: "Open",
+    eyebrow: "02",
+    desc: "The destination opens instantly.",
+    icon: "ri-smartphone-line",
+    stat: "No app",
+    statLabel: "required",
   },
   {
-    title: "Share",
-    desc: "Share contacts, links, leads, and updates without changing the card.",
-    icon: "ri-check-line",
+    title: "Update",
+    eyebrow: "03",
+    desc: "Change the destination anytime.",
+    icon: "ri-refresh-line",
+    stat: "Live",
+    statLabel: "editable",
   },
-];
+] as const;
 
 export default function HowItWorks() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const activeStep = steps[activeIndex];
 
   useEffect(() => {
     const timer = window.setInterval(() => {
       setActiveIndex((current) => (current + 1) % steps.length);
-    }, 2400);
+    }, 2800);
 
     return () => window.clearInterval(timer);
   }, []);
 
   return (
     <section id="USE" className="relative overflow-hidden px-4 py-20 sm:py-28">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_8%,rgba(3,169,244,0.16),transparent_24rem),linear-gradient(180deg,transparent,rgba(3,169,244,0.045),transparent)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(3,169,244,0.18),transparent_24rem),linear-gradient(180deg,transparent,rgba(3,169,244,0.04),transparent)]" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#03A9F4]/8 blur-[130px]" />
+
       <div className="container relative z-10 mx-auto">
-        <div className="mx-auto mb-14 max-w-3xl text-center">
-          <h2 className="text-3xl font-bold leading-tight text-white sm:text-5xl">
-            How <span className="text-[#03A9F4]">LinkUp</span> Works
+        <div className="mx-auto mb-10 max-w-3xl text-center sm:mb-14">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-[#03A9F4] sm:text-xs">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#20E7FF] shadow-[0_0_12px_rgba(32,231,255,0.8)]" />
+            How to use
+          </div>
+          <h2 className="text-balance text-[clamp(2.4rem,6vw,5.4rem)] font-black leading-[0.94] tracking-normal text-white">
+            Tap once. Your identity is live.
           </h2>
-          <p className="mt-4 text-sm text-white/58 sm:text-base">Get connected in 3 simple steps.</p>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-white/58 sm:text-lg">
+            A physical object that opens the right digital destination.
+          </p>
         </div>
 
-        <div className="mx-auto max-w-6xl rounded-[2rem] border border-white/8 bg-[#03080d]/70 px-6 py-10 shadow-[0_30px_100px_rgba(0,0,0,0.35)] sm:px-10 md:py-14">
-          <div className="flex flex-col items-center gap-0 md:flex-row md:items-start md:justify-between">
+        <div className="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[0.95fr_1.05fr] lg:items-stretch">
+          <div className="relative min-h-[430px] overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#03080d] shadow-[0_32px_110px_rgba(0,0,0,0.42)] sm:min-h-[520px]">
+            <Image
+              src="/assets/linkup/connect-nfc-phone-card.png"
+              alt="A LinkUp NFC card being tapped near a phone"
+              fill
+              sizes="(min-width: 1024px) 520px, 100vw"
+              className="object-cover opacity-82"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,8,13,0.18),rgba(3,8,13,0.18)_42%,rgba(3,8,13,0.88)),radial-gradient(circle_at_48%_44%,transparent,rgba(0,0,0,0.42)_72%)]" />
+
+            <div className="absolute left-5 right-5 top-5 flex items-center justify-between rounded-2xl border border-white/10 bg-black/38 px-4 py-3 backdrop-blur-xl">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/58">Live trigger</span>
+              <span className="inline-flex items-center gap-2 rounded-full bg-[#03A9F4]/14 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-[#20E7FF]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#20E7FF]" />
+                {activeStep.stat}
+              </span>
+            </div>
+
+            <div className="absolute bottom-5 left-5 right-5">
+              <div className="max-w-sm rounded-2xl border border-white/10 bg-black/45 p-5 backdrop-blur-xl">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#03A9F4]/35 bg-[#03A9F4]/12 text-[#20E7FF]">
+                    <i className={`${activeStep.icon} text-2xl workflow-icon-pulse`} />
+                  </span>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/42">{activeStep.statLabel}</p>
+                    <h3 className="text-2xl font-black text-white">{activeStep.title}</h3>
+                  </div>
+                </div>
+                <p className="mt-4 text-sm leading-6 text-white/64">{activeStep.desc}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3">
             {steps.map((step, index) => {
               const isActive = activeIndex === index;
-              const isPassed = activeIndex >= index;
 
               return (
-                <div key={step.title} className="contents md:flex md:items-start">
-                  <button
-                    type="button"
-                    onMouseEnter={() => setActiveIndex(index)}
-                    onFocus={() => setActiveIndex(index)}
-                    className="group relative flex w-full max-w-[250px] flex-col items-center text-center md:w-[250px] md:shrink-0"
+                <button
+                  key={step.title}
+                  type="button"
+                  onMouseEnter={() => setActiveIndex(index)}
+                  onFocus={() => setActiveIndex(index)}
+                  onClick={() => setActiveIndex(index)}
+                  className={`group relative grid min-h-[128px] grid-cols-[auto_1fr] gap-4 rounded-[1.35rem] border p-4 text-left transition duration-500 sm:min-h-[150px] sm:gap-5 sm:p-6 ${
+                    isActive
+                      ? "border-[#03A9F4]/45 bg-[#041522] shadow-[0_0_42px_rgba(3,169,244,0.16)]"
+                      : "border-white/10 bg-white/[0.025] hover:border-[#03A9F4]/25 hover:bg-white/[0.045]"
+                  }`}
+                  aria-pressed={isActive}
+                >
+                  <span
+                    className={`flex h-12 w-12 items-center justify-center rounded-2xl border text-lg transition duration-500 sm:h-14 sm:w-14 ${
+                      isActive
+                        ? "border-[#03A9F4]/50 bg-[#03A9F4]/14 text-[#20E7FF]"
+                        : "border-white/10 bg-black/20 text-white/42 group-hover:text-[#20E7FF]"
+                    }`}
                   >
-                    <span
-                      className={`absolute -left-1 top-0 flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold transition duration-700 md:left-[18%] ${
-                        isPassed
-                          ? "bg-[#0d5bd6] text-white shadow-[0_0_28px_rgba(3,169,244,0.65)]"
-                          : "bg-[#102037] text-white/48 shadow-none"
-                      }`}
-                    >
-                      {index + 1}
+                    <i className={step.icon} />
+                  </span>
+
+                  <span className="min-w-0">
+                    <span className="flex items-start justify-between gap-4">
+                      <span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.22em] text-[#03A9F4]/80">{step.eyebrow}</span>
+                        <span className="mt-1 block text-2xl font-black text-white sm:text-3xl">{step.title}</span>
+                      </span>
+                      <span className={`hidden rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] sm:inline-flex ${isActive ? "bg-[#03A9F4] text-white" : "bg-white/[0.06] text-white/38"}`}>
+                        {step.stat}
+                      </span>
                     </span>
+                    <span className="mt-3 block max-w-xl text-sm leading-6 text-white/56 sm:text-base sm:leading-7">{step.desc}</span>
+                  </span>
 
-                    <span
-                      className={`relative flex h-24 w-24 items-center justify-center rounded-[1.35rem] border transition duration-700 sm:h-28 sm:w-28 ${
-                        isActive
-                          ? "border-[#03A9F4] bg-[#041728] text-[#03A9F4] shadow-[0_0_42px_rgba(3,169,244,0.38)]"
-                          : "border-[#0c3350] bg-[#071018] text-[#164966] opacity-80 group-hover:border-[#03A9F4]/50 group-hover:text-[#03A9F4]"
-                      }`}
-                    >
-                      <i className={`${step.icon} text-5xl ${isActive ? "workflow-icon-pulse" : ""}`} />
-                    </span>
-
-                    <h3 className={`mt-6 text-xl font-bold transition duration-700 ${isActive ? "text-white" : "text-white/78"}`}>
-                      {step.title}
-                    </h3>
-                    <p className={`mt-3 max-w-[220px] text-sm leading-6 transition duration-700 ${isActive ? "text-white/72" : "text-white/45"}`}>
-                      {step.desc}
-                    </p>
-                  </button>
-
-                  {index < steps.length - 1 ? (
-                    <>
-                      <div className="relative mx-auto flex h-10 w-px items-center justify-center md:hidden">
-                        <div className="h-full border-l border-dashed border-white/18" />
-                        <div
-                          className={`absolute top-0 h-full border-l border-dashed border-[#03A9F4] transition-all duration-700 ${
-                            activeIndex > index ? "opacity-100" : "opacity-0"
-                          }`}
-                        />
-                      </div>
-                      <div className="relative hidden h-28 min-w-[110px] flex-1 items-center justify-center px-5 md:flex">
-                        <div className="h-px w-full border-t border-dashed border-white/18" />
-                        <div
-                          className={`absolute left-0 top-1/2 h-px -translate-y-1/2 border-t border-dashed border-[#03A9F4] transition-all duration-700 ${
-                            activeIndex > index ? "w-full opacity-100" : "w-0 opacity-0"
-                          }`}
-                        />
-                        <i className={`ri-arrow-right-line absolute right-1 text-xl transition duration-700 ${activeIndex > index ? "text-[#03A9F4]" : "text-white/18"}`} />
-                      </div>
-                    </>
-                  ) : null}
-                </div>
+                  <span
+                    className={`absolute bottom-0 left-4 right-4 h-px origin-left bg-[#03A9F4] transition-transform duration-700 sm:left-6 sm:right-6 ${
+                      isActive ? "scale-x-100" : "scale-x-0"
+                    }`}
+                  />
+                </button>
               );
             })}
           </div>
