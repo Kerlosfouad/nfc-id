@@ -25,6 +25,36 @@ async function getOwnedProfile(profileId: string, userId: string | null) {
   });
 }
 
+async function ensureProfileMessagesTable() {
+  await db.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "ProfileMessage" (
+      "id" TEXT NOT NULL,
+      "profileId" TEXT NOT NULL,
+      "senderName" TEXT NOT NULL,
+      "message" TEXT NOT NULL,
+      "sourceIpHash" TEXT NOT NULL,
+      "publicId" TEXT NOT NULL,
+      "readAt" TIMESTAMP(3),
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "ProfileMessage_pkey" PRIMARY KEY ("id")
+    )
+  `);
+  await db.$executeRawUnsafe(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'ProfileMessage_profileId_fkey'
+      ) THEN
+        ALTER TABLE "ProfileMessage"
+        ADD CONSTRAINT "ProfileMessage_profileId_fkey"
+        FOREIGN KEY ("profileId") REFERENCES "Profile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+      END IF;
+    END $$;
+  `);
+  await db.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "ProfileMessage_profileId_readAt_idx" ON "ProfileMessage"("profileId", "readAt")`);
+  await db.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "ProfileMessage_profileId_createdAt_idx" ON "ProfileMessage"("profileId", "createdAt")`);
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -39,6 +69,8 @@ export async function GET(
         { status: 403 }
       );
     }
+
+    await ensureProfileMessagesTable();
 
     const messages = await db.profileMessage.findMany({
       where: { profileId: id },
@@ -108,6 +140,8 @@ export async function POST(
       );
     }
 
+    await ensureProfileMessagesTable();
+
     const message = await db.profileMessage.create({
       data: {
         profileId: id,
@@ -148,6 +182,8 @@ export async function PATCH(
         { status: 403 }
       );
     }
+
+    await ensureProfileMessagesTable();
 
     const result = await db.profileMessage.updateMany({
       where: { profileId: id, readAt: null },
