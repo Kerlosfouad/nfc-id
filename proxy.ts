@@ -54,6 +54,7 @@ export async function proxy(request: NextRequest) {
       /^\/api\/v1\/products$/,                  // GET public shop products
       /^\/api\/v1\/nfc\/resolve$/,              // Resolve a scanned NFC UID
       /^\/api\/v1\/profiles\/[^/]+\/leads$/,   // POST lead form
+      /^\/api\/v1\/profiles\/[^/]+\/messages$/, // POST public profile messages
       /^\/api\/v1\/reports$/,                   // POST report
     ];
     const isPublic = publicApiPatterns.some((p) => p.test(pathname));

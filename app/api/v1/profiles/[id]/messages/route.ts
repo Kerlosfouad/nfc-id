@@ -30,35 +30,43 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const profile = await getOwnedProfile(id, getUserId(request));
+  try {
+    const profile = await getOwnedProfile(id, getUserId(request));
 
-  if (!profile) {
+    if (!profile) {
+      return NextResponse.json(
+        { data: null, error: { code: 'FORBIDDEN', message: 'Access denied' } },
+        { status: 403 }
+      );
+    }
+
+    const messages = await db.profileMessage.findMany({
+      where: { profileId: id },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      select: {
+        id: true,
+        senderName: true,
+        message: true,
+        readAt: true,
+        createdAt: true,
+      },
+    });
+
+    return NextResponse.json({
+      data: {
+        messages,
+        unreadCount: messages.filter(message => !message.readAt).length,
+      },
+      error: null,
+    });
+  } catch (error) {
+    console.error('Load profile messages failed', error);
     return NextResponse.json(
-      { data: null, error: { code: 'FORBIDDEN', message: 'Access denied' } },
-      { status: 403 }
+      { data: null, error: { code: 'SERVER_ERROR', message: 'Failed to load messages. Please try again after the database update finishes.' } },
+      { status: 500 }
     );
   }
-
-  const messages = await db.profileMessage.findMany({
-    where: { profileId: id },
-    orderBy: { createdAt: 'desc' },
-    take: 50,
-    select: {
-      id: true,
-      senderName: true,
-      message: true,
-      readAt: true,
-      createdAt: true,
-    },
-  });
-
-  return NextResponse.json({
-    data: {
-      messages,
-      unreadCount: messages.filter(message => !message.readAt).length,
-    },
-    error: null,
-  });
 }
 
 export async function POST(
@@ -66,19 +74,6 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-
-  const profile = await db.profile.findUnique({
-    where: { id },
-    select: { id: true, publicId: true, isSuspended: true, isActive: true },
-  });
-
-  if (!profile || profile.isSuspended || !profile.isActive) {
-    return NextResponse.json(
-      { data: null, error: { code: 'NOT_FOUND', message: 'Profile not found' } },
-      { status: 404 }
-    );
-  }
-
   let body: unknown;
   try {
     body = await request.json();
@@ -100,23 +95,43 @@ export async function POST(
     );
   }
 
-  const message = await db.profileMessage.create({
-    data: {
-      profileId: id,
-      publicId: profile.publicId,
-      senderName: parsed.data.senderName,
-      message: parsed.data.message,
-      sourceIpHash: hashIp(getSourceIp(request)),
-    },
-    select: {
-      id: true,
-      senderName: true,
-      message: true,
-      createdAt: true,
-    },
-  });
+  try {
+    const profile = await db.profile.findUnique({
+      where: { id },
+      select: { id: true, publicId: true, isSuspended: true, isActive: true },
+    });
 
-  return NextResponse.json({ data: message, error: null }, { status: 201 });
+    if (!profile || profile.isSuspended || !profile.isActive) {
+      return NextResponse.json(
+        { data: null, error: { code: 'NOT_FOUND', message: 'Profile not found' } },
+        { status: 404 }
+      );
+    }
+
+    const message = await db.profileMessage.create({
+      data: {
+        profileId: id,
+        publicId: profile.publicId,
+        senderName: parsed.data.senderName,
+        message: parsed.data.message,
+        sourceIpHash: hashIp(getSourceIp(request)),
+      },
+      select: {
+        id: true,
+        senderName: true,
+        message: true,
+        createdAt: true,
+      },
+    });
+
+    return NextResponse.json({ data: message, error: null }, { status: 201 });
+  } catch (error) {
+    console.error('Create profile message failed', error);
+    return NextResponse.json(
+      { data: null, error: { code: 'SERVER_ERROR', message: 'Failed to send message. Please try again after the database update finishes.' } },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PATCH(
@@ -124,19 +139,27 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const profile = await getOwnedProfile(id, getUserId(request));
+  try {
+    const profile = await getOwnedProfile(id, getUserId(request));
 
-  if (!profile) {
+    if (!profile) {
+      return NextResponse.json(
+        { data: null, error: { code: 'FORBIDDEN', message: 'Access denied' } },
+        { status: 403 }
+      );
+    }
+
+    const result = await db.profileMessage.updateMany({
+      where: { profileId: id, readAt: null },
+      data: { readAt: new Date() },
+    });
+
+    return NextResponse.json({ data: { updated: result.count }, error: null });
+  } catch (error) {
+    console.error('Mark profile messages read failed', error);
     return NextResponse.json(
-      { data: null, error: { code: 'FORBIDDEN', message: 'Access denied' } },
-      { status: 403 }
+      { data: null, error: { code: 'SERVER_ERROR', message: 'Failed to update messages. Please try again.' } },
+      { status: 500 }
     );
   }
-
-  const result = await db.profileMessage.updateMany({
-    where: { profileId: id, readAt: null },
-    data: { readAt: new Date() },
-  });
-
-  return NextResponse.json({ data: { updated: result.count }, error: null });
 }
