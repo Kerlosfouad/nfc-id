@@ -227,8 +227,6 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
   const isMotorsport = isMotorsportTheme(themeStyle);
   const royal = royalWaveSurface();
   const isRoyal = isRoyalWaveTheme(themeStyle);
-  const royal = royalWaveSurface();
-  const isRoyal = isRoyalWaveTheme(themeStyle);
 
   return (
     <a
@@ -294,6 +292,8 @@ function LinkGridTile({ link, primaryColor, themeStyle, onOpen }: { link: Profil
   const accentColor = darkenHex(primaryColor || '#03A9F4');
   const motorsport = motorsportSurface();
   const isMotorsport = isMotorsportTheme(themeStyle);
+  const royal = royalWaveSurface();
+  const isRoyal = isRoyalWaveTheme(themeStyle);
 
   return (
     <a
