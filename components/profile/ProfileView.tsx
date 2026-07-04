@@ -158,6 +158,13 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
   const pc = theme.primaryColor || '#03A9F4';
   const coverUrl = theme.coverUrl || THEME_COVER_URLS[theme.style];
   if (coverUrl) {
+    if (theme.style === 'm-motorsport') {
+      return {
+        backgroundImage: `linear-gradient(180deg, rgba(248,250,252,0.08) 0%, rgba(2,6,23,0.58) 46%, rgba(2,6,23,0.94) 100%), linear-gradient(132deg, rgba(220,38,38,0.36) 0%, transparent 28%, rgba(14,165,233,0.30) 72%, transparent 100%), url(${coverUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+      };
+    }
     return {
       backgroundImage: `url(${coverUrl})`,
       backgroundSize: 'cover',
@@ -174,11 +181,26 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
   }
 }
 
+function isMotorsportTheme(style?: ProfileTheme['style']): boolean {
+  return style === 'm-motorsport';
+}
+
+function motorsportSurface() {
+  return {
+    cyan: '#00AEEF',
+    red: '#DC2626',
+    navy: '#050B14',
+    white: '#F8FAFC',
+  };
+}
+
 /* ── Link Row ─────────────────────────────────────────────── */
 
-function LinkRow({ link, primaryColor, compact = false, onOpen }: { link: ProfileLink; primaryColor: string; compact?: boolean; onOpen?: (link: ProfileLink) => void }) {
+function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { link: ProfileLink; primaryColor: string; themeStyle?: ProfileTheme['style']; compact?: boolean; onOpen?: (link: ProfileLink) => void }) {
   const { icon } = getLinkMeta(link, primaryColor);
   const accentColor = darkenHex(primaryColor || '#03A9F4');
+  const motorsport = motorsportSurface();
+  const isMotorsport = isMotorsportTheme(themeStyle);
 
   return (
     <a
@@ -191,7 +213,10 @@ function LinkRow({ link, primaryColor, compact = false, onOpen }: { link: Profil
       {/* Icon circle — use thumbnailUrl if available, else icon */}
       <div
         className={`${compact ? 'w-12 h-12' : 'w-[52px] h-[52px]'} rounded-full flex items-center justify-center flex-shrink-0 z-10 overflow-hidden`}
-        style={{ backgroundColor: accentColor, boxShadow: `0 5px 18px ${withAlpha(accentColor, 0.4)}` }}
+        style={{
+          background: isMotorsport ? `linear-gradient(135deg, ${motorsport.white} 0%, ${motorsport.cyan} 42%, ${motorsport.red} 100%)` : accentColor,
+          boxShadow: isMotorsport ? `0 6px 20px ${withAlpha(motorsport.cyan, 0.34)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.22)}` : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
+        }}
       >
         {link.thumbnailUrl
           ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
@@ -202,11 +227,15 @@ function LinkRow({ link, primaryColor, compact = false, onOpen }: { link: Profil
       <div
         className={`flex-1 ${compact ? 'h-12 pl-5' : 'h-[52px] pl-6'} flex items-center justify-center -ml-7 rounded-r-[18px] border`}
         style={{
-          backgroundColor: withAlpha(accentColor, 0.14),
-          borderColor: withAlpha(accentColor, 0.26),
+          background: isMotorsport
+            ? `linear-gradient(90deg, ${withAlpha(motorsport.navy, 0.74)} 0%, ${withAlpha(motorsport.cyan, 0.20)} 62%, ${withAlpha(motorsport.red, 0.18)} 100%)`
+            : withAlpha(accentColor, 0.14),
+          borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : withAlpha(accentColor, 0.26),
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
-          boxShadow: `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
+          boxShadow: isMotorsport
+            ? `inset 0 1px 0 rgba(255,255,255,0.16), 0 8px 24px ${withAlpha(motorsport.navy, 0.28)}`
+            : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
         }}
       >
         <span
@@ -220,9 +249,11 @@ function LinkRow({ link, primaryColor, compact = false, onOpen }: { link: Profil
   );
 }
 
-function LinkGridTile({ link, primaryColor, onOpen }: { link: ProfileLink; primaryColor: string; onOpen?: (link: ProfileLink) => void }) {
+function LinkGridTile({ link, primaryColor, themeStyle, onOpen }: { link: ProfileLink; primaryColor: string; themeStyle?: ProfileTheme['style']; onOpen?: (link: ProfileLink) => void }) {
   const { icon } = getLinkMeta(link, primaryColor);
   const accentColor = darkenHex(primaryColor || '#03A9F4');
+  const motorsport = motorsportSurface();
+  const isMotorsport = isMotorsportTheme(themeStyle);
 
   return (
     <a
@@ -232,16 +263,21 @@ function LinkGridTile({ link, primaryColor, onOpen }: { link: ProfileLink; prima
       onClick={() => onOpen?.(link)}
       className="min-h-[102px] rounded-[22px] border p-3 flex flex-col items-center justify-center gap-2 text-center transition-all duration-200 active:scale-[0.98]"
       style={{
-        backgroundColor: withAlpha(accentColor, 0.14),
-        borderColor: withAlpha(accentColor, 0.26),
+        background: isMotorsport
+          ? `linear-gradient(145deg, ${withAlpha(motorsport.white, 0.13)} 0%, ${withAlpha(motorsport.navy, 0.76)} 48%, ${withAlpha(motorsport.red, 0.20)} 100%)`
+          : withAlpha(accentColor, 0.14),
+        borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : withAlpha(accentColor, 0.26),
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
-        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
+        boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 24px ${withAlpha(motorsport.navy, 0.30)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
       }}
     >
       <div
         className="h-11 w-11 rounded-full flex items-center justify-center overflow-hidden"
-        style={{ backgroundColor: accentColor, boxShadow: `0 5px 18px ${withAlpha(accentColor, 0.4)}` }}
+        style={{
+          background: isMotorsport ? `linear-gradient(135deg, ${motorsport.cyan}, ${motorsport.red})` : accentColor,
+          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.35)}` : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
+        }}
       >
         {link.thumbnailUrl
           ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
@@ -287,11 +323,13 @@ type MessageState = 'idle' | 'submitting' | 'success' | 'error';
 function ProfileMessageForm({
   profileId,
   accentColor,
+  themeStyle,
   themeVars,
   previewOnly = false,
 }: {
   profileId: string;
   accentColor: string;
+  themeStyle?: ProfileTheme['style'];
   themeVars: ReturnType<typeof getThemeVars>;
   previewOnly?: boolean;
 }) {
@@ -340,23 +378,30 @@ function ProfileMessageForm({
   }
 
   const canSubmit = senderName.trim().length >= 2 && message.trim().length >= 2 && state !== 'submitting';
+  const motorsport = motorsportSurface();
+  const isMotorsport = isMotorsportTheme(themeStyle);
 
   return (
     <form
       onSubmit={handleSubmit}
       className="w-full rounded-[22px] border p-4"
       style={{
-        backgroundColor: withAlpha(accentColor, 0.14),
-        borderColor: withAlpha(accentColor, 0.26),
+        background: isMotorsport
+          ? `linear-gradient(145deg, ${withAlpha(motorsport.white, 0.14)} 0%, ${withAlpha(motorsport.navy, 0.78)} 52%, ${withAlpha(motorsport.cyan, 0.16)} 100%)`
+          : withAlpha(accentColor, 0.14),
+        borderColor: isMotorsport ? withAlpha(motorsport.white, 0.22) : withAlpha(accentColor, 0.26),
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
-        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
+        boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.18), 0 10px 28px ${withAlpha(motorsport.navy, 0.34)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
       }}
     >
       <div className="mb-3 flex items-center gap-2">
         <span
           className="flex h-9 w-9 items-center justify-center rounded-full"
-          style={{ backgroundColor: accentColor, boxShadow: `0 5px 18px ${withAlpha(accentColor, 0.35)}` }}
+          style={{
+            background: isMotorsport ? `linear-gradient(135deg, ${motorsport.cyan}, ${motorsport.red})` : accentColor,
+            boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.35)}` : `0 5px 18px ${withAlpha(accentColor, 0.35)}`,
+          }}
         >
           <i className="ri-message-3-line text-lg text-white" />
         </span>
@@ -374,8 +419,8 @@ function ProfileMessageForm({
           disabled={state === 'submitting'}
           className="h-11 w-full rounded-xl border px-3 text-sm font-medium text-white outline-none transition disabled:opacity-60"
           style={{
-            backgroundColor: withAlpha(accentColor, 0.13),
-            borderColor: withAlpha(accentColor, 0.25),
+            backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : withAlpha(accentColor, 0.13),
+            borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : withAlpha(accentColor, 0.25),
             caretColor: accentColor,
           }}
         />
@@ -387,8 +432,8 @@ function ProfileMessageForm({
           disabled={state === 'submitting'}
           className="w-full resize-none rounded-xl border px-3 py-3 text-sm font-medium text-white outline-none transition disabled:opacity-60"
           style={{
-            backgroundColor: withAlpha(accentColor, 0.13),
-            borderColor: withAlpha(accentColor, 0.25),
+            backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : withAlpha(accentColor, 0.13),
+            borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : withAlpha(accentColor, 0.25),
             caretColor: accentColor,
           }}
         />
@@ -405,7 +450,10 @@ function ProfileMessageForm({
         type="submit"
         disabled={!canSubmit}
         className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
-        style={{ backgroundColor: accentColor, boxShadow: `0 4px 16px ${withAlpha(accentColor, 0.45)}` }}
+        style={{
+          background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red}, ${motorsport.cyan})` : accentColor,
+          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : `0 4px 16px ${withAlpha(accentColor, 0.45)}`,
+        }}
       >
         <i className={state === 'submitting' ? 'ri-loader-4-line animate-spin text-base' : 'ri-send-plane-2-line text-base'} />
         {state === 'submitting' ? 'Sending...' : 'Send Message'}
@@ -421,6 +469,8 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
   const bgStyle = getBgStyle(profile.theme);
   const isGrid = profile.theme.linksLayout === 'grid';
   const isHero = profile.theme.profileLayout === 'hero';
+  const isMotorsport = isMotorsportTheme(profile.theme.style);
+  const motorsport = motorsportSurface();
 
   const activeLinks = links.filter(link => !isHiddenLink(link));
   const cvLink = activeLinks.find(isCvLink);
@@ -475,7 +525,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
     >
       {/* Dark overlay for readability when cover image is set */}
       {profile.theme.coverUrl && (
-        <div className="fixed inset-0 bg-black/40 z-0" />
+        <div className={`fixed inset-0 z-0 ${isMotorsport ? 'bg-black/20' : 'bg-black/40'}`} />
       )}
 
       <div className={`relative z-10 flex min-h-screen w-full max-w-[390px] flex-col items-center mx-auto px-7 ${isHero ? 'pt-7' : 'pt-16'} pb-8`}>
@@ -490,8 +540,8 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
           <div
             className={`${isHero ? 'w-[112px] h-[112px]' : 'w-[126px] h-[126px]'} rounded-full p-[3px] mb-4 mx-auto`}
             style={{
-              background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
-              boxShadow: `0 0 32px ${primaryColor}60`,
+              background: isMotorsport ? `linear-gradient(135deg, ${motorsport.white} 0%, ${motorsport.cyan} 34%, ${motorsport.navy} 58%, ${motorsport.red} 100%)` : `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
+              boxShadow: isMotorsport ? `0 0 34px ${withAlpha(motorsport.cyan, 0.42)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.28)}` : `0 0 32px ${primaryColor}60`,
             }}
           >
             <div
@@ -521,7 +571,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
               {profile.bio}
             </p>
           )}
-          <p className={`text-xs font-semibold tracking-widest uppercase ${isHero ? '' : 'mb-6'}`} style={{ color: primaryColor }}>
+          <p className={`text-xs font-semibold tracking-widest uppercase ${isHero ? '' : 'mb-6'}`} style={{ color: isMotorsport ? motorsport.cyan : primaryColor }}>
             LinkUp
           </p>
         </div>
@@ -560,9 +610,9 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
             }}
             className={`${cvLink ? 'flex-1' : 'w-full'} min-w-0 flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold transition-all active:scale-95`}
             style={{
-              backgroundColor: primaryColor,
+              background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red} 0%, ${motorsport.navy} 46%, ${motorsport.cyan} 100%)` : primaryColor,
               color: '#fff',
-              boxShadow: `0 4px 16px ${primaryColor}60`,
+              boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : `0 4px 16px ${primaryColor}60`,
             }}
           >
             <i className="ri-contacts-line text-base" />
@@ -573,9 +623,9 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
         {/* Links */}
         <div className={`w-full mb-8 ${isGrid ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2'}`}>
           {visibleLinks.map(link => isGrid ? (
-            <LinkGridTile key={link.id} link={link} primaryColor={primaryColor} onOpen={recordLinkClick} />
+            <LinkGridTile key={link.id} link={link} primaryColor={primaryColor} themeStyle={profile.theme.style} onOpen={recordLinkClick} />
           ) : (
-            <LinkRow key={link.id} link={link} primaryColor={primaryColor} compact={isHero} onOpen={recordLinkClick} />
+            <LinkRow key={link.id} link={link} primaryColor={primaryColor} themeStyle={profile.theme.style} compact={isHero} onOpen={recordLinkClick} />
           ))}
         </div>
 
@@ -583,6 +633,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
           <ProfileMessageForm
             profileId={profile.id}
             accentColor={primaryColor}
+            themeStyle={profile.theme.style}
             themeVars={themeVars}
             previewOnly={disableAnalytics}
           />
