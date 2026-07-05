@@ -150,10 +150,14 @@ function getThemeVars(theme: ProfileTheme) {
       return { textPrimary: '#ffffff', textSecondary: 'rgba(226,232,240,0.78)', isDark: true, glass: 'rgba(4,36,92,0.48)', glassBorder: 'rgba(212,167,44,0.30)' };
     case 'neon-red':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(226,232,240,0.78)', isDark: true, glass: 'rgba(5,7,13,0.58)', glassBorder: 'rgba(255,42,61,0.30)' };
+    case 'crimson-grid':
+      return { textPrimary: '#ffffff', textSecondary: 'rgba(255,226,230,0.78)', isDark: true, glass: 'rgba(5,7,11,0.60)', glassBorder: 'rgba(255,30,56,0.32)' };
     case 'cosmic-nebula':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(238,232,255,0.80)', isDark: true, glass: 'rgba(16,10,36,0.58)', glassBorder: 'rgba(244,63,177,0.28)' };
     case 'electric-grid':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(226,236,255,0.78)', isDark: true, glass: 'rgba(3,8,20,0.60)', glassBorder: 'rgba(64,112,255,0.30)' };
+    case 'cyber-tunnel':
+      return { textPrimary: '#ffffff', textSecondary: 'rgba(226,246,255,0.80)', isDark: true, glass: 'rgba(1,10,22,0.62)', glassBorder: 'rgba(3,169,244,0.34)' };
     case 'lava-fracture':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(255,237,213,0.78)', isDark: true, glass: 'rgba(5,5,5,0.62)', glassBorder: 'rgba(255,90,31,0.32)' };
     default:
@@ -172,6 +176,8 @@ const THEME_COVER_URLS: Partial<Record<ProfileTheme['style'], string>> = {
   'cosmic-nebula': '/assets/themes/cosmic-nebula.mp4',
   'electric-grid': '/assets/themes/electric-grid.mp4',
   'lava-fracture': '/assets/themes/lava-fracture.mp4',
+  'crimson-grid': '/assets/themes/crimson-grid.mp4',
+  'cyber-tunnel': '/assets/themes/cyber-tunnel.mp4',
 };
 
 function isVideoUrl(url?: string | null): boolean {
@@ -213,8 +219,10 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
     case 'm-motorsport': return { background: 'radial-gradient(circle at 18% 12%, rgba(0,84,166,0.28), transparent 30%), radial-gradient(circle at 86% 20%, rgba(220,38,38,0.22), transparent 30%), linear-gradient(155deg,#dbeafe 0%,#0f2f57 38%,#07111f 100%)' };
     case 'royal-wave': return { background: 'radial-gradient(circle at 18% 12%, rgba(14,165,233,0.22), transparent 30%), radial-gradient(circle at 80% 18%, rgba(212,167,44,0.22), transparent 32%), linear-gradient(155deg,#f8fafc 0%,#0b3b79 38%,#020817 100%)' };
     case 'neon-red': return { background: 'radial-gradient(circle at 72% 18%, rgba(255,42,61,0.24), transparent 34%), linear-gradient(155deg,#1d1f29 0%,#080a11 48%,#030408 100%)' };
+    case 'crimson-grid': return { background: 'radial-gradient(circle at 64% 30%, rgba(255,30,56,0.30), transparent 34%), linear-gradient(155deg,#151a22 0%,#07090e 50%,#020304 100%)' };
     case 'cosmic-nebula': return { background: 'radial-gradient(circle at 58% 36%, rgba(244,63,177,0.26), transparent 34%), radial-gradient(circle at 24% 42%, rgba(59,130,246,0.20), transparent 32%), linear-gradient(155deg,#12081f 0%,#07040f 52%,#02030a 100%)' };
     case 'electric-grid': return { background: 'radial-gradient(circle at 64% 30%, rgba(50,83,255,0.30), transparent 34%), linear-gradient(155deg,#0b1020 0%,#050811 50%,#02040a 100%)' };
+    case 'cyber-tunnel': return { background: 'radial-gradient(circle at 52% 38%, rgba(3,169,244,0.34), transparent 34%), linear-gradient(155deg,#06213a 0%,#03101d 48%,#01050b 100%)' };
     case 'lava-fracture': return { background: 'radial-gradient(circle at 72% 18%, rgba(255,90,31,0.26), transparent 34%), linear-gradient(155deg,#242120 0%,#080706 50%,#020202 100%)' };
     case 'dark':      return { background: `radial-gradient(circle at 72% 18%, ${pc}44, transparent 34%), linear-gradient(150deg,#030712,#111827 52%,#020617)` };
     default:          return { background: `radial-gradient(circle at 72% 18%, ${pc}3d, transparent 34%), linear-gradient(150deg,#04111c,#0b2438 52%,#020617)` };
@@ -230,7 +238,7 @@ function isRoyalWaveTheme(style?: ProfileTheme['style']): boolean {
 }
 
 function isNeonRedTheme(style?: ProfileTheme['style']): boolean {
-  return style === 'neon-red';
+  return style === 'neon-red' || style === 'crimson-grid';
 }
 
 function isCosmicNebulaTheme(style?: ProfileTheme['style']): boolean {
@@ -238,7 +246,7 @@ function isCosmicNebulaTheme(style?: ProfileTheme['style']): boolean {
 }
 
 function isElectricGridTheme(style?: ProfileTheme['style']): boolean {
-  return style === 'electric-grid';
+  return style === 'electric-grid' || style === 'cyber-tunnel';
 }
 
 function isLavaFractureTheme(style?: ProfileTheme['style']): boolean {

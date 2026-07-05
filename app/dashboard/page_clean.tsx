@@ -235,6 +235,8 @@ const PRESET_THEMES = [
   { id: "cosmic-nebula", name: "Cosmic Nebula", desc: "Starfield video with violet, magenta, and gold", colors: ["#07040F", "#2B145F", "#F43FB1", "#FFB347"], premium: false, accent: "#F43FB1", coverUrl: "/assets/themes/cosmic-nebula.mp4" },
   { id: "electric-grid", name: "Electric Grid", desc: "Carbon grid video with electric blue light", colors: ["#030814", "#101827", "#244BFF", "#AFC4FF"], premium: false, accent: "#244BFF", coverUrl: "/assets/themes/electric-grid.mp4" },
   { id: "lava-fracture", name: "Lava Fracture", desc: "Dark fractured stone video with molten orange lines", colors: ["#050505", "#242120", "#FF5A1F", "#FFB15C"], premium: false, accent: "#FF5A1F", coverUrl: "/assets/themes/lava-fracture.mp4" },
+  { id: "crimson-grid", name: "Crimson Grid", desc: "Dark tiled video with red neon grid lines", colors: ["#05070B", "#151A22", "#FF1E38", "#FF7A86"], premium: false, accent: "#FF1E38", coverUrl: "/assets/themes/crimson-grid.mp4" },
+  { id: "cyber-tunnel", name: "Cyber Tunnel", desc: "Electric blue circuit tunnel video", colors: ["#010A16", "#06213A", "#03A9F4", "#8DEBFF"], premium: false, accent: "#03A9F4", coverUrl: "/assets/themes/cyber-tunnel.mp4" },
 ];
 
 function isVideoUrl(url?: string | null): boolean {

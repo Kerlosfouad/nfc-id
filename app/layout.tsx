@@ -20,14 +20,11 @@ export default function RootLayout({
             __html: `
               (function () {
                 try {
-                  var savedTheme = localStorage.getItem("linkup-theme");
-                  var theme = savedTheme || "light";
-                  document.documentElement.dataset.theme = theme;
-                  document.documentElement.style.colorScheme = theme;
+                  localStorage.removeItem("linkup-theme");
                 } catch (_) {
-                  document.documentElement.dataset.theme = "light";
-                  document.documentElement.style.colorScheme = "light";
                 }
+                document.documentElement.dataset.theme = "dark";
+                document.documentElement.style.colorScheme = "dark";
               })();
             `,
           }}

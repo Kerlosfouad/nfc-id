@@ -8,7 +8,6 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -29,20 +28,6 @@ export default function Navbar() {
       setIsLoggedIn(!!session);
     });
   }, []);
-
-  useEffect(() => {
-    const currentTheme =
-      document.documentElement.dataset.theme === "dark" ? "dark" : "light";
-    setTheme(currentTheme);
-  }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    document.documentElement.dataset.theme = nextTheme;
-    document.documentElement.style.colorScheme = nextTheme;
-    localStorage.setItem("linkup-theme", nextTheme);
-    setTheme(nextTheme);
-  };
 
   const links = [
     { href: "/#about", label: "ABOUT" },
@@ -98,18 +83,6 @@ export default function Navbar() {
                 </button>
               </Link>
             )}
-
-            {/* Hamburger */}
-            <button
-              type="button"
-              className="theme-toggle"
-              onClick={toggleTheme}
-              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-              title={theme === "dark" ? "Light mode" : "Dark mode"}
-            >
-              <i className={theme === "dark" ? "ri-sun-line" : "ri-moon-line"} aria-hidden="true" />
-              <span>{theme === "dark" ? "Light" : "Dark"}</span>
-            </button>
 
             <button
               className="md:hidden flex flex-col justify-center gap-1.5 w-10 h-10 rounded-full border border-white/10 bg-white/5 cursor-pointer group items-center"
