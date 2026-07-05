@@ -145,6 +145,8 @@ function getThemeVars(theme: ProfileTheme) {
       return { textPrimary: '#ffffff', textSecondary: 'rgba(226,232,240,0.78)', isDark: true, glass: 'rgba(4,36,92,0.48)', glassBorder: 'rgba(212,167,44,0.30)' };
     case 'neon-red':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(226,232,240,0.78)', isDark: true, glass: 'rgba(5,7,13,0.58)', glassBorder: 'rgba(255,42,61,0.30)' };
+    case 'cosmic-nebula':
+      return { textPrimary: '#ffffff', textSecondary: 'rgba(238,232,255,0.80)', isDark: true, glass: 'rgba(16,10,36,0.58)', glassBorder: 'rgba(244,63,177,0.28)' };
     default:
       return { textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.64)', isDark: true, glass: 'rgba(255,255,255,0.12)', glassBorder: 'rgba(255,255,255,0.14)' };
   }
@@ -158,6 +160,7 @@ const THEME_COVER_URLS: Partial<Record<ProfileTheme['style'], string>> = {
   'm-motorsport': '/assets/themes/motorsport-m.jpg',
   'royal-wave': '/assets/themes/royal-wave.png',
   'neon-red': '/assets/themes/neon-red.mp4',
+  'cosmic-nebula': '/assets/themes/cosmic-nebula.mp4',
 };
 
 function isVideoUrl(url?: string | null): boolean {
@@ -199,6 +202,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
     case 'm-motorsport': return { background: 'radial-gradient(circle at 18% 12%, rgba(0,84,166,0.28), transparent 30%), radial-gradient(circle at 86% 20%, rgba(220,38,38,0.22), transparent 30%), linear-gradient(155deg,#dbeafe 0%,#0f2f57 38%,#07111f 100%)' };
     case 'royal-wave': return { background: 'radial-gradient(circle at 18% 12%, rgba(14,165,233,0.22), transparent 30%), radial-gradient(circle at 80% 18%, rgba(212,167,44,0.22), transparent 32%), linear-gradient(155deg,#f8fafc 0%,#0b3b79 38%,#020817 100%)' };
     case 'neon-red': return { background: 'radial-gradient(circle at 72% 18%, rgba(255,42,61,0.24), transparent 34%), linear-gradient(155deg,#1d1f29 0%,#080a11 48%,#030408 100%)' };
+    case 'cosmic-nebula': return { background: 'radial-gradient(circle at 58% 36%, rgba(244,63,177,0.26), transparent 34%), radial-gradient(circle at 24% 42%, rgba(59,130,246,0.20), transparent 32%), linear-gradient(155deg,#12081f 0%,#07040f 52%,#02030a 100%)' };
     case 'dark':      return { background: `radial-gradient(circle at 72% 18%, ${pc}44, transparent 34%), linear-gradient(150deg,#030712,#111827 52%,#020617)` };
     default:          return { background: `radial-gradient(circle at 72% 18%, ${pc}3d, transparent 34%), linear-gradient(150deg,#04111c,#0b2438 52%,#020617)` };
   }
@@ -214,6 +218,10 @@ function isRoyalWaveTheme(style?: ProfileTheme['style']): boolean {
 
 function isNeonRedTheme(style?: ProfileTheme['style']): boolean {
   return style === 'neon-red';
+}
+
+function isCosmicNebulaTheme(style?: ProfileTheme['style']): boolean {
+  return style === 'cosmic-nebula';
 }
 
 function motorsportSurface() {
@@ -244,6 +252,17 @@ function neonRedSurface() {
   };
 }
 
+function cosmicNebulaSurface() {
+  return {
+    ink: '#07040F',
+    violet: '#2B145F',
+    blue: '#3B4DFF',
+    magenta: '#F43FB1',
+    gold: '#FFB347',
+    white: '#F8FAFC',
+  };
+}
+
 /* ── Link Row ─────────────────────────────────────────────── */
 
 function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { link: ProfileLink; primaryColor: string; themeStyle?: ProfileTheme['style']; compact?: boolean; onOpen?: (link: ProfileLink) => void }) {
@@ -255,6 +274,8 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
   const isRoyal = isRoyalWaveTheme(themeStyle);
   const neon = neonRedSurface();
   const isNeon = isNeonRedTheme(themeStyle);
+  const cosmic = cosmicNebulaSurface();
+  const isCosmic = isCosmicNebulaTheme(themeStyle);
 
   return (
     <a
@@ -274,6 +295,8 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
               ? royal.blue
               : isNeon
                 ? neon.ink
+              : isCosmic
+                ? cosmic.ink
               : accentColor,
           boxShadow: isMotorsport
             ? `0 6px 20px ${withAlpha(motorsport.navy, 0.42)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.22)}`
@@ -281,6 +304,8 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
               ? `0 6px 20px ${withAlpha(royal.blue, 0.36)}, 0 0 0 1px ${withAlpha(royal.pearl, 0.18)}`
               : isNeon
                 ? `0 6px 22px ${withAlpha(neon.red, 0.32)}, 0 0 0 1px ${withAlpha(neon.red, 0.28)}`
+              : isCosmic
+                ? `0 6px 22px ${withAlpha(cosmic.magenta, 0.30)}, 0 0 0 1px ${withAlpha(cosmic.blue, 0.24)}`
               : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
         }}
       >
@@ -299,8 +324,10 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
               ? `linear-gradient(90deg, ${withAlpha(royal.blue, 0.78)} 0%, ${withAlpha(royal.cyan, 0.26)} 100%)`
             : isNeon
               ? `linear-gradient(90deg, ${withAlpha(neon.ink, 0.86)} 0%, ${withAlpha(neon.smoke, 0.66)} 58%, ${withAlpha(neon.red, 0.24)} 100%)`
+            : isCosmic
+              ? `linear-gradient(90deg, ${withAlpha(cosmic.ink, 0.86)} 0%, ${withAlpha(cosmic.violet, 0.66)} 54%, ${withAlpha(cosmic.magenta, 0.22)} 100%)`
             : withAlpha(accentColor, 0.14),
-          borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : isRoyal ? withAlpha(royal.cyan, 0.34) : isNeon ? withAlpha(neon.red, 0.32) : withAlpha(accentColor, 0.26),
+          borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : isRoyal ? withAlpha(royal.cyan, 0.34) : isNeon ? withAlpha(neon.red, 0.32) : isCosmic ? withAlpha(cosmic.magenta, 0.30) : withAlpha(accentColor, 0.26),
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
           boxShadow: isMotorsport
@@ -309,6 +336,8 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
               ? `inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 24px ${withAlpha(royal.blue, 0.28)}`
             : isNeon
               ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(neon.red, 0.16)}`
+            : isCosmic
+              ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(cosmic.magenta, 0.16)}`
             : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
         }}
       >
@@ -332,6 +361,8 @@ function LinkGridTile({ link, primaryColor, themeStyle, onOpen }: { link: Profil
   const isRoyal = isRoyalWaveTheme(themeStyle);
   const neon = neonRedSurface();
   const isNeon = isNeonRedTheme(themeStyle);
+  const cosmic = cosmicNebulaSurface();
+  const isCosmic = isCosmicNebulaTheme(themeStyle);
 
   return (
     <a
@@ -347,18 +378,20 @@ function LinkGridTile({ link, primaryColor, themeStyle, onOpen }: { link: Profil
             ? `linear-gradient(145deg, ${withAlpha(royal.blue, 0.78)} 0%, ${withAlpha(royal.cyan, 0.24)} 100%)`
           : isNeon
             ? `linear-gradient(145deg, ${withAlpha(neon.ink, 0.86)} 0%, ${withAlpha(neon.smoke, 0.58)} 56%, ${withAlpha(neon.red, 0.18)} 100%)`
+          : isCosmic
+            ? `linear-gradient(145deg, ${withAlpha(cosmic.ink, 0.86)} 0%, ${withAlpha(cosmic.violet, 0.62)} 52%, ${withAlpha(cosmic.magenta, 0.18)} 100%)`
           : withAlpha(accentColor, 0.14),
-        borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : isRoyal ? withAlpha(royal.cyan, 0.34) : isNeon ? withAlpha(neon.red, 0.32) : withAlpha(accentColor, 0.26),
+        borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : isRoyal ? withAlpha(royal.cyan, 0.34) : isNeon ? withAlpha(neon.red, 0.32) : isCosmic ? withAlpha(cosmic.magenta, 0.30) : withAlpha(accentColor, 0.26),
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
-        boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 24px ${withAlpha(motorsport.navy, 0.30)}` : isRoyal ? `inset 0 1px 0 rgba(255,255,255,0.16), 0 8px 24px ${withAlpha(royal.blue, 0.30)}` : isNeon ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(neon.red, 0.16)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
+        boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 24px ${withAlpha(motorsport.navy, 0.30)}` : isRoyal ? `inset 0 1px 0 rgba(255,255,255,0.16), 0 8px 24px ${withAlpha(royal.blue, 0.30)}` : isNeon ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(neon.red, 0.16)}` : isCosmic ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(cosmic.magenta, 0.16)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
       }}
     >
       <div
         className="h-11 w-11 rounded-full flex items-center justify-center overflow-hidden"
         style={{
-          background: isMotorsport ? motorsport.navy : isRoyal ? royal.blue : isNeon ? neon.ink : accentColor,
-          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.navy, 0.42)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.32)}` : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
+          background: isMotorsport ? motorsport.navy : isRoyal ? royal.blue : isNeon ? neon.ink : isCosmic ? cosmic.ink : accentColor,
+          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.navy, 0.42)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.32)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.30)}` : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
         }}
       >
         {link.thumbnailUrl
@@ -466,6 +499,8 @@ function ProfileMessageForm({
   const isRoyal = isRoyalWaveTheme(themeStyle);
   const neon = neonRedSurface();
   const isNeon = isNeonRedTheme(themeStyle);
+  const cosmic = cosmicNebulaSurface();
+  const isCosmic = isCosmicNebulaTheme(themeStyle);
 
   return (
     <form
@@ -478,19 +513,21 @@ function ProfileMessageForm({
             ? `linear-gradient(145deg, ${withAlpha(royal.pearl, 0.18)} 0%, ${withAlpha(royal.blue, 0.74)} 54%, ${withAlpha(royal.gold, 0.16)} 100%)`
           : isNeon
             ? `linear-gradient(145deg, ${withAlpha(neon.ink, 0.86)} 0%, ${withAlpha(neon.smoke, 0.56)} 58%, ${withAlpha(neon.red, 0.18)} 100%)`
+          : isCosmic
+            ? `linear-gradient(145deg, ${withAlpha(cosmic.ink, 0.86)} 0%, ${withAlpha(cosmic.violet, 0.62)} 55%, ${withAlpha(cosmic.magenta, 0.18)} 100%)`
           : withAlpha(accentColor, 0.14),
-        borderColor: isMotorsport ? withAlpha(motorsport.white, 0.22) : isRoyal ? withAlpha(royal.gold, 0.30) : isNeon ? withAlpha(neon.red, 0.32) : withAlpha(accentColor, 0.26),
+        borderColor: isMotorsport ? withAlpha(motorsport.white, 0.22) : isRoyal ? withAlpha(royal.gold, 0.30) : isNeon ? withAlpha(neon.red, 0.32) : isCosmic ? withAlpha(cosmic.magenta, 0.30) : withAlpha(accentColor, 0.26),
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
-        boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.18), 0 10px 28px ${withAlpha(motorsport.navy, 0.34)}` : isRoyal ? `inset 0 1px 0 rgba(255,255,255,0.20), 0 10px 28px ${withAlpha(royal.blue, 0.34)}` : isNeon ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 30px ${withAlpha(neon.red, 0.18)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
+        boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.18), 0 10px 28px ${withAlpha(motorsport.navy, 0.34)}` : isRoyal ? `inset 0 1px 0 rgba(255,255,255,0.20), 0 10px 28px ${withAlpha(royal.blue, 0.34)}` : isNeon ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 30px ${withAlpha(neon.red, 0.18)}` : isCosmic ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 30px ${withAlpha(cosmic.magenta, 0.18)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
       }}
     >
       <div className="mb-3 flex items-center gap-2">
         <span
           className="flex h-9 w-9 items-center justify-center rounded-full"
           style={{
-            background: isMotorsport ? motorsport.navy : isRoyal ? royal.blue : isNeon ? neon.ink : accentColor,
-            boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.navy, 0.42)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.32)}` : `0 5px 18px ${withAlpha(accentColor, 0.35)}`,
+            background: isMotorsport ? motorsport.navy : isRoyal ? royal.blue : isNeon ? neon.ink : isCosmic ? cosmic.ink : accentColor,
+            boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.navy, 0.42)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.32)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.30)}` : `0 5px 18px ${withAlpha(accentColor, 0.35)}`,
           }}
         >
           <i className="ri-message-3-line text-lg text-white" />
@@ -509,8 +546,8 @@ function ProfileMessageForm({
           disabled={state === 'submitting'}
           className="h-11 w-full rounded-xl border px-3 text-sm font-medium text-white outline-none transition disabled:opacity-60"
           style={{
-            backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : isRoyal ? withAlpha(royal.blue, 0.58) : isNeon ? withAlpha(neon.ink, 0.66) : withAlpha(accentColor, 0.13),
-            borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : isRoyal ? withAlpha(royal.gold, 0.25) : isNeon ? withAlpha(neon.red, 0.28) : withAlpha(accentColor, 0.25),
+            backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : isRoyal ? withAlpha(royal.blue, 0.58) : isNeon ? withAlpha(neon.ink, 0.66) : isCosmic ? withAlpha(cosmic.ink, 0.66) : withAlpha(accentColor, 0.13),
+            borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : isRoyal ? withAlpha(royal.gold, 0.25) : isNeon ? withAlpha(neon.red, 0.28) : isCosmic ? withAlpha(cosmic.magenta, 0.28) : withAlpha(accentColor, 0.25),
             caretColor: accentColor,
           }}
         />
@@ -522,8 +559,8 @@ function ProfileMessageForm({
           disabled={state === 'submitting'}
           className="w-full resize-none rounded-xl border px-3 py-3 text-sm font-medium text-white outline-none transition disabled:opacity-60"
           style={{
-            backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : isRoyal ? withAlpha(royal.blue, 0.58) : isNeon ? withAlpha(neon.ink, 0.66) : withAlpha(accentColor, 0.13),
-            borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : isRoyal ? withAlpha(royal.gold, 0.25) : isNeon ? withAlpha(neon.red, 0.28) : withAlpha(accentColor, 0.25),
+            backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : isRoyal ? withAlpha(royal.blue, 0.58) : isNeon ? withAlpha(neon.ink, 0.66) : isCosmic ? withAlpha(cosmic.ink, 0.66) : withAlpha(accentColor, 0.13),
+            borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : isRoyal ? withAlpha(royal.gold, 0.25) : isNeon ? withAlpha(neon.red, 0.28) : isCosmic ? withAlpha(cosmic.magenta, 0.28) : withAlpha(accentColor, 0.25),
             caretColor: accentColor,
           }}
         />
@@ -541,8 +578,8 @@ function ProfileMessageForm({
         disabled={!canSubmit}
         className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
         style={{
-          background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red}, ${motorsport.cyan})` : isRoyal ? `linear-gradient(90deg, ${royal.gold}, ${royal.cyan}, ${royal.blue})` : isNeon ? `linear-gradient(90deg, ${neon.red}, ${neon.glow})` : accentColor,
-          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.34)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.38)}` : `0 4px 16px ${withAlpha(accentColor, 0.45)}`,
+          background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red}, ${motorsport.cyan})` : isRoyal ? `linear-gradient(90deg, ${royal.gold}, ${royal.cyan}, ${royal.blue})` : isNeon ? `linear-gradient(90deg, ${neon.red}, ${neon.glow})` : isCosmic ? `linear-gradient(90deg, ${cosmic.magenta}, ${cosmic.blue}, ${cosmic.gold})` : accentColor,
+          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.34)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.38)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.36)}` : `0 4px 16px ${withAlpha(accentColor, 0.45)}`,
         }}
       >
         <i className={state === 'submitting' ? 'ri-loader-4-line animate-spin text-base' : 'ri-send-plane-2-line text-base'} />
@@ -565,6 +602,8 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
   const royal = royalWaveSurface();
   const isNeon = isNeonRedTheme(profile.theme.style);
   const neon = neonRedSurface();
+  const isCosmic = isCosmicNebulaTheme(profile.theme.style);
+  const cosmic = cosmicNebulaSurface();
   const coverUrl = getThemeCoverUrl(profile.theme);
   const isVideoCover = isVideoUrl(coverUrl);
 
@@ -632,7 +671,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
       )}
       {/* Dark overlay for readability when cover image is set */}
       {coverUrl && (
-        <div className={`fixed inset-0 z-0 ${isMotorsport || isRoyal || isNeon ? 'bg-black/20' : 'bg-black/40'}`} />
+        <div className={`fixed inset-0 z-0 ${isMotorsport || isRoyal || isNeon || isCosmic ? 'bg-black/20' : 'bg-black/40'}`} />
       )}
 
       <div className={`relative z-10 flex min-h-screen w-full max-w-[390px] flex-col items-center mx-auto px-7 ${isHero ? 'pt-7' : 'pt-16'} pb-8`}>
@@ -647,8 +686,8 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
           <div
             className={`${isHero ? 'w-[112px] h-[112px]' : 'w-[126px] h-[126px]'} rounded-full p-[3px] mb-4 mx-auto`}
             style={{
-              background: isMotorsport ? `linear-gradient(135deg, ${motorsport.white} 0%, ${motorsport.cyan} 34%, ${motorsport.navy} 58%, ${motorsport.red} 100%)` : isRoyal ? `linear-gradient(135deg, ${royal.pearl} 0%, ${royal.gold} 32%, ${royal.cyan} 66%, ${royal.blue} 100%)` : isNeon ? `linear-gradient(135deg, ${neon.smoke} 0%, ${neon.red} 56%, ${neon.ink} 100%)` : `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
-              boxShadow: isMotorsport ? `0 0 34px ${withAlpha(motorsport.cyan, 0.42)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.28)}` : isRoyal ? `0 0 34px ${withAlpha(royal.gold, 0.36)}, 0 0 0 1px ${withAlpha(royal.pearl, 0.26)}` : isNeon ? `0 0 34px ${withAlpha(neon.red, 0.38)}, 0 0 0 1px ${withAlpha(neon.glow, 0.24)}` : `0 0 32px ${primaryColor}60`,
+              background: isMotorsport ? `linear-gradient(135deg, ${motorsport.white} 0%, ${motorsport.cyan} 34%, ${motorsport.navy} 58%, ${motorsport.red} 100%)` : isRoyal ? `linear-gradient(135deg, ${royal.pearl} 0%, ${royal.gold} 32%, ${royal.cyan} 66%, ${royal.blue} 100%)` : isNeon ? `linear-gradient(135deg, ${neon.smoke} 0%, ${neon.red} 56%, ${neon.ink} 100%)` : isCosmic ? `linear-gradient(135deg, ${cosmic.violet} 0%, ${cosmic.magenta} 46%, ${cosmic.blue} 76%, ${cosmic.gold} 100%)` : `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
+              boxShadow: isMotorsport ? `0 0 34px ${withAlpha(motorsport.cyan, 0.42)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.28)}` : isRoyal ? `0 0 34px ${withAlpha(royal.gold, 0.36)}, 0 0 0 1px ${withAlpha(royal.pearl, 0.26)}` : isNeon ? `0 0 34px ${withAlpha(neon.red, 0.38)}, 0 0 0 1px ${withAlpha(neon.glow, 0.24)}` : isCosmic ? `0 0 34px ${withAlpha(cosmic.magenta, 0.36)}, 0 0 0 1px ${withAlpha(cosmic.blue, 0.24)}` : `0 0 32px ${primaryColor}60`,
             }}
           >
             <div
@@ -678,7 +717,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
               {profile.bio}
             </p>
           )}
-          <p className={`text-xs font-semibold tracking-widest uppercase ${isHero ? '' : 'mb-6'}`} style={{ color: isMotorsport ? motorsport.cyan : isRoyal ? royal.gold : isNeon ? neon.glow : primaryColor }}>
+          <p className={`text-xs font-semibold tracking-widest uppercase ${isHero ? '' : 'mb-6'}`} style={{ color: isMotorsport ? motorsport.cyan : isRoyal ? royal.gold : isNeon ? neon.glow : isCosmic ? cosmic.magenta : primaryColor }}>
             LinkUp
           </p>
         </div>
@@ -717,9 +756,9 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
             }}
             className={`${cvLink ? 'flex-1' : 'w-full'} min-w-0 flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold transition-all active:scale-95`}
             style={{
-              background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red} 0%, ${motorsport.navy} 46%, ${motorsport.cyan} 100%)` : isRoyal ? `linear-gradient(90deg, ${royal.gold} 0%, ${royal.cyan} 52%, ${royal.blue} 100%)` : isNeon ? `linear-gradient(90deg, ${neon.red} 0%, ${neon.glow} 100%)` : primaryColor,
+              background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red} 0%, ${motorsport.navy} 46%, ${motorsport.cyan} 100%)` : isRoyal ? `linear-gradient(90deg, ${royal.gold} 0%, ${royal.cyan} 52%, ${royal.blue} 100%)` : isNeon ? `linear-gradient(90deg, ${neon.red} 0%, ${neon.glow} 100%)` : isCosmic ? `linear-gradient(90deg, ${cosmic.magenta} 0%, ${cosmic.blue} 58%, ${cosmic.gold} 100%)` : primaryColor,
               color: '#fff',
-              boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.32)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.38)}` : `0 4px 16px ${primaryColor}60`,
+              boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.32)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.38)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.36)}` : `0 4px 16px ${primaryColor}60`,
             }}
           >
             <i className="ri-contacts-line text-base" />

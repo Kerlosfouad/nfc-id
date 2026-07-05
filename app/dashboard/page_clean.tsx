@@ -232,6 +232,7 @@ const PRESET_THEMES = [
   { id: "m-motorsport", name: "M Motorsport", desc: "Gloss white, BMW blue, carbon, and race red", colors: ["#EAF2FF", "#050B14", "#0054A6", "#DC2626"], premium: false, accent: "#0054A6", coverUrl: "/assets/themes/motorsport-m.jpg" },
   { id: "royal-wave", name: "Royal Wave", desc: "Pearl white, royal blue, cyan, and gold", colors: ["#F8FAFC", "#04245C", "#0EA5E9", "#D4A72C"], premium: false, accent: "#0EA5E9", coverUrl: "/assets/themes/royal-wave.png" },
   { id: "neon-red", name: "Neon Red", desc: "Dark carbon video with red light trails", colors: ["#05070D", "#242631", "#FF2A3D", "#F8FAFC"], premium: false, accent: "#FF2A3D", coverUrl: "/assets/themes/neon-red.mp4" },
+  { id: "cosmic-nebula", name: "Cosmic Nebula", desc: "Starfield video with violet, magenta, and gold", colors: ["#07040F", "#2B145F", "#F43FB1", "#FFB347"], premium: false, accent: "#F43FB1", coverUrl: "/assets/themes/cosmic-nebula.mp4" },
 ];
 
 function isVideoUrl(url?: string | null): boolean {
@@ -2407,7 +2408,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
                 {/* Theme preview card */}
                 <div
                   className="w-full h-24 rounded-xl overflow-hidden border border-white/5 flex flex-col items-center justify-center gap-1.5 relative bg-cover bg-center"
-                  style={{ backgroundColor: t.colors[0], backgroundImage: isVideoUrl(t.coverUrl) ? `url(/assets/themes/neon-red-preview.png)` : `url(${t.coverUrl})` }}
+                  style={{ backgroundColor: t.colors[0], backgroundImage: isVideoUrl(t.coverUrl) ? `url(${t.coverUrl.replace(/\.(mp4|webm|mov)(\?.*)?$/i, "-preview.png")})` : `url(${t.coverUrl})` }}
                 >
                   {isVideoUrl(t.coverUrl) && (
                     <video src={t.coverUrl} className="absolute inset-0 h-full w-full object-cover" autoPlay muted loop playsInline aria-hidden="true" />
