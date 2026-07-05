@@ -241,12 +241,12 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
         className={`${compact ? 'w-12 h-12' : 'w-[52px] h-[52px]'} rounded-full flex items-center justify-center flex-shrink-0 z-10 overflow-hidden`}
         style={{
           background: isMotorsport
-            ? `linear-gradient(135deg, ${motorsport.white} 0%, ${motorsport.cyan} 42%, ${motorsport.red} 100%)`
+            ? motorsport.navy
             : isRoyal
               ? royal.blue
               : accentColor,
           boxShadow: isMotorsport
-            ? `0 6px 20px ${withAlpha(motorsport.cyan, 0.34)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.22)}`
+            ? `0 6px 20px ${withAlpha(motorsport.navy, 0.42)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.22)}`
             : isRoyal
               ? `0 6px 20px ${withAlpha(royal.blue, 0.36)}, 0 0 0 1px ${withAlpha(royal.pearl, 0.18)}`
               : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
@@ -317,8 +317,8 @@ function LinkGridTile({ link, primaryColor, themeStyle, onOpen }: { link: Profil
       <div
         className="h-11 w-11 rounded-full flex items-center justify-center overflow-hidden"
         style={{
-          background: isMotorsport ? `linear-gradient(135deg, ${motorsport.cyan}, ${motorsport.red})` : isRoyal ? royal.blue : accentColor,
-          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.35)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
+          background: isMotorsport ? motorsport.navy : isRoyal ? royal.blue : accentColor,
+          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.navy, 0.42)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
         }}
       >
         {link.thumbnailUrl
@@ -445,8 +445,8 @@ function ProfileMessageForm({
         <span
           className="flex h-9 w-9 items-center justify-center rounded-full"
           style={{
-            background: isMotorsport ? `linear-gradient(135deg, ${motorsport.cyan}, ${motorsport.red})` : isRoyal ? royal.blue : accentColor,
-            boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.35)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : `0 5px 18px ${withAlpha(accentColor, 0.35)}`,
+            background: isMotorsport ? motorsport.navy : isRoyal ? royal.blue : accentColor,
+            boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.navy, 0.42)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : `0 5px 18px ${withAlpha(accentColor, 0.35)}`,
           }}
         >
           <i className="ri-message-3-line text-lg text-white" />
