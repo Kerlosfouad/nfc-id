@@ -447,6 +447,11 @@ function hasActiveVerification(profile: Profile): boolean {
 }
 
 function VerifiedBadge() {
+  const badgeStyle: React.CSSProperties = {
+    color: '#1877F2',
+    WebkitTextFillColor: '#1877F2',
+  };
+
   return (
     <span
       className="relative inline-flex h-[24px] w-[24px] flex-shrink-0 items-center justify-center align-middle"
@@ -456,7 +461,7 @@ function VerifiedBadge() {
       aria-label="Verified profile"
       title="Verified profile"
     >
-      <i className="ri-verified-badge-fill text-[24px] leading-none text-[#1877F2]" />
+      <i className="ri-verified-badge-fill text-[24px] leading-none text-[#1877F2]" style={badgeStyle} />
       <i className="ri-check-line absolute text-[13px] font-bold leading-none text-white" style={FORCE_WHITE_TEXT} />
     </span>
   );
