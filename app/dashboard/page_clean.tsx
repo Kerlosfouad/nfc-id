@@ -233,6 +233,7 @@ const PRESET_THEMES = [
   { id: "royal-wave", name: "Royal Wave", desc: "Pearl white, royal blue, cyan, and gold", colors: ["#F8FAFC", "#04245C", "#0EA5E9", "#D4A72C"], premium: false, accent: "#0EA5E9", coverUrl: "/assets/themes/royal-wave.png" },
   { id: "neon-red", name: "Neon Red", desc: "Dark carbon video with red light trails", colors: ["#05070D", "#242631", "#FF2A3D", "#F8FAFC"], premium: false, accent: "#FF2A3D", coverUrl: "/assets/themes/neon-red.mp4" },
   { id: "cosmic-nebula", name: "Cosmic Nebula", desc: "Starfield video with violet, magenta, and gold", colors: ["#07040F", "#2B145F", "#F43FB1", "#FFB347"], premium: false, accent: "#F43FB1", coverUrl: "/assets/themes/cosmic-nebula.mp4" },
+  { id: "electric-grid", name: "Electric Grid", desc: "Carbon grid video with electric blue light", colors: ["#030814", "#101827", "#244BFF", "#AFC4FF"], premium: false, accent: "#244BFF", coverUrl: "/assets/themes/electric-grid.mp4" },
 ];
 
 function isVideoUrl(url?: string | null): boolean {
