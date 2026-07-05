@@ -121,6 +121,11 @@ function darkenHex(hexColor: string, amount = 0.78): string {
   return `#${[r, g, b].map(value => value.toString(16).padStart(2, '0')).join('')}`;
 }
 
+const FORCE_WHITE_TEXT: React.CSSProperties = {
+  color: '#ffffff',
+  WebkitTextFillColor: '#ffffff',
+};
+
 function isCvLink(link: ProfileLink): boolean {
   const title = link.title.toLowerCase();
   const url = link.url.toLowerCase();
@@ -336,7 +341,7 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
       >
         {link.thumbnailUrl
           ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
-          : <i className={`${icon} ${compact ? 'text-xl' : 'text-2xl'} text-white`} />
+          : <i className={`${icon} ${compact ? 'text-xl' : 'text-2xl'} text-white`} style={FORCE_WHITE_TEXT} />
         }
       </div>
       {/* Pill label */}
@@ -372,7 +377,7 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
       >
         <span
           className="font-semibold text-sm"
-          style={{ color: '#ffffff' }}
+          style={FORCE_WHITE_TEXT}
         >
           {link.title}
         </span>
@@ -429,10 +434,10 @@ function LinkGridTile({ link, primaryColor, themeStyle, onOpen }: { link: Profil
       >
         {link.thumbnailUrl
           ? <img src={link.thumbnailUrl} alt="" className="w-full h-full object-cover" />
-          : <i className={`${icon} text-xl text-white`} />
+          : <i className={`${icon} text-xl text-white`} style={FORCE_WHITE_TEXT} />
         }
       </div>
-      <span className="max-w-full truncate text-sm font-semibold text-white">{link.title}</span>
+      <span className="max-w-full truncate text-sm font-semibold text-white" style={FORCE_WHITE_TEXT}>{link.title}</span>
     </a>
   );
 }
@@ -452,7 +457,7 @@ function VerifiedBadge() {
       title="Verified profile"
     >
       <i className="ri-verified-badge-fill text-[24px] leading-none text-[#1877F2]" />
-      <i className="ri-check-line absolute text-[13px] font-bold leading-none text-white" />
+      <i className="ri-check-line absolute text-[13px] font-bold leading-none text-white" style={FORCE_WHITE_TEXT} />
     </span>
   );
 }
@@ -567,10 +572,10 @@ function ProfileMessageForm({
             boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.navy, 0.42)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.32)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.30)}` : isElectric ? `0 5px 18px ${withAlpha(electric.blue, 0.34)}` : `0 5px 18px ${withAlpha(accentColor, 0.35)}`,
           }}
         >
-          <i className="ri-message-3-line text-lg text-white" />
+          <i className="ri-message-3-line text-lg text-white" style={FORCE_WHITE_TEXT} />
         </span>
         <div className="min-w-0">
-          <p className="text-sm font-bold text-white">Send a message</p>
+          <p className="text-sm font-bold text-white" style={FORCE_WHITE_TEXT}>Send a message</p>
           <p className="text-xs" style={{ color: themeVars.textSecondary }}>Name and message only</p>
         </div>
       </div>
@@ -581,10 +586,11 @@ function ProfileMessageForm({
           onChange={(event) => setSenderName(event.target.value)}
           placeholder="Your name"
           disabled={state === 'submitting'}
-          className="h-11 w-full rounded-xl border px-3 text-sm font-medium text-white outline-none transition disabled:opacity-60"
+          className="h-11 w-full rounded-xl border px-3 text-sm font-medium text-white outline-none transition placeholder:text-white/45 disabled:opacity-60"
           style={{
             backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : isRoyal ? withAlpha(royal.blue, 0.58) : isNeon ? withAlpha(neon.ink, 0.66) : isCosmic ? withAlpha(cosmic.ink, 0.66) : isElectric ? withAlpha(electric.ink, 0.66) : withAlpha(accentColor, 0.13),
             borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : isRoyal ? withAlpha(royal.gold, 0.25) : isNeon ? withAlpha(neon.red, 0.28) : isCosmic ? withAlpha(cosmic.magenta, 0.28) : isElectric ? withAlpha(electric.blue, 0.30) : withAlpha(accentColor, 0.25),
+            ...FORCE_WHITE_TEXT,
             caretColor: accentColor,
           }}
         />
@@ -594,10 +600,11 @@ function ProfileMessageForm({
           placeholder="Write your message..."
           rows={3}
           disabled={state === 'submitting'}
-          className="w-full resize-none rounded-xl border px-3 py-3 text-sm font-medium text-white outline-none transition disabled:opacity-60"
+          className="w-full resize-none rounded-xl border px-3 py-3 text-sm font-medium text-white outline-none transition placeholder:text-white/45 disabled:opacity-60"
           style={{
             backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : isRoyal ? withAlpha(royal.blue, 0.58) : isNeon ? withAlpha(neon.ink, 0.66) : isCosmic ? withAlpha(cosmic.ink, 0.66) : isElectric ? withAlpha(electric.ink, 0.66) : withAlpha(accentColor, 0.13),
             borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : isRoyal ? withAlpha(royal.gold, 0.25) : isNeon ? withAlpha(neon.red, 0.28) : isCosmic ? withAlpha(cosmic.magenta, 0.28) : isElectric ? withAlpha(electric.blue, 0.30) : withAlpha(accentColor, 0.25),
+            ...FORCE_WHITE_TEXT,
             caretColor: accentColor,
           }}
         />
@@ -605,7 +612,7 @@ function ProfileMessageForm({
 
       {state === 'error' && <p className="mt-2 text-xs font-medium text-red-200">{errorMessage}</p>}
       {state === 'success' && (
-        <p className="mt-2 text-xs font-semibold text-white">
+        <p className="mt-2 text-xs font-semibold text-white" style={FORCE_WHITE_TEXT}>
           {previewOnly ? 'Preview only - message not sent.' : 'Message sent.'}
         </p>
       )}
@@ -617,9 +624,10 @@ function ProfileMessageForm({
         style={{
           background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red}, ${motorsport.cyan})` : isRoyal ? `linear-gradient(90deg, ${royal.gold}, ${royal.cyan}, ${royal.blue})` : isNeon ? `linear-gradient(90deg, ${neon.red}, ${neon.glow})` : isCosmic ? `linear-gradient(90deg, ${cosmic.magenta}, ${cosmic.blue}, ${cosmic.gold})` : isElectric ? `linear-gradient(90deg, ${electric.blue}, ${electric.glow}, ${electric.line})` : accentColor,
           boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.34)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.38)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.36)}` : isElectric ? `0 5px 18px ${withAlpha(electric.blue, 0.38)}` : `0 4px 16px ${withAlpha(accentColor, 0.45)}`,
+          ...FORCE_WHITE_TEXT,
         }}
       >
-        <i className={state === 'submitting' ? 'ri-loader-4-line animate-spin text-base' : 'ri-send-plane-2-line text-base'} />
+        <i className={state === 'submitting' ? 'ri-loader-4-line animate-spin text-base' : 'ri-send-plane-2-line text-base'} style={FORCE_WHITE_TEXT} />
         {state === 'submitting' ? 'Sending...' : 'Send Message'}
       </button>
     </form>
@@ -747,7 +755,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
           </div>
 
           {/* Name & Bio */}
-          <h1 className="text-[26px] leading-tight font-bold text-center mb-1 flex items-center justify-center gap-2 text-white" style={{ color: '#ffffff' }}>
+          <h1 className="text-[26px] leading-tight font-bold text-center mb-1 flex items-center justify-center gap-2 text-white" style={FORCE_WHITE_TEXT}>
             {profile.displayName}
             {hasActiveVerification(profile) && <VerifiedBadge />}
           </h1>
@@ -774,11 +782,12 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
               style={{
                 backgroundColor: 'rgba(255,255,255,0.12)',
                 color: '#fff',
+                WebkitTextFillColor: '#ffffff',
                 backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(255,255,255,0.15)',
               }}
             >
-              <i className="ri-file-user-line text-base" />
+              <i className="ri-file-user-line text-base" style={FORCE_WHITE_TEXT} />
               CV
             </a>
           ) : null}
@@ -797,10 +806,11 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
             style={{
               background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red} 0%, ${motorsport.navy} 46%, ${motorsport.cyan} 100%)` : isRoyal ? `linear-gradient(90deg, ${royal.gold} 0%, ${royal.cyan} 52%, ${royal.blue} 100%)` : isNeon ? `linear-gradient(90deg, ${neon.red} 0%, ${neon.glow} 100%)` : isCosmic ? `linear-gradient(90deg, ${cosmic.magenta} 0%, ${cosmic.blue} 58%, ${cosmic.gold} 100%)` : isElectric ? `linear-gradient(90deg, ${electric.blue} 0%, ${electric.glow} 58%, ${electric.line} 100%)` : primaryColor,
               color: '#fff',
+              WebkitTextFillColor: '#ffffff',
               boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.32)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.38)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.36)}` : isElectric ? `0 5px 18px ${withAlpha(electric.blue, 0.38)}` : `0 4px 16px ${primaryColor}60`,
             }}
           >
-            <i className="ri-contacts-line text-base" />
+            <i className="ri-contacts-line text-base" style={FORCE_WHITE_TEXT} />
             Save
           </button>
         </div>
