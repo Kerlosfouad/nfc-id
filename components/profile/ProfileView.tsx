@@ -243,12 +243,12 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
           background: isMotorsport
             ? `linear-gradient(135deg, ${motorsport.white} 0%, ${motorsport.cyan} 42%, ${motorsport.red} 100%)`
             : isRoyal
-              ? `linear-gradient(135deg, ${royal.pearl} 0%, ${royal.gold} 36%, ${royal.cyan} 68%, ${royal.blue} 100%)`
+              ? royal.blue
               : accentColor,
           boxShadow: isMotorsport
             ? `0 6px 20px ${withAlpha(motorsport.cyan, 0.34)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.22)}`
             : isRoyal
-              ? `0 6px 20px ${withAlpha(royal.gold, 0.32)}, 0 0 0 1px ${withAlpha(royal.pearl, 0.22)}`
+              ? `0 6px 20px ${withAlpha(royal.blue, 0.36)}, 0 0 0 1px ${withAlpha(royal.pearl, 0.18)}`
               : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
         }}
       >
@@ -264,9 +264,9 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
           background: isMotorsport
             ? `linear-gradient(90deg, ${withAlpha(motorsport.navy, 0.74)} 0%, ${withAlpha(motorsport.cyan, 0.20)} 62%, ${withAlpha(motorsport.red, 0.18)} 100%)`
             : isRoyal
-              ? `linear-gradient(90deg, ${withAlpha(royal.blue, 0.72)} 0%, ${withAlpha(royal.cyan, 0.18)} 60%, ${withAlpha(royal.gold, 0.20)} 100%)`
+              ? `linear-gradient(90deg, ${withAlpha(royal.blue, 0.78)} 0%, ${withAlpha(royal.cyan, 0.26)} 100%)`
             : withAlpha(accentColor, 0.14),
-          borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : isRoyal ? withAlpha(royal.gold, 0.36) : withAlpha(accentColor, 0.26),
+          borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : isRoyal ? withAlpha(royal.cyan, 0.34) : withAlpha(accentColor, 0.26),
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
           boxShadow: isMotorsport
@@ -306,9 +306,9 @@ function LinkGridTile({ link, primaryColor, themeStyle, onOpen }: { link: Profil
         background: isMotorsport
           ? `linear-gradient(145deg, ${withAlpha(motorsport.white, 0.13)} 0%, ${withAlpha(motorsport.navy, 0.76)} 48%, ${withAlpha(motorsport.red, 0.20)} 100%)`
           : isRoyal
-            ? `linear-gradient(145deg, ${withAlpha(royal.pearl, 0.16)} 0%, ${withAlpha(royal.blue, 0.74)} 50%, ${withAlpha(royal.gold, 0.18)} 100%)`
+            ? `linear-gradient(145deg, ${withAlpha(royal.blue, 0.78)} 0%, ${withAlpha(royal.cyan, 0.24)} 100%)`
           : withAlpha(accentColor, 0.14),
-        borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : isRoyal ? withAlpha(royal.gold, 0.34) : withAlpha(accentColor, 0.26),
+        borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : isRoyal ? withAlpha(royal.cyan, 0.34) : withAlpha(accentColor, 0.26),
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
         boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 24px ${withAlpha(motorsport.navy, 0.30)}` : isRoyal ? `inset 0 1px 0 rgba(255,255,255,0.16), 0 8px 24px ${withAlpha(royal.blue, 0.30)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
@@ -317,8 +317,8 @@ function LinkGridTile({ link, primaryColor, themeStyle, onOpen }: { link: Profil
       <div
         className="h-11 w-11 rounded-full flex items-center justify-center overflow-hidden"
         style={{
-          background: isMotorsport ? `linear-gradient(135deg, ${motorsport.cyan}, ${motorsport.red})` : isRoyal ? `linear-gradient(135deg, ${royal.gold}, ${royal.cyan})` : accentColor,
-          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.35)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.34)}` : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
+          background: isMotorsport ? `linear-gradient(135deg, ${motorsport.cyan}, ${motorsport.red})` : isRoyal ? royal.blue : accentColor,
+          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.35)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
         }}
       >
         {link.thumbnailUrl
@@ -445,8 +445,8 @@ function ProfileMessageForm({
         <span
           className="flex h-9 w-9 items-center justify-center rounded-full"
           style={{
-            background: isMotorsport ? `linear-gradient(135deg, ${motorsport.cyan}, ${motorsport.red})` : isRoyal ? `linear-gradient(135deg, ${royal.gold}, ${royal.cyan})` : accentColor,
-            boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.35)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.34)}` : `0 5px 18px ${withAlpha(accentColor, 0.35)}`,
+            background: isMotorsport ? `linear-gradient(135deg, ${motorsport.cyan}, ${motorsport.red})` : isRoyal ? royal.blue : accentColor,
+            boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.35)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : `0 5px 18px ${withAlpha(accentColor, 0.35)}`,
           }}
         >
           <i className="ri-message-3-line text-lg text-white" />
