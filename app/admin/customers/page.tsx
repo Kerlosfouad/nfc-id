@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { AdminChrome } from "../_components/AdminChrome";
-import { AdminLoadingScreen, EmptyState, Panel } from "../_components/AdminUi";
+import { AdminInlineLoading, EmptyState, Panel } from "../_components/AdminUi";
 
 interface CustomerRow {
   id: string;
@@ -121,7 +121,13 @@ export default function AdminCustomersPage() {
     }
   }
 
-  if (checking) return <AdminLoadingScreen />;
+  if (checking) {
+    return (
+      <AdminChrome title="Customers" subtitle="Registered users, owned medals, and public profile counts.">
+        <AdminInlineLoading />
+      </AdminChrome>
+    );
+  }
 
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const visibleCustomers = normalizedSearch

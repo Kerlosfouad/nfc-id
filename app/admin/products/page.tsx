@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { AdminChrome } from "../_components/AdminChrome";
-import { AdminLoadingScreen, EmptyState, Panel } from "../_components/AdminUi";
+import { AdminInlineLoading, EmptyState, Panel } from "../_components/AdminUi";
 
 interface ProductRow {
   id: string;
@@ -274,7 +274,13 @@ export default function AdminProductsPage() {
     showToast("Section deleted");
   }
 
-  if (checking) return <AdminLoadingScreen />;
+  if (checking) {
+    return (
+      <AdminChrome title="Products" subtitle="Manage shop products, categories, stock, and public availability.">
+        <AdminInlineLoading />
+      </AdminChrome>
+    );
+  }
 
   return (
     <AdminChrome title="Products" subtitle="Add products, create sections, upload images, and control the public shop.">

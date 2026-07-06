@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AdminLoadingScreen } from "../_components/AdminUi";
+import { AdminChrome } from "../_components/AdminChrome";
+import { AdminInlineLoading } from "../_components/AdminUi";
 
 export const dynamic = 'force-dynamic';
 
@@ -166,7 +167,13 @@ export default function AdminModerationPage() {
 
   // ── Render ──────────────────────────────────────────────────────────────
 
-  if (checking) { return <AdminLoadingScreen />; }
+  if (checking) {
+    return (
+      <AdminChrome title="Moderation" subtitle="Review reported profiles and resolve safety issues.">
+        <AdminInlineLoading />
+      </AdminChrome>
+    );
+  }
 
   return (
     <div className="bg-[#0b0a0a] min-h-screen text-white" style={{ fontFamily: "Inter, sans-serif" }}>

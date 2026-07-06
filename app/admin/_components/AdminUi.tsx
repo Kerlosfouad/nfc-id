@@ -62,18 +62,18 @@ export function MetricCard({
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-[#03A9F4]/18 bg-[#0d2539] p-4 shadow-[0_18px_52px_rgba(0,0,0,0.26)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#03A9F4]/42 sm:p-5">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(3,169,244,0.13),transparent_46%),radial-gradient(circle_at_100%_0%,rgba(3,169,244,0.22),transparent_9rem)] opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
-      <div className="relative min-h-14 pr-16 sm:min-h-16 sm:pr-20">
+      <div className="relative min-h-14 pr-14 sm:min-h-16 sm:pr-20">
         <div className="min-w-0">
-          <p className="truncate text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8fdfff]/62">{label}</p>
-          <p className="mt-3 max-w-full break-words text-[clamp(2rem,9vw,2.55rem)] font-bold leading-[0.98] text-white sm:text-[34px]">
+          <p className="truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8fdfff]/62 sm:text-[11px] sm:tracking-[0.22em]">{label}</p>
+          <p className="mt-3 max-w-full whitespace-nowrap text-[clamp(1.85rem,8vw,2.35rem)] font-bold leading-none text-white sm:text-[34px]">
             <AnimatedNumber value={value} formatter={formatter} />
           </p>
         </div>
-        <span className="absolute right-0 top-0 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#03A9F4]/35 bg-[#03A9F4]/12 text-[#29c0ff] shadow-[0_0_22px_rgba(3,169,244,0.15)] sm:h-14 sm:w-14">
-          <i className={`${icon} text-2xl`} />
+        <span className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center rounded-2xl border border-[#03A9F4]/35 bg-[#03A9F4]/12 text-[#29c0ff] shadow-[0_0_22px_rgba(3,169,244,0.15)] sm:h-14 sm:w-14">
+          <i className={`${icon} text-xl sm:text-2xl`} />
         </span>
       </div>
-      <p className="relative mt-4 line-clamp-2 min-h-[2.5rem] text-sm leading-5 text-white/48">{hint}</p>
+      <p className="relative mt-4 line-clamp-2 min-h-[2.25rem] text-xs leading-[1.15rem] text-white/48 sm:min-h-[2.5rem] sm:text-sm sm:leading-5">{hint}</p>
     </div>
   );
 }
@@ -111,6 +111,26 @@ export function AdminLoadingScreen() {
           ))}
         </div>
         <div className="h-80 rounded-2xl border border-white/10 bg-white/[0.03] animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+export function AdminInlineLoading({ rows = 4 }: { rows?: number }) {
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: Math.min(rows, 4) }).map((_, index) => (
+          <div key={index} className="h-32 animate-pulse rounded-2xl border border-[#03A9F4]/12 bg-[#0d2539]/70" />
+        ))}
+      </div>
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="h-5 w-36 animate-pulse rounded bg-white/10" />
+        <div className="mt-5 space-y-3">
+          {Array.from({ length: rows }).map((_, index) => (
+            <div key={index} className="h-12 animate-pulse rounded-xl bg-white/[0.055]" />
+          ))}
+        </div>
       </div>
     </div>
   );

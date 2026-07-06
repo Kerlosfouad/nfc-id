@@ -3215,9 +3215,9 @@ export default function DashboardPage() {
       <aside className={`fixed md:relative z-50 md:z-auto h-full w-[220px] flex-shrink-0 bg-[#0f0f0f] border-r border-white/5 flex flex-col transition-transform duration-300
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
         <div className="px-4 py-4 border-b border-white/5 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-0">
-            <img src="/img/logo.png" alt="LinkUp" className="w-8 h-8" />
-            <span className="hidden font-bold text-base">Link<span className="text-[#03A9F4]">Up</span></span>
+          <Link href="/" className="flex items-end gap-2" aria-label="LinkUp home">
+            <img src="/img/linkup-nav-mark.png" alt="LinkUp" className="h-7 w-7 object-contain" />
+            <span className="pb-0.5 text-lg font-black uppercase leading-none tracking-wide text-white">LINK <span className="text-[#03A9F4]">UP</span></span>
           </Link>
           <button type="button" onClick={() => setSidebarOpen(false)} className="md:hidden text-white/55 hover:text-white" aria-label="Close dashboard navigation">
             <i className="ri-close-line text-lg" />
@@ -3255,9 +3255,9 @@ export default function DashboardPage() {
       <main className="flex-1 overflow-hidden flex flex-col min-w-0">
         {/* Mobile top bar */}
         <div className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-[#0f0f0f] flex-shrink-0">
-          <Link href="/" className="flex items-center gap-0">
-            <img src="/img/linkup-nav-mark.png" alt="LinkUp" className="h-10 w-8 object-contain" />
-            <span className="hidden font-bold text-sm">Link<span className="text-[#03A9F4]">Up</span></span>
+          <Link href="/" className="flex items-end gap-2" aria-label="LinkUp home">
+            <img src="/img/linkup-nav-mark.png" alt="LinkUp" className="h-7 w-7 object-contain" />
+            <span className="pb-0.5 text-lg font-black uppercase leading-none tracking-wide text-white">LINK <span className="text-[#03A9F4]">UP</span></span>
           </Link>
           <button type="button" onClick={() => setGoldRequest("design")} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#03A9F4]/40 px-3 text-xs font-semibold text-[#03A9F4]">
             <i className="ri-sparkling-2-line" />

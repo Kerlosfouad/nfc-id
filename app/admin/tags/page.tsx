@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { AdminChrome } from "../_components/AdminChrome";
-import { AdminLoadingScreen, EmptyState, Panel } from "../_components/AdminUi";
+import { AdminInlineLoading, EmptyState, Panel } from "../_components/AdminUi";
 
 type TagState = "MANUFACTURED" | "SOLD" | "CLAIMED" | "ACTIVE" | "SUSPENDED";
 
@@ -157,7 +157,11 @@ export default function AdminTagsPage() {
   }
 
   if (checking) {
-    return <AdminLoadingScreen />;
+    return (
+      <AdminChrome title="NFC" subtitle="Review linked medals, control status, and retire unused NFC codes.">
+        <AdminInlineLoading />
+      </AdminChrome>
+    );
   }
 
   return (

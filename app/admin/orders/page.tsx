@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { createClient } from "@/lib/supabase/client";
 import { AdminChrome } from "../_components/AdminChrome";
-import { AdminLoadingScreen, EmptyState, MetricCard, Panel } from "../_components/AdminUi";
+import { AdminInlineLoading, EmptyState, MetricCard, Panel } from "../_components/AdminUi";
 
 interface AdminOrder {
   id: string;
@@ -166,7 +166,13 @@ export default function AdminOrdersPage() {
     }
   }
 
-  if (checking) return <AdminLoadingScreen />;
+  if (checking) {
+    return (
+      <AdminChrome title="Orders" subtitle="Incoming shop orders, customer details, and fulfillment status.">
+        <AdminInlineLoading />
+      </AdminChrome>
+    );
+  }
 
   const revenue = revenueOrders.reduce((sum, order) => sum + Number(order.total), 0);
   const units = orders.reduce((sum, order) => sum + orderUnits(order), 0);

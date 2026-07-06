@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { AdminChrome } from "./_components/AdminChrome";
-import { AdminLoadingScreen, AnimatedNumber, MetricCard, Panel } from "./_components/AdminUi";
+import { AdminInlineLoading, AnimatedNumber, MetricCard, Panel } from "./_components/AdminUi";
 
 interface AdminStats {
   totalTags: number;
@@ -75,7 +75,11 @@ export default function AdminPage() {
   }, [router]);
 
   if (checking) {
-    return <AdminLoadingScreen />;
+    return (
+      <AdminChrome title="Owner Dashboard" subtitle="Revenue, customers, NFC usage, and moderation health in one fast view.">
+        <AdminInlineLoading />
+      </AdminChrome>
+    );
   }
 
   const activation = percent((stats?.activeTags ?? 0) + (stats?.claimedTags ?? 0), stats?.totalTags ?? 0);
@@ -113,7 +117,7 @@ export default function AdminPage() {
         </div>
       </section>
 
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 min-[460px]:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Revenue" value={stats?.totalRevenue ?? 0} formatter={money} icon="ri-money-dollar-circle-line" hint={`${stats?.totalOrders ?? 0} orders · avg ${money(stats?.averageOrderValue ?? 0)}`} />
         <MetricCard label="NFC" value={stats?.totalTags ?? 0} icon="ri-qr-scan-2-line" hint={`${readyTags.toLocaleString()} ready · ${liveTags.toLocaleString()} in use`} />
         <MetricCard label="Customers" value={stats?.totalUsers ?? 0} icon="ri-user-3-line" hint={`${stats?.totalProfiles ?? 0} public profiles created`} />

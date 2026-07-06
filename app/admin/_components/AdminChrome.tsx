@@ -103,14 +103,19 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
     };
   }, []);
 
+  useEffect(() => {
+    navItems.forEach((item) => router.prefetch(item.href));
+  }, [router]);
+
   return (
     <div className="min-h-screen bg-[#0b0a0a] text-white" style={{ fontFamily: "Inter, sans-serif" }}>
       <AppNotificationToast items={notifications} />
       <div className="fixed inset-0 pointer-events-none hero-grid opacity-50" />
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[220px] border-r border-white/5 bg-[#0f0f0f] lg:flex lg:flex-col">
         <div className="px-4 py-5">
-          <Link href="/" className="inline-flex group" aria-label="LinkUp home">
-            <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={58} height={58} className="h-14 w-14 object-contain transition-all group-hover:drop-shadow-[0_0_14px_rgba(3,169,244,0.75)]" />
+          <Link href="/" className="inline-flex items-end gap-2 group" aria-label="LinkUp home">
+            <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={32} height={32} className="h-8 w-8 object-contain transition-all group-hover:drop-shadow-[0_0_12px_rgba(3,169,244,0.7)]" />
+            <span className="pb-0.5 text-lg font-black uppercase leading-none tracking-wide text-white">LINK <span className="text-[#03A9F4]">UP</span></span>
           </Link>
         </div>
 
@@ -122,6 +127,9 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch
+                onMouseEnter={() => router.prefetch(item.href)}
+                onFocus={() => router.prefetch(item.href)}
                 className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all ${
                   active
                     ? "bg-white/10 text-white font-medium"
@@ -150,8 +158,9 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
         <header className="sticky top-0 z-20 border-b border-white/5 bg-[#0b0a0a]/90 px-4 py-4 backdrop-blur-xl sm:px-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
-              <Link href="/" className="inline-flex shrink-0 group" aria-label="Back to website">
-                <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={42} height={42} className="h-10 w-10 object-contain transition-all group-hover:drop-shadow-[0_0_12px_rgba(3,169,244,0.7)] sm:h-11 sm:w-11" />
+              <Link href="/" className="inline-flex shrink-0 items-end gap-2 group" aria-label="Back to website">
+                <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={28} height={28} className="h-7 w-7 object-contain transition-all group-hover:drop-shadow-[0_0_12px_rgba(3,169,244,0.7)]" />
+                <span className="hidden pb-0.5 text-lg font-black uppercase leading-none tracking-wide text-white min-[420px]:inline">LINK <span className="text-[#03A9F4]">UP</span></span>
               </Link>
               <div className="min-w-0">
                 <h1 className="truncate text-base font-bold text-white sm:text-lg">{title}</h1>
@@ -180,7 +189,10 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
             <Link
               key={item.href}
               href={item.href}
-                className={`relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] transition-all ${
+              prefetch
+              onMouseEnter={() => router.prefetch(item.href)}
+              onFocus={() => router.prefetch(item.href)}
+              className={`relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] transition-all ${
                 active ? "text-[#03A9F4]" : "text-white/30"
               }`}
             >

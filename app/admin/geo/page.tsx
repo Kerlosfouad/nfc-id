@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { AdminChrome } from "../_components/AdminChrome";
-import { AdminLoadingScreen, EmptyState, Panel } from "../_components/AdminUi";
+import { AdminInlineLoading, EmptyState, Panel } from "../_components/AdminUi";
 
 interface GeoRow {
   country: string;
@@ -164,7 +164,13 @@ export default function AdminGeoPage() {
 
   const points = useMemo(() => rows.map(resolvePoint), [rows]);
 
-  if (checking) return <AdminLoadingScreen />;
+  if (checking) {
+    return (
+      <AdminChrome title="Geo Map" subtitle="Scan distribution by country from analytics events.">
+        <AdminInlineLoading />
+      </AdminChrome>
+    );
+  }
 
   return (
     <AdminChrome title="Geo Map" subtitle="Scan distribution by country from analytics events.">
