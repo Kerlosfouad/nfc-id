@@ -73,24 +73,38 @@ export async function DELETE(
     });
     const profileIds = profiles.map((profile) => profile.id);
 
+    if (profileIds.length > 0) {
+      return { deleted: false, linkedProfile: true, profilesDeleted: 0, nfcLinksDeleted: 0 };
+    }
+
     const nfcDelete = await tx.nfcTag.deleteMany({
       where: {
-        OR: [
-          { uid: `PUBLIC:${publicId}` },
-          ...(profileIds.length ? [{ profileId: { in: profileIds } }] : []),
-        ],
+        uid: `PUBLIC:${publicId}`,
       },
     });
 
-    const profileDelete = await tx.profile.deleteMany({ where: { publicId } });
     await tx.tag.delete({ where: { publicId } });
 
     return {
       deleted: true,
-      profilesDeleted: profileDelete.count,
+      linkedProfile: false,
+      profilesDeleted: 0,
       nfcLinksDeleted: nfcDelete.count,
     };
   });
+
+  if (result.linkedProfile) {
+    return NextResponse.json(
+      {
+        data: null,
+        error: {
+          code: 'LINKED_PROFILE_EXISTS',
+          message: 'This NFC has a linked profile. Make it inactive instead of deleting customer data.',
+        },
+      },
+      { status: 409 },
+    );
+  }
 
   if (!result.deleted) {
     return NextResponse.json(

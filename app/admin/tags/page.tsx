@@ -132,7 +132,7 @@ export default function AdminTagsPage() {
 
   async function deleteTag(publicId: string) {
     if (!authToken) return;
-    const ok = window.confirm(`Delete NFC ${publicId}? This will also delete the linked profile if it exists.`);
+    const ok = window.confirm(`Delete retired NFC ${publicId}? Linked customer profiles are protected and will not be deleted here.`);
     if (!ok) return;
     setSaving((s) => ({ ...s, [publicId]: true }));
     try {
@@ -148,7 +148,7 @@ export default function AdminTagsPage() {
         throw new Error(json.error?.message ?? "Delete failed");
       }
       setTags((prev) => prev.filter((tag) => tag.publicId !== publicId));
-      showToast(`NFC ${publicId} and linked profile deleted`);
+      showToast(`NFC ${publicId} deleted`);
     } catch (e: unknown) {
       showToast(e instanceof Error ? e.message : "Delete failed", "error");
     } finally {
@@ -161,7 +161,7 @@ export default function AdminTagsPage() {
   }
 
   return (
-    <AdminChrome title="NFC" subtitle="Review linked medals, control status, and remove retired profiles.">
+    <AdminChrome title="NFC" subtitle="Review linked medals, control status, and retire unused NFC codes.">
       {toast && (
         <div className={`fixed right-4 top-4 z-50 rounded-lg border px-4 py-3 text-sm ${
           toast.type === "success" ? "border-green-500/40 bg-green-500/10 text-green-300" : "border-red-500/40 bg-red-500/10 text-red-300"
@@ -177,7 +177,7 @@ export default function AdminTagsPage() {
           </div>
           <div className="min-w-0">
             <h2 className="text-base font-bold text-white">Existing NFC medals</h2>
-            <p className="mt-1 text-sm text-white/55">View saved medal codes, copy scan links, make medals inactive, or delete retired medals and their linked profiles.</p>
+            <p className="mt-1 text-sm text-white/55">View saved medal codes, copy scan links, make medals inactive, or delete retired medals that are not linked to customer profiles.</p>
           </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
