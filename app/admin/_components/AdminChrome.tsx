@@ -160,7 +160,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
             <div className="flex min-w-0 items-center gap-3">
               <Link href="/" className="inline-flex shrink-0 items-end gap-2 group" aria-label="Back to website">
                 <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={28} height={28} className="h-7 w-7 object-contain transition-all group-hover:drop-shadow-[0_0_12px_rgba(3,169,244,0.7)]" />
-                <span className="hidden pb-0.5 text-lg font-black uppercase leading-none tracking-wide text-white min-[420px]:inline">LINK <span className="text-[#03A9F4]">UP</span></span>
+                <span className="pb-0.5 text-lg font-black uppercase leading-none tracking-wide text-white">LINK <span className="text-[#03A9F4]">UP</span></span>
               </Link>
               <div className="min-w-0">
                 <h1 className="truncate text-base font-bold text-white sm:text-lg">{title}</h1>

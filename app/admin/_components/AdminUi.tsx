@@ -116,22 +116,6 @@ export function AdminLoadingScreen() {
   );
 }
 
-export function AdminInlineLoading({ rows = 4 }: { rows?: number }) {
-  return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: Math.min(rows, 4) }).map((_, index) => (
-          <div key={index} className="h-32 animate-pulse rounded-2xl border border-[#03A9F4]/12 bg-[#0d2539]/70" />
-        ))}
-      </div>
-      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-        <div className="h-5 w-36 animate-pulse rounded bg-white/10" />
-        <div className="mt-5 space-y-3">
-          {Array.from({ length: rows }).map((_, index) => (
-            <div key={index} className="h-12 animate-pulse rounded-xl bg-white/[0.055]" />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+export function AdminInlineLoading() {
+  return null;
 }
