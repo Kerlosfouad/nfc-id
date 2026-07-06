@@ -62,14 +62,14 @@ export function MetricCard({
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-[#03A9F4]/18 bg-[#0d2539] p-4 shadow-[0_18px_52px_rgba(0,0,0,0.26)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#03A9F4]/42 sm:p-5">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(3,169,244,0.13),transparent_46%),radial-gradient(circle_at_100%_0%,rgba(3,169,244,0.22),transparent_9rem)] opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
-      <div className="relative flex items-start justify-between gap-3">
+      <div className="relative min-h-14 pr-16 sm:min-h-16 sm:pr-20">
         <div className="min-w-0">
           <p className="truncate text-[11px] font-semibold uppercase tracking-[0.22em] text-[#8fdfff]/62">{label}</p>
-          <p className="mt-3 text-3xl font-bold leading-none text-white sm:text-[34px]">
+          <p className="mt-3 max-w-full break-words text-[clamp(2rem,9vw,2.55rem)] font-bold leading-[0.98] text-white sm:text-[34px]">
             <AnimatedNumber value={value} formatter={formatter} />
           </p>
         </div>
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#03A9F4]/35 bg-[#03A9F4]/12 text-[#29c0ff] shadow-[0_0_22px_rgba(3,169,244,0.15)] sm:h-14 sm:w-14">
+        <span className="absolute right-0 top-0 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#03A9F4]/35 bg-[#03A9F4]/12 text-[#29c0ff] shadow-[0_0_22px_rgba(3,169,244,0.15)] sm:h-14 sm:w-14">
           <i className={`${icon} text-2xl`} />
         </span>
       </div>

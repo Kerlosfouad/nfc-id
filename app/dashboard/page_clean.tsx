@@ -1339,21 +1339,20 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map((s, i) => (
-          <div key={i} className="group relative min-h-[150px] overflow-hidden rounded-[28px] border border-[#03A9F4]/35 bg-[#071116] p-4 shadow-[0_0_26px_rgba(3,169,244,0.10)] transition duration-500 hover:-translate-y-1 hover:border-[#03A9F4]/70 hover:shadow-[0_0_34px_rgba(3,169,244,0.18)]">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(3,169,244,0.30),transparent_34%),linear-gradient(135deg,rgba(3,169,244,0.12),rgba(3,169,244,0.025)_52%,rgba(141,235,255,0.08))] opacity-95 transition duration-500 group-hover:opacity-100" />
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[#8DEBFF]/70" />
-            <div className="relative mb-7 flex items-start justify-between gap-3">
+          <div key={i} className="group relative min-h-[150px] overflow-hidden rounded-2xl border border-[#03A9F4]/18 bg-[#0d2539] p-4 shadow-[0_18px_52px_rgba(0,0,0,0.26)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#03A9F4]/42 sm:min-h-[166px] sm:p-5">
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(3,169,244,0.13),transparent_46%),radial-gradient(circle_at_100%_0%,rgba(3,169,244,0.22),transparent_9rem)] opacity-80 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="relative min-h-12 pr-14 sm:min-h-14 sm:pr-16">
               <div className="min-w-0">
-                <span className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8DEBFF]/75">{s.hint}</span>
-                <span className="mt-1 block text-sm font-semibold text-white/85">{s.label}</span>
+                <span className="block text-[10px] font-semibold uppercase leading-4 tracking-[0.18em] text-[#8fdfff]/62 sm:text-[11px]">{s.hint}</span>
+                <span className="mt-1 block truncate text-xs font-semibold text-white/78 sm:text-sm">{s.label}</span>
               </div>
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#8DEBFF]/15 bg-[#03A9F4]/12 text-[#DFFAFF] shadow-[0_0_18px_rgba(3,169,244,0.18)] transition duration-500 group-hover:scale-105 group-hover:bg-[#03A9F4]/20">
+              <div className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center rounded-2xl border border-[#03A9F4]/35 bg-[#03A9F4]/12 text-[#29c0ff] shadow-[0_0_22px_rgba(3,169,244,0.15)] transition duration-300 group-hover:bg-[#03A9F4]/18 sm:h-12 sm:w-12">
                 <i className={`${s.icon} text-xl`} />
               </div>
             </div>
             {loading
-              ? <div className="h-10 w-20 animate-pulse rounded-xl bg-[#03A9F4]/10" />
-              : <p className="relative text-[34px] font-semibold leading-none tracking-normal text-white sm:text-[38px]">
+              ? <div className="relative mt-7 h-10 w-20 animate-pulse rounded-xl bg-[#03A9F4]/10" />
+              : <p className="relative mt-7 break-words text-[clamp(2.2rem,10vw,3rem)] font-semibold leading-none tracking-normal text-white sm:text-[38px]">
                   <AnimatedCounter key={`${profile.id}-${range}-${s.label}-${s.value}`} value={s.value} suffix={s.suffix} duration={950} />
                 </p>
             }
@@ -1605,40 +1604,40 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
         </div>
         {isPrime && <span className="w-fit rounded-full border border-[#03A9F4]/30 bg-[#03A9F4]/10 px-3 py-1 text-xs font-bold text-[#8fdfff]">Pro QR logo enabled</span>}
       </div>
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid min-w-0 gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
 
         {/* QR + actions */}
-        <div className="rounded-2xl border border-[#03A9F4]/18 bg-[#0d2539] p-4 shadow-[0_22px_70px_rgba(0,0,0,0.32)] sm:p-6">
+        <div className="min-w-0 rounded-2xl border border-[#03A9F4]/18 bg-[#0d2539] p-3 shadow-[0_22px_70px_rgba(0,0,0,0.32)] min-[380px]:p-4 sm:p-6">
           <div className="flex flex-col items-center gap-5">
-            <div className="relative rounded-[22px] border border-white/10 bg-[#071722] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-              <div className="rounded-2xl border border-[#03A9F4]/15 p-3" style={{ background: bgColor }}>
-                <div ref={qrRef} className="flex h-[300px] w-[300px] items-center justify-center" />
+            <div className="relative w-full max-w-[360px] rounded-[22px] border border-white/10 bg-[#071722] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:p-3">
+              <div className="aspect-square w-full rounded-2xl border border-[#03A9F4]/15 p-2 sm:p-3" style={{ background: bgColor }}>
+                <div ref={qrRef} className="flex h-full w-full items-center justify-center [&>*]:h-full [&>*]:max-h-full [&>*]:max-w-full [&>*]:shrink-0 [&>*]:object-contain" />
               </div>
-              <div className="pointer-events-none absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-white/15 bg-white p-2 shadow-lg">
+              <div className="pointer-events-none absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-white/15 bg-white p-2 shadow-lg sm:h-16 sm:w-16">
                 <img src={centerLogo} alt="QR center logo" className="h-full w-full object-contain" />
               </div>
             </div>
 
-            <div className="grid w-full max-w-md grid-cols-3 gap-2">
+            <div className="grid w-full max-w-md grid-cols-1 gap-2 min-[420px]:grid-cols-3">
               <button onClick={download}
-                className="flex items-center justify-center gap-1.5 rounded-xl bg-white px-2 py-3 text-xs font-bold text-[#06111a] transition-all hover:bg-white/90 active:scale-[0.98] sm:text-sm">
+                className="flex min-h-12 items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-3 text-sm font-bold text-[#06111a] transition-all hover:bg-white/90 active:scale-[0.98]">
                 <i className="ri-download-line" /> Download
               </button>
               <button onClick={copyUrl}
-                className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/6 px-2 py-3 text-xs font-semibold text-white transition-all hover:bg-white/10 sm:text-sm">
+                className="flex min-h-12 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/6 px-3 py-3 text-sm font-semibold text-white transition-all hover:bg-white/10">
                 <i className={copied ? "ri-check-line text-green-400" : "ri-link"} />
                 {copied ? "Copied" : "Copy"}
               </button>
               <button onClick={shareUrl}
-                className="flex items-center justify-center gap-1.5 rounded-xl border border-[#03A9F4]/35 bg-[#03A9F4]/15 px-2 py-3 text-xs font-bold text-[#28bfff] transition-all hover:bg-[#03A9F4]/20 sm:text-sm">
+                className="flex min-h-12 items-center justify-center gap-1.5 rounded-xl border border-[#03A9F4]/35 bg-[#03A9F4]/15 px-3 py-3 text-sm font-bold text-[#28bfff] transition-all hover:bg-[#03A9F4]/20">
                 <i className="ri-share-forward-line" /> Share
               </button>
             </div>
 
-            <div className="flex w-full max-w-lg items-center gap-2 rounded-xl border border-[#03A9F4]/18 bg-[#061a29] px-4 py-3">
+            <div className="flex w-full max-w-lg items-center gap-2 rounded-xl border border-[#03A9F4]/18 bg-[#061a29] px-3 py-3 sm:px-4">
               <i className="ri-links-line flex-shrink-0 text-sm text-[#8fdfff]/60" />
               <span className="flex-1 truncate font-mono text-xs text-[#8fdfff]">{url}</span>
-              <button onClick={copyUrl} className="rounded-lg px-2 py-1 text-xs font-semibold text-white/55 transition hover:bg-white/8 hover:text-white">
+              <button onClick={copyUrl} className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-white/55 transition hover:bg-white/8 hover:text-white">
                 {copied ? "Copied" : "Copy"}
               </button>
             </div>
@@ -2439,33 +2438,33 @@ function MessageInboxSheet({
       onClick={closeSheet}
     >
       <section
-        className={`flex max-h-[82svh] w-full flex-col overflow-hidden rounded-t-[24px] border border-white/10 bg-[#111] text-white shadow-2xl transition-transform duration-200 md:max-h-[720px] md:max-w-[440px] md:rounded-[24px] ${visible ? "translate-y-0" : "translate-y-full md:translate-y-4"}`}
+        className={`flex max-h-[84svh] w-full flex-col overflow-hidden rounded-t-[22px] border border-white/10 bg-[#111] text-white shadow-2xl transition-transform duration-200 md:max-h-[720px] md:max-w-[440px] md:rounded-[24px] ${visible ? "translate-y-0" : "translate-y-full md:translate-y-4"}`}
         onClick={event => event.stopPropagation()}
         aria-label="Profile messages"
       >
-        <div className="mx-auto mt-3 h-1.5 w-24 rounded-full bg-white/10" />
-        <header className="flex items-start justify-between gap-4 border-b border-white/10 px-5 pb-4 pt-5">
-          <div>
+        <div className="mx-auto mt-3 h-1.5 w-20 rounded-full bg-white/10" />
+        <header className="flex items-start justify-between gap-3 border-b border-white/10 px-4 pb-3 pt-4 sm:px-5 sm:pb-4 sm:pt-5">
+          <div className="min-w-0">
             <p className="text-xs font-semibold text-[#03A9F4]">Inbox</p>
-            <h2 className="mt-1 text-xl font-bold">Profile messages</h2>
+            <h2 className="mt-1 truncate text-lg font-bold sm:text-xl">Profile messages</h2>
             <p className="mt-1 text-xs text-white/45">{inbox.unreadCount} unread message{inbox.unreadCount === 1 ? "" : "s"}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={onMarkRead}
               disabled={inbox.unreadCount === 0 || loading}
-              className="h-9 rounded-full border border-white/10 px-3 text-xs font-semibold text-white/65 transition hover:bg-white/5 hover:text-white disabled:opacity-35"
+              className="h-9 rounded-full border border-white/10 px-2.5 text-[11px] font-semibold text-white/65 transition hover:bg-white/5 hover:text-white disabled:opacity-35 sm:px-3 sm:text-xs"
             >
-              Mark read
+              Read
             </button>
             <button
               type="button"
               onClick={onDeleteAll}
               disabled={inbox.messages.length === 0 || loading}
-              className="h-9 rounded-full border border-red-400/20 px-3 text-xs font-semibold text-red-200/70 transition hover:bg-red-500/10 hover:text-red-100 disabled:opacity-35"
+              className="h-9 rounded-full border border-red-400/20 px-2.5 text-[11px] font-semibold text-red-200/70 transition hover:bg-red-500/10 hover:text-red-100 disabled:opacity-35 sm:px-3 sm:text-xs"
             >
-              Delete all
+              Clear
             </button>
             <button onClick={closeSheet} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/55 hover:text-white" aria-label="Close messages">
               <i className="ri-close-line text-lg" />
@@ -2473,7 +2472,7 @@ function MessageInboxSheet({
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 sm:px-5 sm:py-4">
           {loading ? (
             <div className="py-12 text-center">
               <div className="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-[#03A9F4] border-t-transparent" />
@@ -2488,11 +2487,11 @@ function MessageInboxSheet({
           ) : (
             <div className="space-y-3">
               {inbox.messages.map(message => (
-                <article key={message.id} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                  <div className="mb-2 flex items-start justify-between gap-3">
+                <article key={message.id} className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 sm:p-4">
+                  <div className="mb-2 flex items-start justify-between gap-2 sm:gap-3">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-white">{message.senderName}</p>
-                      <p className="text-[11px] text-white/35">{new Date(message.createdAt).toLocaleString()}</p>
+                      <p className="truncate text-sm font-bold leading-5 text-white">{message.senderName}</p>
+                      <p className="truncate text-[10px] text-white/35 sm:text-[11px]">{new Date(message.createdAt).toLocaleString()}</p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       {!message.readAt && <span className="h-2.5 w-2.5 rounded-full bg-[#03A9F4] shadow-[0_0_12px_rgba(3,169,244,0.8)]" />}
@@ -2506,7 +2505,7 @@ function MessageInboxSheet({
                       </button>
                     </div>
                   </div>
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/75">{message.message}</p>
+                  <p className="whitespace-pre-wrap break-words text-[13px] leading-5 text-white/72 sm:text-sm sm:leading-relaxed">{message.message}</p>
                 </article>
               ))}
             </div>
