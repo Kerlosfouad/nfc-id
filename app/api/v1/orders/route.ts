@@ -2,17 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createOrder } from '@/lib/services/orders';
 
+const optionalText = z.preprocess(
+  (value) => (typeof value === 'string' && value.trim() === '' ? null : value),
+  z.string().trim().nullable().optional().default(null),
+);
+
 const CheckoutSchema = z.object({
   customerName: z.string().trim().min(2),
-  email: z.string().trim().email().nullable().optional().default(null),
+  email: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? null : value),
+    z.string().trim().email().nullable().optional().default(null),
+  ),
   phone: z.string().trim().min(6),
-  secondaryPhone: z.string().trim().nullable().optional().default(null),
+  secondaryPhone: optionalText,
   address: z.string().trim().min(5),
-  apartment: z.string().trim().min(1),
+  apartment: z.string().trim().optional().default(''),
   country: z.string().trim().min(2).default('Egypt'),
   city: z.string().trim().min(2),
-  notes: z.string().trim().nullable().optional().default(null),
-  couponCode: z.string().trim().nullable().optional().default(null),
+  notes: optionalText,
+  couponCode: optionalText,
   items: z
     .array(
       z.object({
@@ -26,8 +34,17 @@ const CheckoutSchema = z.object({
 export async function POST(request: NextRequest) {
   const parsed = CheckoutSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    const field = firstIssue?.path.join('.');
     return NextResponse.json(
-      { data: null, error: { code: 'VALIDATION_ERROR', message: 'Please complete the required checkout fields.' } },
+      {
+        data: null,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: field ? `Please check ${field}.` : 'Please complete the required checkout fields.',
+          fields: Object.fromEntries(parsed.error.issues.map((issue) => [issue.path.join('.') || 'checkout', issue.message])),
+        },
+      },
       { status: 400 },
     );
   }

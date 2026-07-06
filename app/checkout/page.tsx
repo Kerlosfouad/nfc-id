@@ -215,8 +215,8 @@ export default function CheckoutPage() {
                     <input required value={checkout.address} onChange={(e) => setCheckout({ ...checkout, address: e.target.value })} className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm outline-none focus:border-[#03A9F4]" placeholder="Enter your address" />
                   </label>
                   <label className="sm:col-span-2">
-                    <span className="text-xs font-semibold text-white/60">Apartment, suite, unit etc. *</span>
-                    <input required value={checkout.apartment} onChange={(e) => setCheckout({ ...checkout, apartment: e.target.value })} className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm outline-none focus:border-[#03A9F4]" placeholder="Enter your apartment, suite, unit etc." />
+                    <span className="text-xs font-semibold text-white/60">Apartment, suite, unit etc. (Optional)</span>
+                    <input value={checkout.apartment} onChange={(e) => setCheckout({ ...checkout, apartment: e.target.value })} className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-black/30 px-3 text-sm outline-none focus:border-[#03A9F4]" placeholder="Enter your apartment, suite, unit etc." />
                   </label>
                   <label>
                     <span className="text-xs font-semibold text-white/60">Country *</span>
