@@ -199,3 +199,35 @@ export async function PATCH(
     );
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  try {
+    const profile = await getOwnedProfile(id, getUserId(request));
+
+    if (!profile) {
+      return NextResponse.json(
+        { data: null, error: { code: 'FORBIDDEN', message: 'Access denied' } },
+        { status: 403 }
+      );
+    }
+
+    await ensureProfileMessagesTable();
+
+    const messageId = request.nextUrl.searchParams.get('messageId');
+    const result = messageId
+      ? await db.profileMessage.deleteMany({ where: { id: messageId, profileId: id } })
+      : await db.profileMessage.deleteMany({ where: { profileId: id } });
+
+    return NextResponse.json({ data: { deleted: result.count }, error: null });
+  } catch (error) {
+    console.error('Delete profile messages failed', error);
+    return NextResponse.json(
+      { data: null, error: { code: 'SERVER_ERROR', message: 'Failed to delete messages. Please try again.' } },
+      { status: 500 }
+    );
+  }
+}

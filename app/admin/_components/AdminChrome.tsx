@@ -3,8 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { AppNotificationToast, type AppNotification } from "@/components/AppNotificationToast";
 
 const navItems = [
   { href: "/admin", icon: "ri-dashboard-line", label: "Overview" },
@@ -19,36 +20,97 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
   const pathname = usePathname();
   const router = useRouter();
   const [orderCount, setOrderCount] = useState(0);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const notificationIdRef = useRef(0);
+  const notificationTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>[]>>({});
 
   async function signOutAdmin() {
     await createClient().auth.signOut();
     router.push("/login");
   }
 
+  function showAppNotification(title: string, body: string, time = "now") {
+    const id = ++notificationIdRef.current;
+    const exitDelay = 420;
+
+    function clearNotificationTimers(notificationId: number) {
+      notificationTimersRef.current[notificationId]?.forEach(clearTimeout);
+      delete notificationTimersRef.current[notificationId];
+    }
+
+    setNotifications(current => {
+      const next: AppNotification = { id, title, body, time, visible: false };
+      const kept = current.slice(0, 1);
+      const fading = current.slice(1).map(item => ({ ...item, visible: false }));
+      fading.forEach(item => {
+        clearNotificationTimers(item.id);
+        const removeTimer = setTimeout(() => {
+          setNotifications(list => list.filter(notification => notification.id !== item.id));
+          clearNotificationTimers(item.id);
+        }, exitDelay);
+        notificationTimersRef.current[item.id] = [removeTimer];
+      });
+      return [next, ...kept, ...fading].slice(0, 3);
+    });
+
+    const enterTimer = setTimeout(() => {
+      setNotifications(current => current.map(item => item.id === id ? { ...item, visible: true } : item));
+    }, 40);
+    const dismissTimer = setTimeout(() => {
+      setNotifications(current => current.map(item => item.id === id ? { ...item, visible: false } : item));
+      const removeTimer = setTimeout(() => {
+        setNotifications(current => current.filter(item => item.id !== id));
+        clearNotificationTimers(id);
+      }, exitDelay);
+      notificationTimersRef.current[id] = [...(notificationTimersRef.current[id] ?? []), removeTimer];
+    }, 5200);
+
+    notificationTimersRef.current[id] = [enterTimer, dismissTimer];
+  }
+
   useEffect(() => {
     let alive = true;
     const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    async function checkOrders(initial = false) {
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
       const res = await fetch("/api/v1/admin/stats", {
         headers: { Authorization: `Bearer ${session.access_token}`, "x-user-id": session.user.id },
       });
       if (!res.ok) return;
       const json = await res.json();
-      if (alive) setOrderCount(Number(json.data?.totalOrders ?? 0));
-    });
+      const nextCount = Number(json.data?.totalOrders ?? 0);
+      if (!alive) return;
+      const previous = Number(localStorage.getItem("linkup:admin-orders") ?? nextCount);
+      const hasBaseline = localStorage.getItem("linkup:admin-orders") !== null;
+      localStorage.setItem("linkup:admin-orders", String(nextCount));
+      setOrderCount(nextCount);
+      if (!initial && hasBaseline && nextCount > previous) {
+        const added = nextCount - previous;
+        showAppNotification(
+          added === 1 ? "New shop order" : `${added} new shop orders`,
+          "A customer completed checkout. Open Orders to review fulfillment details.",
+          "now",
+        );
+      }
+    }
+
+    void checkOrders(true);
+    const timer = setInterval(() => void checkOrders(false), 30000);
     return () => {
       alive = false;
+      clearInterval(timer);
     };
   }, []);
 
   return (
     <div className="min-h-screen bg-[#0b0a0a] text-white" style={{ fontFamily: "Inter, sans-serif" }}>
+      <AppNotificationToast items={notifications} />
       <div className="fixed inset-0 pointer-events-none hero-grid opacity-50" />
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[220px] border-r border-white/5 bg-[#0f0f0f] lg:flex lg:flex-col">
         <div className="px-4 py-5">
           <Link href="/" className="inline-flex group" aria-label="LinkUp home">
-            <Image src="/img/logo.png" alt="LinkUp" width={36} height={36} className="group-hover:drop-shadow-[0_0_10px_#03A9F4] transition-all" />
+            <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={58} height={58} className="h-14 w-14 object-contain transition-all group-hover:drop-shadow-[0_0_14px_rgba(3,169,244,0.75)]" />
           </Link>
         </div>
 
@@ -89,7 +151,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
               <Link href="/" className="inline-flex shrink-0 group" aria-label="Back to website">
-                <Image src="/img/logo.png" alt="LinkUp" width={38} height={38} className="transition-all group-hover:drop-shadow-[0_0_10px_#03A9F4]" />
+                <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={42} height={42} className="h-10 w-10 object-contain transition-all group-hover:drop-shadow-[0_0_12px_rgba(3,169,244,0.7)] sm:h-11 sm:w-11" />
               </Link>
               <div className="min-w-0">
                 <h1 className="truncate text-base font-bold text-white sm:text-lg">{title}</h1>

@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import AnimatedCounter from "./AnimatedCounter";
 import ParticleBackground from "./ParticleBackground";
@@ -20,7 +21,6 @@ export default function HeroSection() {
 
       <div className="container mx-auto relative z-[3] flex justify-center items-center px-5 pt-24 sm:pt-28">
         <div className="text-center max-w-4xl mx-auto">
-          {/* Badge */}
           <div className="inline-flex max-w-full items-center justify-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-[#03A9F4]/30 bg-[#03A9F4]/10 text-[#03A9F4] text-[10px] sm:text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-widest mb-5 sm:mb-6 text-center">
             <span className="w-1.5 h-1.5 rounded-full bg-[#03A9F4] animate-pulse" />
             Smart NFC - Link in Bio Platform
@@ -54,7 +54,6 @@ export default function HeroSection() {
             </Link>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-3 gap-2.5 sm:flex sm:items-center sm:justify-center sm:gap-8">
             {stats.map((s, i) => (
               <div key={i} className="text-center">
@@ -66,7 +65,6 @@ export default function HeroSection() {
             ))}
           </div>
 
-          {/* Scroll hint */}
           <div className="mt-10 sm:mt-14 flex flex-col items-center gap-2 text-white/55 text-[10px] sm:text-xs uppercase tracking-widest motion-safe:animate-bounce">
             <i className="ri-arrow-down-line text-lg" />
             Scroll

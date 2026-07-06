@@ -87,9 +87,35 @@ export default function AdminPage() {
 
   return (
     <AdminChrome title="Owner Dashboard" subtitle="Revenue, customers, NFC usage, and moderation health in one fast view.">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="mb-4 overflow-hidden rounded-2xl border border-[#03A9F4]/18 bg-[#071722] p-4 shadow-[0_20px_70px_rgba(0,0,0,0.28)] sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8fdfff]/60">Live owner pulse</p>
+            <h2 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
+              <AnimatedNumber value={stats?.totalOrders ?? 0} /> orders tracked
+            </h2>
+            <p className="mt-1 text-sm text-white/48">
+              {money(stats?.totalRevenue ?? 0)} revenue with {activation}% NFC activation.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:min-w-[320px]">
+            {[
+              { label: "Ready", value: readyTags },
+              { label: "Live", value: liveTags },
+              { label: "Scans", value: stats?.totalAnalyticsToday ?? 0 },
+            ].map((item) => (
+              <div key={item.label} className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-center">
+                <p className="text-lg font-bold text-white"><AnimatedNumber value={item.value} /></p>
+                <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/38">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <MetricCard label="Revenue" value={stats?.totalRevenue ?? 0} formatter={money} icon="ri-money-dollar-circle-line" hint={`${stats?.totalOrders ?? 0} orders · avg ${money(stats?.averageOrderValue ?? 0)}`} />
-        <MetricCard label="NFC" value={stats?.totalTags ?? 0} icon="ri-nfc-line" hint={`${readyTags.toLocaleString()} ready · ${liveTags.toLocaleString()} in use`} />
+        <MetricCard label="NFC" value={stats?.totalTags ?? 0} icon="ri-qr-scan-2-line" hint={`${readyTags.toLocaleString()} ready · ${liveTags.toLocaleString()} in use`} />
         <MetricCard label="Customers" value={stats?.totalUsers ?? 0} icon="ri-user-3-line" hint={`${stats?.totalProfiles ?? 0} public profiles created`} />
         <MetricCard label="Scans Today" value={stats?.totalAnalyticsToday ?? 0} icon="ri-pulse-line" hint={`${stats?.openTickets ?? 0} open moderation reports`} />
       </div>
@@ -170,7 +196,7 @@ export default function AdminPage() {
           { href: "/admin/customers", icon: "ri-user-smile-line", label: "Customers", body: "Customer list and profile ownership." },
           { href: "/admin/products", icon: "ri-shopping-bag-3-line", label: "Products", body: "Product catalog and sections." },
           { href: "/admin/orders", icon: "ri-archive-stack-line", label: "Orders", body: "Incoming customer orders." },
-          { href: "/admin/tags", icon: "ri-nfc-line", label: "NFC", body: "Generate NFC codes and manage medal states.", image: "/img/logo.png" },
+          { href: "/admin/tags", icon: "ri-qr-scan-2-line", label: "NFC", body: "Generate NFC codes and manage medal states.", image: "/img/logo.png" },
         ].map((item) => (
           <Link key={item.href} href={item.href} className="group overflow-hidden rounded-xl border border-[#2c2c2c] bg-white/[0.03] transition-all hover:border-[#03A9F4]/50 hover:bg-[#03A9F4]/5">
             {"image" in item ? (

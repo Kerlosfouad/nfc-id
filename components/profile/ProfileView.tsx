@@ -776,17 +776,32 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
       <div className={`relative z-10 flex min-h-screen w-full max-w-[390px] flex-col items-center mx-auto px-7 ${isHero ? 'pt-7' : 'pt-16'} pb-8`}>
 
         {/* Avatar */}
-        <div className={isHero ? 'w-full rounded-[28px] border p-5 mb-5 text-center' : 'contents'} style={isHero ? {
-          backgroundColor: 'rgba(255,255,255,0.10)',
-          borderColor: 'rgba(255,255,255,0.16)',
-          backdropFilter: 'blur(14px)',
-          WebkitBackdropFilter: 'blur(14px)',
+        <div className={isHero ? 'relative mb-5 w-full overflow-hidden rounded-[34px] border px-5 pb-6 pt-[118px] text-center shadow-2xl' : 'contents'} style={isHero ? {
+          backgroundColor: 'rgba(3, 12, 20, 0.76)',
+          backgroundImage: coverUrl && !isVideoCover
+            ? `linear-gradient(180deg, rgba(3,12,20,0.12) 0%, rgba(3,12,20,0.48) 48%, rgba(3,12,20,0.94) 100%), radial-gradient(circle at 22% 12%, ${withAlpha(primaryColor, 0.38)}, transparent 36%), url(${coverUrl})`
+            : `linear-gradient(180deg, ${withAlpha(primaryColor, 0.32)} 0%, rgba(3,12,20,0.40) 44%, rgba(3,12,20,0.94) 100%), radial-gradient(circle at 76% 12%, rgba(255,255,255,0.16), transparent 24%)`,
+          backgroundPosition: 'center',
+          backgroundSize: 'cover',
+          borderColor: withAlpha(primaryColor, 0.26),
+          boxShadow: `0 28px 80px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.14), 0 0 42px ${withAlpha(primaryColor, 0.14)}`,
         } : undefined}>
+          {isHero && (
+            <>
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.13),transparent_34%,rgba(255,255,255,0.05)_100%)]" />
+              <div className="pointer-events-none absolute left-5 right-5 top-5 flex items-center justify-between">
+                <span className="h-1.5 w-12 rounded-full bg-white/45" />
+                <span className="h-8 w-8 rounded-full border border-white/20 bg-black/20 backdrop-blur-md" />
+              </div>
+            </>
+          )}
           <div
-            className={`${isHero ? 'w-[112px] h-[112px]' : 'w-[126px] h-[126px]'} rounded-full p-[3px] mb-4 mx-auto`}
+            className={`${isHero ? 'relative z-10 w-[108px] h-[108px]' : 'w-[126px] h-[126px]'} rounded-full p-[3px] mb-4 mx-auto`}
             style={{
               background: isMotorsport ? `linear-gradient(135deg, ${motorsport.white} 0%, ${motorsport.cyan} 34%, ${motorsport.navy} 58%, ${motorsport.red} 100%)` : isRoyal ? `linear-gradient(135deg, ${royal.pearl} 0%, ${royal.gold} 32%, ${royal.cyan} 66%, ${royal.blue} 100%)` : isNeon ? `linear-gradient(135deg, ${neon.smoke} 0%, ${neon.red} 56%, ${neon.ink} 100%)` : isCosmic ? `linear-gradient(135deg, ${cosmic.violet} 0%, ${cosmic.magenta} 46%, ${cosmic.blue} 76%, ${cosmic.gold} 100%)` : isElectric ? `linear-gradient(135deg, ${electric.ink} 0%, ${electric.blue} 50%, ${electric.line} 100%)` : isLava ? `linear-gradient(135deg, ${lava.ink} 0%, ${lava.stone} 32%, ${lava.ember} 68%, ${lava.line} 100%)` : `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
-              boxShadow: isMotorsport ? `0 0 34px ${withAlpha(motorsport.cyan, 0.42)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.28)}` : isRoyal ? `0 0 34px ${withAlpha(royal.gold, 0.36)}, 0 0 0 1px ${withAlpha(royal.pearl, 0.26)}` : isNeon ? `0 0 34px ${withAlpha(neon.red, 0.38)}, 0 0 0 1px ${withAlpha(neon.glow, 0.24)}` : isCosmic ? `0 0 34px ${withAlpha(cosmic.magenta, 0.36)}, 0 0 0 1px ${withAlpha(cosmic.blue, 0.24)}` : isElectric ? `0 0 34px ${withAlpha(electric.blue, 0.38)}, 0 0 0 1px ${withAlpha(electric.line, 0.24)}` : isLava ? `0 0 34px ${withAlpha(lava.ember, 0.40)}, 0 0 0 1px ${withAlpha(lava.line, 0.24)}` : `0 0 32px ${primaryColor}60`,
+              boxShadow: isHero
+                ? `0 18px 42px rgba(0,0,0,0.45), 0 0 0 8px rgba(255,255,255,0.08), 0 0 34px ${withAlpha(primaryColor, 0.42)}`
+                : isMotorsport ? `0 0 34px ${withAlpha(motorsport.cyan, 0.42)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.28)}` : isRoyal ? `0 0 34px ${withAlpha(royal.gold, 0.36)}, 0 0 0 1px ${withAlpha(royal.pearl, 0.26)}` : isNeon ? `0 0 34px ${withAlpha(neon.red, 0.38)}, 0 0 0 1px ${withAlpha(neon.glow, 0.24)}` : isCosmic ? `0 0 34px ${withAlpha(cosmic.magenta, 0.36)}, 0 0 0 1px ${withAlpha(cosmic.blue, 0.24)}` : isElectric ? `0 0 34px ${withAlpha(electric.blue, 0.38)}, 0 0 0 1px ${withAlpha(electric.line, 0.24)}` : isLava ? `0 0 34px ${withAlpha(lava.ember, 0.40)}, 0 0 0 1px ${withAlpha(lava.line, 0.24)}` : `0 0 32px ${primaryColor}60`,
             }}
           >
             <div
@@ -807,16 +822,16 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
           </div>
 
           {/* Name & Bio */}
-          <h1 className="text-[26px] leading-tight font-bold text-center mb-1 flex items-center justify-center gap-2 text-white" style={FORCE_WHITE_TEXT}>
+          <h1 className={`${isHero ? 'relative z-10 text-[28px]' : 'text-[26px]'} leading-tight font-bold text-center mb-1 flex items-center justify-center gap-2 text-white`} style={FORCE_WHITE_TEXT}>
             {profile.displayName}
             {hasActiveVerification(profile) && <VerifiedBadge />}
           </h1>
           {profile.bio && (
-            <p className="text-sm text-center mb-1 leading-relaxed" style={{ color: themeVars.textSecondary }}>
+            <p className={`${isHero ? 'relative z-10 mx-auto max-w-[260px]' : ''} text-sm text-center mb-1 leading-relaxed`} style={{ color: isHero ? 'rgba(255,255,255,0.76)' : themeVars.textSecondary }}>
               {profile.bio}
             </p>
           )}
-          <p className={`text-xs font-semibold tracking-widest uppercase ${isHero ? '' : 'mb-6'}`} style={{ color: isMotorsport ? motorsport.cyan : isRoyal ? royal.gold : isNeon ? neon.glow : isCosmic ? cosmic.magenta : isElectric ? electric.glow : isLava ? lava.line : primaryColor }}>
+          <p className={`${isHero ? 'relative z-10 mt-3 inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 backdrop-blur-md' : 'mb-6'} text-xs font-semibold tracking-widest uppercase`} style={{ color: isMotorsport ? motorsport.cyan : isRoyal ? royal.gold : isNeon ? neon.glow : isCosmic ? cosmic.magenta : isElectric ? electric.glow : isLava ? lava.line : primaryColor }}>
             LinkUp
           </p>
         </div>

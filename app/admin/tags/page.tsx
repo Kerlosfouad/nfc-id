@@ -38,13 +38,8 @@ export default function AdminTagsPage() {
   const [tags, setTags] = useState<TagRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pendingStates, setPendingStates] = useState<Record<string, TagState>>({});
   const [saving, setSaving] = useState<Record<string, boolean>>({});
-  const [generateQuantity, setGenerateQuantity] = useState("1");
-  const [generating, setGenerating] = useState(false);
-  const [generatedIds, setGeneratedIds] = useState<string[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [usedIds, setUsedIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   function showToast(message: string, type: "success" | "error" = "success") {
@@ -52,14 +47,15 @@ export default function AdminTagsPage() {
     setTimeout(() => setToast(null), 3000);
   }
 
-  const searchTags = useCallback(async () => {
+  const searchTags = useCallback(async (stateOverride?: TagState | "") => {
     if (!authToken) return;
     setLoading(true);
     setError(null);
     try {
       const params = new URLSearchParams();
       if (filterPublicId) params.set("publicId", filterPublicId);
-      if (filterState) params.set("state", filterState);
+      const nextState = stateOverride ?? filterState;
+      if (nextState) params.set("state", nextState);
       if (filterOwnerId) params.set("ownerId", filterOwnerId);
 
       const res = await fetch(`/api/v1/admin/tags?${params.toString()}`, {
@@ -101,8 +97,8 @@ export default function AdminTagsPage() {
   }, [router]);
 
   async function updateTagState(publicId: string) {
-    const newState = pendingStates[publicId];
-    if (!newState || !authToken) return;
+    if (!authToken) return;
+    const newState: TagState = "SUSPENDED";
     setSaving((s) => ({ ...s, [publicId]: true }));
     try {
       const res = await fetch(`/api/v1/admin/tags/${publicId}`, {
@@ -119,48 +115,11 @@ export default function AdminTagsPage() {
         throw new Error(json.error?.message ?? "Update failed");
       }
       setTags((prev) => prev.map((tag) => (tag.publicId === publicId ? { ...tag, state: newState } : tag)));
-      setPendingStates((current) => {
-        const next = { ...current };
-        delete next[publicId];
-        return next;
-      });
-      showToast(`Tag ${publicId} updated to ${newState}`);
+      showToast(`NFC ${publicId} is now inactive`);
     } catch (e: unknown) {
       showToast(e instanceof Error ? e.message : "Update failed", "error");
     } finally {
       setSaving((s) => ({ ...s, [publicId]: false }));
-    }
-  }
-
-  async function generateTags() {
-    if (!authToken) return;
-    const quantity = Math.max(1, Math.min(10000, Number(generateQuantity) || 1));
-    setGenerating(true);
-    try {
-      const res = await fetch("/api/v1/admin/tags/batch", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-          "x-user-id": userId ?? "",
-        },
-        body: JSON.stringify({ quantity }),
-      });
-      if (!res.ok) {
-        const json = await res.json().catch(() => null);
-        throw new Error(json?.error?.message ?? "Generate failed");
-      }
-      const csv = await res.text();
-      const ids = csv.split(/\r?\n/).slice(1).map((id) => id.trim()).filter(Boolean);
-      setGeneratedIds(ids);
-      setUsedIds(new Set());
-      setGenerateQuantity(String(quantity));
-      showToast(`Generated ${ids.length} NFC code${ids.length === 1 ? "" : "s"}`);
-      await searchTags();
-    } catch (e: unknown) {
-      showToast(e instanceof Error ? e.message : "Generate failed", "error");
-    } finally {
-      setGenerating(false);
     }
   }
 
@@ -171,28 +130,27 @@ export default function AdminTagsPage() {
     setTimeout(() => setCopiedId(null), 1600);
   }
 
-  async function markGeneratedUsed(publicId: string) {
+  async function deleteTag(publicId: string) {
     if (!authToken) return;
+    const ok = window.confirm(`Delete NFC ${publicId}? This will also delete the linked profile if it exists.`);
+    if (!ok) return;
     setSaving((s) => ({ ...s, [publicId]: true }));
     try {
       const res = await fetch(`/api/v1/admin/tags/${publicId}`, {
-        method: "PATCH",
+        method: "DELETE",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
           "x-user-id": userId ?? "",
         },
-        body: JSON.stringify({ state: "SOLD" }),
       });
       if (!res.ok) {
         const json = await res.json();
-        throw new Error(json.error?.message ?? "Update failed");
+        throw new Error(json.error?.message ?? "Delete failed");
       }
-      setTags((prev) => prev.map((tag) => (tag.publicId === publicId ? { ...tag, state: "SOLD" } : tag)));
-      setUsedIds((prev) => new Set(prev).add(publicId));
-      showToast(`Code ${publicId} marked as used`);
+      setTags((prev) => prev.filter((tag) => tag.publicId !== publicId));
+      showToast(`NFC ${publicId} and linked profile deleted`);
     } catch (e: unknown) {
-      showToast(e instanceof Error ? e.message : "Update failed", "error");
+      showToast(e instanceof Error ? e.message : "Delete failed", "error");
     } finally {
       setSaving((s) => ({ ...s, [publicId]: false }));
     }
@@ -203,7 +161,7 @@ export default function AdminTagsPage() {
   }
 
   return (
-    <AdminChrome title="NFC" subtitle="Create medal links and mark printed codes as used.">
+    <AdminChrome title="NFC" subtitle="Review linked medals, control status, and remove retired profiles.">
       {toast && (
         <div className={`fixed right-4 top-4 z-50 rounded-lg border px-4 py-3 text-sm ${
           toast.type === "success" ? "border-green-500/40 bg-green-500/10 text-green-300" : "border-red-500/40 bg-red-500/10 text-red-300"
@@ -212,75 +170,29 @@ export default function AdminTagsPage() {
         </div>
       )}
 
-      <Panel title="NFC">
+      <Panel title="NFC Medals">
         <div className="mb-5 flex items-center gap-4 rounded-xl border border-[#03A9F4]/20 bg-[#03A9F4]/10 p-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[#03A9F4]/25 bg-black/25 text-[#03A9F4]">
             <i className="ri-qr-scan-2-line text-3xl" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-base font-bold text-white">NFC medal codes</h2>
-            <p className="mt-1 text-sm text-white/55">Generate scan links, copy public codes, and manage only tags stored in the database.</p>
+            <h2 className="text-base font-bold text-white">Existing NFC medals</h2>
+            <p className="mt-1 text-sm text-white/55">View saved medal codes, copy scan links, make medals inactive, or delete retired medals and their linked profiles.</p>
           </div>
         </div>
-        <div className="grid gap-3 md:grid-cols-[180px_1fr]">
-          <div>
-            <label className="mb-2 block text-xs uppercase tracking-widest text-white/35">Quantity</label>
-            <input
-              type="number"
-              min={1}
-              max={10000}
-              value={generateQuantity}
-              onChange={(e) => setGenerateQuantity(e.target.value.replace(/[^\d]/g, ""))}
-              onBlur={() => setGenerateQuantity((value) => String(Math.max(1, Math.min(10000, Number(value) || 1))))}
-              className="custom-input"
-            />
-          </div>
-          <div className="flex items-end">
-            <button onClick={generateTags} disabled={generating} className="boton-elegante boton-tow w-full md:w-auto">
-              {generating ? "Generating..." : "Generate NFC"}
+        <div className="grid gap-3 sm:grid-cols-3">
+          {TAG_STATES.map((state) => (
+            <button
+              key={state}
+              type="button"
+              onClick={() => { setFilterState(state); void searchTags(state); }}
+              className={`rounded-xl border px-3 py-3 text-left transition ${filterState === state ? "border-[#03A9F4]/60 bg-[#03A9F4]/15" : "border-white/10 bg-white/[0.03] hover:border-white/20"}`}
+            >
+              <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${STATE_COLORS[state]}`}>{state}</span>
+              <p className="mt-2 text-xs text-white/42">Filter medals</p>
             </button>
-          </div>
+          ))}
         </div>
-
-        {generatedIds.length > 0 && (
-          <div className="mt-5 space-y-2">
-            {generatedIds.map((publicId) => {
-              const link = typeof window !== "undefined" ? `${window.location.origin}/${publicId}` : `/${publicId}`;
-              const used = usedIds.has(publicId);
-              return (
-                <div key={publicId} className="flex flex-col gap-3 rounded-xl border border-white/10 bg-black/25 px-4 py-3 sm:flex-row sm:items-center">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-mono text-sm font-semibold text-white">{publicId}</p>
-                    <p className="mt-1 truncate font-mono text-xs text-[#03A9F4]">{link}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => copyNfcLink(publicId)}
-                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/65 transition-colors hover:text-white"
-                      title="Copy link"
-                    >
-                      <i className={copiedId === publicId ? "ri-check-line text-green-300" : "ri-file-copy-line"} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => markGeneratedUsed(publicId)}
-                      disabled={saving[publicId] || used}
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-colors ${
-                        used
-                          ? "border-green-400/30 bg-green-400/15 text-green-300"
-                          : "border-white/10 bg-white/[0.04] text-white/65 hover:text-green-300"
-                      } disabled:opacity-70`}
-                      title="Mark as used"
-                    >
-                      <i className={saving[publicId] ? "ri-loader-4-line animate-spin" : "ri-check-double-line"} />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </Panel>
 
       <div className="mt-6">
@@ -292,7 +204,7 @@ export default function AdminTagsPage() {
             {TAG_STATES.map((state) => <option key={state} value={state}>{state}</option>)}
           </select>
           <input value={filterOwnerId} onChange={(e) => setFilterOwnerId(e.target.value)} placeholder="Owner ID" className="custom-input" />
-          <button onClick={searchTags} disabled={loading} className="boton-elegante boton-tow">
+          <button onClick={() => void searchTags()} disabled={loading} className="boton-elegante boton-tow">
             {loading ? "Searching..." : "Search"}
           </button>
         </div>
@@ -314,7 +226,7 @@ export default function AdminTagsPage() {
                     <th className="py-3 font-medium">State</th>
                     <th className="py-3 font-medium">Owner ID</th>
                     <th className="py-3 font-medium">Created</th>
-                    <th className="py-3 font-medium">Update</th>
+                    <th className="py-3 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -328,19 +240,27 @@ export default function AdminTagsPage() {
                       <td className="py-4 text-white/40">{new Date(tag.createdAt).toLocaleDateString()}</td>
                       <td className="py-4">
                         <div className="flex items-center gap-2">
-                          <select
-                            value={pendingStates[tag.publicId] ?? tag.state}
-                            onChange={(e) => setPendingStates((current) => ({ ...current, [tag.publicId]: e.target.value as TagState }))}
-                            className="rounded-lg border border-white/10 bg-black px-2 py-2 text-xs text-white"
+                          <button
+                            type="button"
+                            onClick={() => copyNfcLink(tag.publicId)}
+                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white/60 transition hover:text-white"
+                            title="Copy scan link"
                           >
-                            {TAG_STATES.map((state) => <option key={state} value={state}>{state}</option>)}
-                          </select>
+                            <i className={copiedId === tag.publicId ? "ri-check-line text-green-300" : "ri-file-copy-line"} />
+                          </button>
                           <button
                             onClick={() => updateTagState(tag.publicId)}
-                            disabled={saving[tag.publicId] || !pendingStates[tag.publicId] || pendingStates[tag.publicId] === tag.state}
-                            className="rounded-lg bg-white/10 px-3 py-2 text-xs text-white transition-colors hover:bg-white/20 disabled:opacity-30"
+                            disabled={saving[tag.publicId] || tag.state === "SUSPENDED"}
+                            className="rounded-lg border border-amber-300/20 bg-amber-300/10 px-3 py-2 text-xs font-semibold text-amber-200 transition hover:bg-amber-300/15 disabled:opacity-35"
                           >
-                            {saving[tag.publicId] ? "Saving..." : "Save"}
+                            {saving[tag.publicId] ? "Saving..." : "Inactive"}
+                          </button>
+                          <button
+                            onClick={() => deleteTag(tag.publicId)}
+                            disabled={saving[tag.publicId]}
+                            className="rounded-lg border border-red-300/20 bg-red-400/10 px-3 py-2 text-xs font-semibold text-red-200 transition hover:bg-red-400/15 disabled:opacity-35"
+                          >
+                            Delete
                           </button>
                         </div>
                       </td>

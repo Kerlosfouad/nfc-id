@@ -1,6 +1,6 @@
 "use client";
 export const dynamic = 'force-dynamic';
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { isOwnerEmail } from "@/lib/config/ownerAccess";
@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ProfileView from "@/components/profile/ProfileView";
 import AnimatedCounter from "@/components/AnimatedCounter";
+import { AppNotificationToast, type AppNotification } from "@/components/AppNotificationToast";
 import type { Link as PublicLink, Profile as PublicProfile, ProfileTheme as PublicProfileTheme } from "@/lib/domain/types";
 
 interface LinkItem { id: string; type: string; title: string; url: string; displayOrder: number; activeFrom: string | null; activeTo: string | null; thumbnailUrl: string | null; isActive?: boolean; }
@@ -1072,9 +1073,11 @@ function MiniBarChart({ data }: { data: { date: string; views: number; clicks: n
   const viewsPoints = data.map((d, i) => ({ x: xFor(i), y: yFor(d.views), value: d.views, date: d.date }));
   const clicksPoints = data.map((d, i) => ({ x: xFor(i), y: yFor(d.clicks), value: d.clicks, date: d.date }));
   const pathFor = (points: typeof viewsPoints) => points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ");
+  const areaFor = (points: typeof viewsPoints) => `${pathFor(points)} L ${points[points.length - 1]?.x.toFixed(2) ?? padX} ${padTop + innerH} L ${points[0]?.x.toFixed(2) ?? padX} ${padTop + innerH} Z`;
   const labelEvery = data.length > 20 ? 5 : data.length > 14 ? 3 : data.length > 7 ? 2 : 1;
   const active = data[activeIndex] ?? data[data.length - 1];
   const activePoint = clicksPoints[activeIndex] ?? clicksPoints[clicksPoints.length - 1];
+  const activeViewsPoint = viewsPoints[activeIndex] ?? viewsPoints[viewsPoints.length - 1];
   const tooltipLeft = activePoint ? Math.min(Math.max((activePoint.x / chartW) * 100, 18), 82) : 50;
 
   useEffect(() => {
@@ -1103,30 +1106,47 @@ function MiniBarChart({ data }: { data: { date: string; views: number; clicks: n
     <div ref={chartRef} className="relative h-full w-full overflow-visible px-1 pt-14">
       {active && (
         <div
-          className="absolute top-1 z-10 w-[124px] -translate-x-1/2 rounded-xl border border-white/10 bg-black/85 px-3 py-2 text-xs shadow-xl"
+          className="absolute top-1 z-10 w-[138px] -translate-x-1/2 rounded-2xl border border-[#03A9F4]/30 bg-[#071520]/95 px-3 py-2 text-xs shadow-xl shadow-[#03A9F4]/10 backdrop-blur"
           style={{ left: `${tooltipLeft}%` }}
         >
           <p className="mb-1 font-semibold text-white">{active.date}</p>
-          <p className="flex items-center gap-2 text-white/60"><span className="h-2 w-2 rounded-sm bg-[#2f6be6]" /> Views <b className="ml-auto text-white">{active.views}</b></p>
-          <p className="flex items-center gap-2 text-white/60"><span className="h-2 w-2 rounded-sm bg-[#35c19a]" /> Clicks <b className="ml-auto text-white">{active.clicks}</b></p>
+          <p className="flex items-center gap-2 text-white/60"><span className="h-2 w-2 rounded-sm bg-[#03A9F4]" /> Views <b className="ml-auto text-white">{active.views}</b></p>
+          <p className="flex items-center gap-2 text-white/60"><span className="h-2 w-2 rounded-sm bg-[#8fdfff]" /> Clicks <b className="ml-auto text-white">{active.clicks}</b></p>
         </div>
       )}
       <svg viewBox={`0 0 ${chartW} ${chartH}`} className="h-full w-full overflow-visible">
+        <defs>
+          <linearGradient id="audienceViewsFill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#03A9F4" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="#03A9F4" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="audienceClicksFill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#8fdfff" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#8fdfff" stopOpacity="0" />
+          </linearGradient>
+        </defs>
         {[0.25, 0.5, 0.75, 1].map(level => (
-          <line key={level} x1={padX} x2={chartW - padX} y1={padTop + innerH * level} y2={padTop + innerH * level} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+          <line key={level} x1={padX} x2={chartW - padX} y1={padTop + innerH * level} y2={padTop + innerH * level} stroke="rgba(3,169,244,0.12)" strokeWidth="1" />
         ))}
-        <path d={pathFor(viewsPoints)} fill="none" stroke="#2f6be6" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"
+        <path d={areaFor(viewsPoints)} fill="url(#audienceViewsFill)" className="transition-opacity duration-700" opacity={ready ? 1 : 0} />
+        <path d={areaFor(clicksPoints)} fill="url(#audienceClicksFill)" className="transition-opacity duration-700 delay-100" opacity={ready ? 1 : 0} />
+        {activePoint && (
+          <line x1={activePoint.x} x2={activePoint.x} y1={padTop - 6} y2={padTop + innerH + 8} stroke="rgba(255,255,255,0.22)" strokeDasharray="4 5" strokeWidth="1" />
+        )}
+        <path d={pathFor(viewsPoints)} fill="none" stroke="#03A9F4" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round"
           pathLength={1} className="transition-all duration-700 ease-out" style={{ strokeDasharray: 1, strokeDashoffset: ready ? 0 : 1 }} />
-        <path d={pathFor(clicksPoints)} fill="none" stroke="#35c19a" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"
+        <path d={pathFor(clicksPoints)} fill="none" stroke="#8fdfff" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round"
           pathLength={1} className="transition-all duration-700 ease-out delay-100" style={{ strokeDasharray: 1, strokeDashoffset: ready ? 0 : 1 }} />
+        {activeViewsPoint && <circle cx={activeViewsPoint.x} cy={activeViewsPoint.y} r="6" fill="#03A9F4" stroke="#dff6ff" strokeWidth="2" />}
+        {activePoint && <circle cx={activePoint.x} cy={activePoint.y} r="6" fill="#8fdfff" stroke="#062033" strokeWidth="2" />}
         {data.map((d, i) => {
           const x = xFor(i);
           const selected = i === activeIndex;
           return (
             <g key={i}>
-              <rect x={x - 6} y={padTop - 8} width="12" height={innerH + 16} fill="transparent" className="cursor-pointer" onClick={() => setActiveIndex(i)} />
-              <circle cx={x} cy={yFor(d.views)} r={selected ? 4 : 0} fill="#2f6be6" className="transition-all" />
-              <circle cx={x} cy={yFor(d.clicks)} r={selected ? 4 : 0} fill="#35c19a" className="transition-all" />
+              <rect x={x - 8} y={padTop - 8} width="16" height={innerH + 16} fill="transparent" className="cursor-pointer" onMouseEnter={() => setActiveIndex(i)} onClick={() => setActiveIndex(i)} />
+              <circle cx={x} cy={yFor(d.views)} r={selected ? 0 : 2.2} fill="#03A9F4" opacity={ready ? 0.7 : 0} className="transition-all" />
+              <circle cx={x} cy={yFor(d.clicks)} r={selected ? 0 : 2.2} fill="#8fdfff" opacity={ready ? 0.65 : 0} className="transition-all" />
               {(i % labelEvery === 0 || i === data.length - 1) && (
                 <text x={x} y={chartH - 8} textAnchor="middle" className="fill-white/30 text-[10px]">{d.date}</text>
               )}
@@ -1140,9 +1160,10 @@ function MiniBarChart({ data }: { data: { date: string; views: number; clicks: n
 
 function DonutChart({ data }: { data: { title: string; clicks: number; fill: string }[] }) {
   const [drawn, setDrawn] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
   const chartRef = useRef<HTMLDivElement>(null);
   const total = data.reduce((s, d) => s + d.clicks, 0);
-  const donutColors = ['#03A9F4', '#8A2BE2', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#6366f1'];
+  const donutColors = ['#03A9F4', '#27bfff', '#55ccff', '#82d9ff', '#ace6ff', '#d5f2ff', '#eefaff'];
 
   useEffect(() => {
     setDrawn(false);
@@ -1174,25 +1195,38 @@ function DonutChart({ data }: { data: { title: string; clicks: number; fill: str
     cumulative += pct;
     return { ...d, fill: donutColors[i % donutColors.length], start, pct };
   });
+  const activeSegment = segments[activeIndex] ?? segments[0];
   const r = 60, cx = 80, cy = 80, stroke = 22;
   const circ = 2 * Math.PI * r;
   return (
-    <div ref={chartRef} className="flex flex-col sm:flex-row items-center gap-4 w-full h-full">
-      <svg viewBox="0 0 160 160" className="w-32 h-32 sm:w-40 sm:h-40 flex-shrink-0 -rotate-90">
+    <div ref={chartRef} className="flex w-full flex-col items-center gap-5 sm:flex-row">
+      <div className="relative">
+        <svg viewBox="0 0 160 160" className="h-40 w-40 flex-shrink-0 -rotate-90 drop-shadow-[0_0_22px_rgba(3,169,244,0.16)]">
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(3,169,244,0.08)" strokeWidth={stroke} />
         {segments.map((s, i) => (
           <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={s.fill}
-            strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${drawn ? s.pct * circ : 0} ${circ}`}
-            strokeDashoffset={-s.start * circ} className="transition-all duration-700 ease-out" />
+            strokeWidth={i === activeIndex ? stroke + 4 : stroke} strokeLinecap="round" strokeDasharray={`${drawn ? s.pct * circ : 0} ${circ}`}
+            strokeDashoffset={-s.start * circ} className="cursor-pointer transition-all duration-500 ease-out"
+            opacity={i === activeIndex ? 1 : 0.58}
+            onMouseEnter={() => setActiveIndex(i)} onClick={() => setActiveIndex(i)} />
         ))}
-        <circle cx={cx} cy={cy} r={r - stroke / 2 - 2} fill="#1a1a1a" />
-      </svg>
-      <div className="flex flex-col gap-1.5 flex-1 w-full">
+          <circle cx={cx} cy={cy} r={r - stroke / 2 - 2} fill="#102235" />
+        </svg>
+        {activeSegment && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+            <span className="text-2xl font-semibold leading-none text-white">{Math.round(activeSegment.pct * 100)}%</span>
+            <span className="mt-1 max-w-[88px] truncate text-[11px] font-semibold text-[#8fdfff]">{activeSegment.title}</span>
+          </div>
+        )}
+      </div>
+      <div className="flex w-full flex-1 flex-col gap-2">
         {segments.map((s, i) => (
-          <div key={i} className="flex items-center gap-2">
+          <button key={i} type="button" onMouseEnter={() => setActiveIndex(i)} onClick={() => setActiveIndex(i)}
+            className={`flex items-center gap-2 rounded-2xl border px-3 py-2 text-left transition-all ${i === activeIndex ? "border-[#03A9F4]/40 bg-[#03A9F4]/10" : "border-white/0 hover:border-white/10 hover:bg-white/[0.03]"}`}>
             <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.fill }} />
             <span className="text-xs text-white/60 truncate flex-1">{s.title}</span>
             <span className="text-xs font-bold text-white">{s.clicks}</span>
-          </div>
+          </button>
         ))}
       </div>
     </div>
@@ -1242,48 +1276,84 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
   }
 
   const stats = [
-    { label: "Views", value: data?.totalViews ?? 0, suffix: "", icon: "ri-eye-line", badge: null },
-    { label: "Link Clicks", value: data?.totalLinkClicks ?? 0, suffix: "", icon: "ri-cursor-line", badge: "New" },
-    { label: "Click Rate", value: data?.linkClickRate ?? 0, suffix: "%", icon: "ri-percent-line", badge: "New" },
-    { label: "Contact Saves", value: data?.contactSaves ?? 0, suffix: "", icon: "ri-file-user-line", badge: "New" },
+    { label: "Views", value: data?.totalViews ?? 0, suffix: "", icon: "ri-eye-line", hint: "Profile visits" },
+    { label: "Clicks", value: data?.totalLinkClicks ?? 0, suffix: "", icon: "ri-cursor-line", hint: "Link taps" },
+    { label: "Click Rate", value: data?.linkClickRate ?? 0, suffix: "%", icon: "ri-percent-line", hint: "Views to action" },
+    { label: "Saves", value: data?.contactSaves ?? 0, suffix: "", icon: "ri-file-user-line", hint: "Contact exports" },
   ];
+  const topLink = data?.linkClickDetails?.slice().sort((a, b) => b.clicks - a.clicks)[0];
+  const lastScan = data?.recentScans?.[0];
+  const totalActions = (data?.totalLinkClicks ?? 0) + (data?.contactSaves ?? 0);
+  const hasActivity = !!data && (data.totalViews > 0 || data.totalLinkClicks > 0 || data.contactSaves > 0);
 
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-center gap-2">
-        <div className="min-w-0 flex-1 rounded-full border border-white/10 bg-[#111] p-1">
-          <div className="grid grid-cols-3 gap-1">
-            {([7, 14, 30] as const).map(r => (
-              <button key={r} onClick={() => setRange(r)}
-                className={`rounded-full px-2 py-2 text-xs font-bold transition-all ${range === r ? "bg-white text-black" : "text-white/40 hover:text-white"}`}>
-                {r === 7 ? "Last 7 days" : r === 14 ? "14 days" : "30 days"}
-              </button>
-            ))}
+      <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#101113] p-5 shadow-2xl shadow-black/30 sm:p-6">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(3,169,244,0.22),transparent_34%),radial-gradient(circle_at_92%_18%,rgba(53,193,154,0.14),transparent_28%)]" />
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.24em] text-[#03A9F4]">Audience pulse</p>
+            <h2 className="text-3xl font-semibold leading-none tracking-normal text-white sm:text-4xl">Understand who is tapping in.</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/55">
+              Live profile views, link intent, contact saves, and the moments your NFC profile turns attention into action.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1 rounded-full border border-white/10 bg-black/35 p-1 backdrop-blur lg:w-[310px]">
+              <div className="grid grid-cols-3 gap-1">
+                {([7, 14, 30] as const).map(r => (
+                  <button key={r} onClick={() => setRange(r)}
+                    className={`rounded-full px-2 py-2 text-xs font-bold transition-all ${range === r ? "bg-white text-black shadow-lg shadow-white/10" : "text-white/45 hover:bg-white/5 hover:text-white"}`}>
+                    {r === 7 ? "7 days" : r === 14 ? "14 days" : "30 days"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button onClick={refresh}
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform hover:scale-105 active:scale-95"
+              aria-label="Refresh audience analytics">
+              <i className={`ri-refresh-line text-xl ${loading ? "animate-spin" : ""}`} />
+            </button>
           </div>
         </div>
-        <button onClick={refresh}
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-black shadow-lg transition-transform active:scale-95">
-          <i className={`ri-refresh-line text-xl ${loading ? "animate-spin" : ""}`} />
-        </button>
+
+        <div className="relative mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Best link</p>
+            <p className="mt-2 truncate text-lg font-semibold text-white">{topLink?.title ?? "No winner yet"}</p>
+            <p className="mt-1 text-sm text-white/45">{topLink ? `${topLink.clicks} clicks` : "Clicks will rank here"}</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Actions</p>
+            <p className="mt-2 text-lg font-semibold text-white">{loading ? "Loading" : totalActions}</p>
+            <p className="mt-1 text-sm text-white/45">Clicks plus contact saves</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Last scan</p>
+            <p className="mt-2 truncate text-lg font-semibold text-white">{lastScan ? new Date(lastScan.date).toLocaleDateString() : "Waiting"}</p>
+            <p className="mt-1 text-sm text-white/45">{lastScan ? [lastScan.country, lastScan.os].filter(Boolean).join(" / ") || "Unknown source" : "New taps appear here"}</p>
+          </div>
+        </div>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map((s, i) => (
-          <div key={i} className="relative min-h-[128px] overflow-hidden rounded-3xl border border-white/10 bg-[#111] p-4">
-            {s.badge && (
-              <span className="absolute right-3 top-3 rounded-full border border-[#03A9F4]/35 bg-[#03A9F4]/15 px-2.5 py-1 text-[11px] font-bold text-[#03A9F4]">{s.badge}</span>
-            )}
-            <div className="mb-5 flex items-center gap-2.5 pr-12">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.07]">
-                <i className={`${s.icon} text-lg text-white`} />
+          <div key={i} className="group relative min-h-[150px] overflow-hidden rounded-[28px] border border-[#03A9F4]/35 bg-[#071116] p-4 shadow-[0_0_26px_rgba(3,169,244,0.10)] transition duration-500 hover:-translate-y-1 hover:border-[#03A9F4]/70 hover:shadow-[0_0_34px_rgba(3,169,244,0.18)]">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(3,169,244,0.30),transparent_34%),linear-gradient(135deg,rgba(3,169,244,0.12),rgba(3,169,244,0.025)_52%,rgba(141,235,255,0.08))] opacity-95 transition duration-500 group-hover:opacity-100" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[#8DEBFF]/70" />
+            <div className="relative mb-7 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <span className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8DEBFF]/75">{s.hint}</span>
+                <span className="mt-1 block text-sm font-semibold text-white/85">{s.label}</span>
               </div>
-              <span className="min-w-0 text-[13px] font-semibold leading-tight text-white/85">{s.label}</span>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#8DEBFF]/15 bg-[#03A9F4]/12 text-[#DFFAFF] shadow-[0_0_18px_rgba(3,169,244,0.18)] transition duration-500 group-hover:scale-105 group-hover:bg-[#03A9F4]/20">
+                <i className={`${s.icon} text-xl`} />
+              </div>
             </div>
             {loading
-              ? <div className="h-10 w-20 animate-pulse rounded-xl bg-white/5" />
-              : <p className="text-[30px] font-semibold leading-none tracking-normal text-[#03A9F4] sm:text-[34px]">
+              ? <div className="h-10 w-20 animate-pulse rounded-xl bg-[#03A9F4]/10" />
+              : <p className="relative text-[34px] font-semibold leading-none tracking-normal text-white sm:text-[38px]">
                   <AnimatedCounter key={`${profile.id}-${range}-${s.label}-${s.value}`} value={s.value} suffix={s.suffix} duration={950} />
                 </p>
             }
@@ -1291,24 +1361,30 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
         ))}
       </div>
 
-      <div className="rounded-[28px] border border-white/10 bg-[#111] p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-bold">Activity</h3>
+      <div className="rounded-[30px] border border-white/10 bg-[#111] p-5 shadow-2xl shadow-black/20">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-xl font-bold">Activity rhythm</h3>
+            <p className="mt-1 text-sm text-white/40">{hasActivity ? "Views and clicks across the selected window." : "Share your profile to start building a signal."}</p>
+          </div>
           <div className="flex items-center gap-3 text-xs text-white/45">
-            <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-[#2f6be6]" />Views</span>
-            <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-[#35c19a]" />Clicks</span>
+            <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-[#03A9F4]" />Views</span>
+            <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-[#8fdfff]" />Clicks</span>
           </div>
         </div>
         {loading
           ? <div className="flex h-56 items-center justify-center"><i className="ri-loader-4-line animate-spin text-3xl text-white/20" /></div>
           : !data || data.activityTimeline.every(d => d.views === 0 && d.clicks === 0)
-            ? <div className="flex h-56 items-center justify-center text-sm text-white/25">No activity yet</div>
+            ? <div className="flex h-56 items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02] text-sm text-white/35">No activity yet</div>
             : <div className="h-64"><MiniBarChart data={data.activityTimeline} /></div>
         }
       </div>
 
-      <div className="rounded-[28px] border border-white/10 bg-[#111] p-5">
-        <h3 className="mb-5 text-lg font-bold">Link Click Distribution</h3>
+      <div className="rounded-[30px] border border-white/10 bg-[#111] p-5 shadow-2xl shadow-black/20">
+        <div className="mb-5">
+          <h3 className="text-xl font-bold">Click distribution</h3>
+          <p className="mt-1 text-sm text-white/40">See which destinations pull the most intent.</p>
+        </div>
         {loading
           ? <div className="flex h-56 items-center justify-center"><i className="ri-loader-4-line animate-spin text-3xl text-white/20" /></div>
           : <div className="flex min-h-56 items-center"><DonutChart data={data?.linkClickDistribution ?? []} /></div>
@@ -1318,9 +1394,10 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
       {/* Scan Details + Link Click Details */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Recent Scans */}
-        <div className="overflow-hidden rounded-[28px] border border-white/10 bg-[#111]">
+        <div className="overflow-hidden rounded-[30px] border border-white/10 bg-[#111] shadow-2xl shadow-black/20">
           <div className="border-b border-white/10 px-5 py-4">
-            <h3 className="text-lg font-bold">Scan Activity</h3>
+            <h3 className="text-lg font-bold">Recent scans</h3>
+            <p className="mt-1 text-sm text-white/40">Fresh taps from this profile.</p>
           </div>
           <div className="max-h-[360px] overflow-auto">
             <table className="w-full text-sm">
@@ -1340,7 +1417,10 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
                 ) : (
                   data.recentScans.map((s, i) => (
                     <tr key={i} className="border-b border-white/10 last:border-0">
-                      <td className="px-4 py-4 text-white/80">{new Date(s.date).toLocaleString(undefined, { month: "numeric", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })}</td>
+                      <td className="px-4 py-4 text-white/80">
+                        <span className="block font-medium text-white">{new Date(s.date).toLocaleString(undefined, { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>
+                        <span className="mt-1 block text-xs text-white/35">{[s.country, s.browser, s.os].filter(Boolean).join(" / ") || "Unknown source"}</span>
+                      </td>
                       <td className="px-4 py-2.5 text-right"><span className="rounded-full bg-[#03A9F4]/15 px-2.5 py-1 text-[11px] font-bold text-[#03A9F4]">New</span></td>
                     </tr>
                   ))
@@ -1351,9 +1431,10 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
         </div>
 
         {/* Link Click Details */}
-        <div className="overflow-hidden rounded-[28px] border border-white/10 bg-[#111]">
+        <div className="overflow-hidden rounded-[30px] border border-white/10 bg-[#111] shadow-2xl shadow-black/20">
           <div className="border-b border-white/10 px-5 py-4">
-            <h3 className="text-lg font-bold">Link Click Details</h3>
+            <h3 className="text-lg font-bold">Link performance</h3>
+            <p className="mt-1 text-sm text-white/40">Ranked by total clicks.</p>
           </div>
           <div className="p-5">
             <table className="w-full table-fixed text-sm">
@@ -1407,13 +1488,24 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
 function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copied: boolean }) {
   const url = typeof window !== "undefined" ? window.location.origin + "/profile/" + profile.publicId : "/profile/" + profile.publicId;
   const qrRef = useRef<HTMLDivElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const qrInstance = useRef<InstanceType<typeof import("qr-code-styling")["default"]> | null>(null);
 
-  const [qrColor, setQrColor] = useState("#ffffff");
-  const [bgColor, setBgColor] = useState("#111111");
+  const isPrime = isFutureDate(profile.primeDesignUntil);
+  const [qrColor, setQrColor] = useState("#dff3ff");
+  const [bgColor, setBgColor] = useState("#0b2134");
   const [dotStyle, setDotStyle] = useState<"square" | "dots" | "rounded">("square");
   const [cornerStyle, setCornerStyle] = useState<"square" | "dot" | "extra-rounded">("square");
+  const [centerLogo, setCenterLogo] = useState("/img/logo.png");
+  const [logoUploading, setLogoUploading] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const imageOptions = useMemo(() => ({
+    crossOrigin: "anonymous" as const,
+    hideBackgroundDots: true,
+    imageSize: 0.18,
+    margin: 6,
+  }), []);
 
   // Init QR
   useEffect(() => {
@@ -1422,18 +1514,20 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
       if (cancelled || !qrRef.current) return;
       qrRef.current.innerHTML = "";
       const qr = new QRCodeStyling({
-        width: 280, height: 280,
+        width: 300, height: 300,
         data: url,
         dotsOptions: { color: qrColor, type: dotStyle },
         backgroundOptions: { color: bgColor },
         cornersSquareOptions: { type: cornerStyle as "square" | "dot" | "extra-rounded" },
+        image: centerLogo,
+        imageOptions,
         qrOptions: { errorCorrectionLevel: "H" },
       });
       qr.append(qrRef.current);
       qrInstance.current = qr;
     });
     return () => { cancelled = true; };
-  }, [url]);
+  }, [bgColor, centerLogo, cornerStyle, dotStyle, imageOptions, qrColor, url]);
 
   // Update on options change
   useEffect(() => {
@@ -1441,8 +1535,10 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
       dotsOptions: { color: qrColor, type: dotStyle },
       backgroundOptions: { color: bgColor },
       cornersSquareOptions: { type: cornerStyle as "square" | "dot" | "extra-rounded" },
+      image: centerLogo,
+      imageOptions,
     });
-  }, [qrColor, bgColor, dotStyle, cornerStyle]);
+  }, [qrColor, bgColor, dotStyle, cornerStyle, centerLogo, imageOptions]);
 
   function download() {
     qrInstance.current?.download({ name: "nfcid-qr-" + profile.publicId, extension: "png" });
@@ -1462,6 +1558,33 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
     copyUrl();
   }
 
+  async function uploadCenterLogo(file: File) {
+    if (!isPrime || !file.type.startsWith("image/")) return;
+    setLogoUploading(true);
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const form = new FormData();
+      form.append("file", file);
+      form.append("type", "product");
+      const res = await fetch("/api/v1/upload", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session?.access_token ?? ""}`,
+          "x-user-id": session?.user.id ?? "",
+        },
+        body: form,
+      });
+      const json = await readApiJson(res);
+      if (!res.ok) throw new Error(json.error ?? "Logo upload failed");
+      setCenterLogo(json.url);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Logo upload failed");
+    } finally {
+      setLogoUploading(false);
+    }
+  }
+
   const dotStyles: { id: "square" | "dots" | "rounded"; label: string }[] = [
     { id: "square", label: "Square" },
     { id: "dots", label: "Dots" },
@@ -1475,42 +1598,91 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
 
   return (
     <div className="w-full">
-      <h2 className="font-bold text-lg sm:text-xl mb-5">Share</h2>
-      <div className="flex flex-col lg:flex-row gap-5">
+      <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="font-bold text-lg sm:text-xl">Share</h2>
+          <p className="mt-1 text-sm text-white/45">Download a branded QR or send your public profile link.</p>
+        </div>
+        {isPrime && <span className="w-fit rounded-full border border-[#03A9F4]/30 bg-[#03A9F4]/10 px-3 py-1 text-xs font-bold text-[#8fdfff]">Pro QR logo enabled</span>}
+      </div>
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
 
         {/* QR + actions */}
-        <div className="flex flex-col items-center gap-4 flex-1">
-          <div className="rounded-2xl overflow-hidden shadow-2xl border border-white/10" style={{ background: bgColor }}>
-            <div ref={qrRef} className="w-[280px] h-[280px]" />
-          </div>
+        <div className="rounded-2xl border border-[#03A9F4]/18 bg-[#0d2539] p-4 shadow-[0_22px_70px_rgba(0,0,0,0.32)] sm:p-6">
+          <div className="flex flex-col items-center gap-5">
+            <div className="relative rounded-[22px] border border-white/10 bg-[#071722] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+              <div className="rounded-2xl border border-[#03A9F4]/15 p-3" style={{ background: bgColor }}>
+                <div ref={qrRef} className="flex h-[300px] w-[300px] items-center justify-center" />
+              </div>
+              <div className="pointer-events-none absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-white/15 bg-white p-2 shadow-lg">
+                <img src={centerLogo} alt="QR center logo" className="h-full w-full object-contain" />
+              </div>
+            </div>
 
-          {/* Action buttons */}
-          <div className="grid w-full max-w-sm grid-cols-3 gap-2">
-            <button onClick={download}
-              className="flex items-center justify-center gap-1.5 rounded-xl bg-white px-2 py-2.5 text-xs font-bold text-black transition-all hover:bg-white/90 active:scale-[0.98]">
-              <i className="ri-download-line" /> Download
-            </button>
-            <button onClick={copyUrl}
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2 py-2.5 text-xs font-semibold text-white transition-all hover:bg-white/10">
-              <i className={copied ? "ri-check-line text-green-400" : "ri-link"} />
-              {copied ? "Copied" : "Copy"}
-            </button>
-            <button onClick={shareUrl}
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-[#03A9F4]/30 bg-[#03A9F4]/15 px-2 py-2.5 text-xs font-bold text-[#03A9F4] transition-all hover:bg-[#03A9F4]/20">
-              <i className="ri-share-forward-line" /> Share
-            </button>
-          </div>
+            <div className="grid w-full max-w-md grid-cols-3 gap-2">
+              <button onClick={download}
+                className="flex items-center justify-center gap-1.5 rounded-xl bg-white px-2 py-3 text-xs font-bold text-[#06111a] transition-all hover:bg-white/90 active:scale-[0.98] sm:text-sm">
+                <i className="ri-download-line" /> Download
+              </button>
+              <button onClick={copyUrl}
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/6 px-2 py-3 text-xs font-semibold text-white transition-all hover:bg-white/10 sm:text-sm">
+                <i className={copied ? "ri-check-line text-green-400" : "ri-link"} />
+                {copied ? "Copied" : "Copy"}
+              </button>
+              <button onClick={shareUrl}
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-[#03A9F4]/35 bg-[#03A9F4]/15 px-2 py-3 text-xs font-bold text-[#28bfff] transition-all hover:bg-[#03A9F4]/20 sm:text-sm">
+                <i className="ri-share-forward-line" /> Share
+              </button>
+            </div>
 
-          {/* URL bar */}
-          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 w-full max-w-xs">
-            <i className="ri-links-line text-white/30 text-sm flex-shrink-0" />
-            <span className="text-[#03A9F4] text-xs font-mono flex-1 truncate">{url}</span>
+            <div className="flex w-full max-w-lg items-center gap-2 rounded-xl border border-[#03A9F4]/18 bg-[#061a29] px-4 py-3">
+              <i className="ri-links-line flex-shrink-0 text-sm text-[#8fdfff]/60" />
+              <span className="flex-1 truncate font-mono text-xs text-[#8fdfff]">{url}</span>
+              <button onClick={copyUrl} className="rounded-lg px-2 py-1 text-xs font-semibold text-white/55 transition hover:bg-white/8 hover:text-white">
+                {copied ? "Copied" : "Copy"}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Customization panel */}
-        <div className="w-full lg:w-64 xl:w-72 bg-[#161616] border border-white/8 rounded-2xl p-5 space-y-5">
-          <h3 className="font-semibold text-sm">Customization</h3>
+        <div className="rounded-2xl border border-white/10 bg-[#141719] p-5 space-y-5">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-semibold text-sm">Customization</h3>
+            <i className="ri-qr-scan-2-line text-lg text-[#03A9F4]" />
+          </div>
+
+          <div className="rounded-xl border border-[#03A9F4]/16 bg-[#071722] p-3">
+            <div className="mb-3 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white p-1.5">
+                <img src={centerLogo} alt="Center logo preview" className="h-full w-full object-contain" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white">Center logo</p>
+                <p className="text-xs text-white/45">{isPrime ? "Upload a custom Pro logo" : "Default company logo"}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => isPrime && logoInputRef.current?.click()}
+              disabled={!isPrime || logoUploading}
+              className={`flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold transition ${isPrime ? "border border-[#03A9F4]/35 bg-[#03A9F4]/12 text-[#8fdfff] hover:bg-[#03A9F4]/18" : "cursor-not-allowed border border-white/10 bg-white/5 text-white/35"}`}
+            >
+              <i className={logoUploading ? "ri-loader-4-line animate-spin" : isPrime ? "ri-upload-cloud-2-line" : "ri-lock-2-line"} />
+              {logoUploading ? "Uploading..." : isPrime ? "Upload custom logo" : "Custom logo is Pro"}
+            </button>
+            <input
+              ref={logoInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/*"
+              className="hidden"
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) uploadCenterLogo(file);
+                e.currentTarget.value = "";
+              }}
+            />
+          </div>
 
           {/* QR Color */}
           <div className="space-y-2">
@@ -2239,11 +2411,15 @@ function MessageInboxSheet({
   loading,
   onClose,
   onMarkRead,
+  onDeleteMessage,
+  onDeleteAll,
 }: {
   inbox: ProfileInbox;
   loading: boolean;
   onClose: () => void;
   onMarkRead: () => void;
+  onDeleteMessage: (messageId: string) => void;
+  onDeleteAll: () => void;
 }) {
   const [visible, setVisible] = useState(false);
 
@@ -2283,6 +2459,14 @@ function MessageInboxSheet({
             >
               Mark read
             </button>
+            <button
+              type="button"
+              onClick={onDeleteAll}
+              disabled={inbox.messages.length === 0 || loading}
+              className="h-9 rounded-full border border-red-400/20 px-3 text-xs font-semibold text-red-200/70 transition hover:bg-red-500/10 hover:text-red-100 disabled:opacity-35"
+            >
+              Delete all
+            </button>
             <button onClick={closeSheet} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/55 hover:text-white" aria-label="Close messages">
               <i className="ri-close-line text-lg" />
             </button>
@@ -2310,7 +2494,17 @@ function MessageInboxSheet({
                       <p className="truncate text-sm font-bold text-white">{message.senderName}</p>
                       <p className="text-[11px] text-white/35">{new Date(message.createdAt).toLocaleString()}</p>
                     </div>
-                    {!message.readAt && <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-[#03A9F4] shadow-[0_0_12px_rgba(3,169,244,0.8)]" />}
+                    <div className="flex shrink-0 items-center gap-2">
+                      {!message.readAt && <span className="h-2.5 w-2.5 rounded-full bg-[#03A9F4] shadow-[0_0_12px_rgba(3,169,244,0.8)]" />}
+                      <button
+                        type="button"
+                        onClick={() => onDeleteMessage(message.id)}
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-white/40 transition hover:bg-red-500/12 hover:text-red-100"
+                        aria-label="Delete message"
+                      >
+                        <i className="ri-delete-bin-line text-base" />
+                      </button>
+                    </div>
                   </div>
                   <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/75">{message.message}</p>
                 </article>
@@ -2569,6 +2763,7 @@ export default function DashboardPage() {
   const [tab, setTab] = useState<Tab>("home");
   const [loading, setLoading] = useState(true);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [saving, setSaving] = useState(false);
   const [pendingLinks, setPendingLinks] = useState<PendingLinks>({});
   const [editOpen, setEditOpen] = useState(false);
@@ -2583,6 +2778,9 @@ export default function DashboardPage() {
   const [inboxLoading, setInboxLoading] = useState(false);
   const toastIdRef = useRef(0);
   const toastTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>[]>>({});
+  const notificationIdRef = useRef(0);
+  const notificationTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>[]>>({});
+  const notificationBaselinesRef = useRef<Record<string, boolean>>({});
   const patchSeqRef = useRef(0);
   const profile = profiles.find(p => p.id === selId) ?? profiles[0] ?? null;
   const activeInbox = profile ? (inboxes[profile.id] ?? inboxMemoryCache.get(profile.id) ?? { messages: [], unreadCount: 0 }) : { messages: [], unreadCount: 0 };
@@ -2629,10 +2827,53 @@ export default function DashboardPage() {
 
     toastTimersRef.current[id] = [enterTimer, dismissTimer];
   }
+  function showAppNotification(title: string, body: string, time = "now") {
+    const id = ++notificationIdRef.current;
+    const exitDelay = 420;
+
+    function clearNotificationTimers(notificationId: number) {
+      notificationTimersRef.current[notificationId]?.forEach(clearTimeout);
+      delete notificationTimersRef.current[notificationId];
+    }
+
+    setNotifications(current => {
+      const next: AppNotification = { id, title, body, time, visible: false };
+      const kept = current.slice(0, 1);
+      const fading = current.slice(1).map(item => ({ ...item, visible: false }));
+      fading.forEach(item => {
+        clearNotificationTimers(item.id);
+        const removeTimer = setTimeout(() => {
+          setNotifications(list => list.filter(notification => notification.id !== item.id));
+          clearNotificationTimers(item.id);
+        }, exitDelay);
+        notificationTimersRef.current[item.id] = [removeTimer];
+      });
+      return [next, ...kept, ...fading].slice(0, 3);
+    });
+
+    const enterTimer = setTimeout(() => {
+      setNotifications(current => current.map(item => item.id === id ? { ...item, visible: true } : item));
+    }, 40);
+    const dismissTimer = setTimeout(() => {
+      setNotifications(current => current.map(item => item.id === id ? { ...item, visible: false } : item));
+      const removeTimer = setTimeout(() => {
+        setNotifications(current => current.filter(item => item.id !== id));
+        clearNotificationTimers(id);
+      }, exitDelay);
+      notificationTimersRef.current[id] = [...(notificationTimersRef.current[id] ?? []), removeTimer];
+    }, 5200);
+
+    notificationTimersRef.current[id] = [enterTimer, dismissTimer];
+  }
   function hdrs() { return { "Content-Type": "application/json", Authorization: "Bearer " + token, "x-user-id": uid }; }
+  function commitInbox(profileId: string, inbox: ProfileInbox) {
+    inboxMemoryCache.set(profileId, inbox);
+    setInboxes(prev => ({ ...prev, [profileId]: inbox }));
+  }
   async function loadInbox(profileId: string, quiet = false) {
     if (!token || !uid) return;
-    if (!quiet) setInboxLoading(true);
+    const cached = inboxMemoryCache.get(profileId) ?? inboxes[profileId];
+    if (!quiet && !cached) setInboxLoading(true);
     try {
       const response = await fetch(`/api/v1/profiles/${profileId}/messages`, { headers: hdrs() });
       const json = await readApiJson(response);
@@ -2641,8 +2882,7 @@ export default function DashboardPage() {
         messages: json.data?.messages ?? [],
         unreadCount: json.data?.unreadCount ?? 0,
       };
-      inboxMemoryCache.set(profileId, inbox);
-      setInboxes(prev => ({ ...prev, [profileId]: inbox }));
+      commitInbox(profileId, inbox);
     } catch (error) {
       if (!quiet) showToast(error instanceof Error ? error.message : "Failed to load messages", false);
     } finally {
@@ -2661,6 +2901,11 @@ export default function DashboardPage() {
         messages: (prev[profileId] ?? activeInbox).messages.map(message => ({ ...message, readAt: message.readAt ?? readAt })),
       },
     }));
+    inboxMemoryCache.set(profileId, {
+      ...activeInbox,
+      unreadCount: 0,
+      messages: activeInbox.messages.map(message => ({ ...message, readAt: message.readAt ?? readAt })),
+    });
     try {
       const response = await fetch(`/api/v1/profiles/${profileId}/messages`, { method: "PATCH", headers: hdrs() });
       const json = await readApiJson(response);
@@ -2671,10 +2916,42 @@ export default function DashboardPage() {
       await loadInbox(profileId, true);
     }
   }
+  async function deleteInboxMessage(messageId: string) {
+    if (!profile) return;
+    const profileId = profile.id;
+    const previous = activeInbox;
+    const nextMessages = previous.messages.filter(message => message.id !== messageId);
+    const nextInbox = { messages: nextMessages, unreadCount: nextMessages.filter(message => !message.readAt).length };
+    commitInbox(profileId, nextInbox);
+    try {
+      const response = await fetch(`/api/v1/profiles/${profileId}/messages?messageId=${encodeURIComponent(messageId)}`, { method: "DELETE", headers: hdrs() });
+      const json = await readApiJson(response);
+      if (!response.ok) throw new Error(json.error?.message ?? "Failed to delete message");
+      await loadInbox(profileId, true);
+    } catch (error) {
+      commitInbox(profileId, previous);
+      showToast(error instanceof Error ? error.message : "Failed to delete message", false);
+    }
+  }
+  async function deleteAllInboxMessages() {
+    if (!profile || activeInbox.messages.length === 0) return;
+    const profileId = profile.id;
+    const previous = activeInbox;
+    commitInbox(profileId, { messages: [], unreadCount: 0 });
+    try {
+      const response = await fetch(`/api/v1/profiles/${profileId}/messages`, { method: "DELETE", headers: hdrs() });
+      const json = await readApiJson(response);
+      if (!response.ok) throw new Error(json.error?.message ?? "Failed to delete messages");
+      await loadInbox(profileId, true);
+    } catch (error) {
+      commitInbox(profileId, previous);
+      showToast(error instanceof Error ? error.message : "Failed to delete messages", false);
+    }
+  }
   function openInbox() {
     if (!profile) return;
     setInboxOpen(true);
-    void loadInbox(profile.id);
+    void loadInbox(profile.id, !!(inboxMemoryCache.get(profile.id) ?? inboxes[profile.id]));
   }
   function removeProfile(profileId: string) {
     setProfiles(prev => {
@@ -2731,6 +3008,73 @@ export default function DashboardPage() {
     // loadInbox closes over the latest auth headers and toast handler; this effect only needs to follow the selected profile.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id, token, uid]);
+
+  useEffect(() => {
+    if (!token || !uid || profiles.length === 0) return;
+    let cancelled = false;
+
+    async function checkProfileNotifications() {
+      await Promise.all(profiles.map(async (item) => {
+        try {
+          const [messagesRes, analyticsRes] = await Promise.all([
+            fetch(`/api/v1/profiles/${item.id}/messages`, { headers: hdrs() }),
+            fetch(`/api/v1/analytics/${item.id}?days=7&t=${Date.now()}`, { headers: hdrs() }),
+          ]);
+          if (cancelled || !messagesRes.ok || !analyticsRes.ok) return;
+
+          const [messagesJson, analyticsJson] = await Promise.all([readApiJson(messagesRes), analyticsRes.json()]);
+          const unreadCount = Number(messagesJson.data?.unreadCount ?? 0);
+          const totalViews = Number(analyticsJson.data?.totalViews ?? 0);
+
+          const messageKey = `linkup:last-unread:${item.id}`;
+          const viewsKey = `linkup:last-views:${item.id}`;
+          const baselineKey = `${item.id}:notifications`;
+          const previousUnread = Number(localStorage.getItem(messageKey) ?? unreadCount);
+          const previousViews = Number(localStorage.getItem(viewsKey) ?? totalViews);
+          const hasBaseline = notificationBaselinesRef.current[baselineKey] || localStorage.getItem(messageKey) !== null || localStorage.getItem(viewsKey) !== null;
+
+          localStorage.setItem(messageKey, String(unreadCount));
+          localStorage.setItem(viewsKey, String(totalViews));
+          notificationBaselinesRef.current[baselineKey] = true;
+
+          if (!hasBaseline) return;
+
+          if (unreadCount > previousUnread) {
+            const newCount = unreadCount - previousUnread;
+            showAppNotification(
+              newCount === 1 ? "New profile message" : `${newCount} new profile messages`,
+              `${item.displayName || "Your profile"} received a new message.`,
+              "now",
+            );
+            const inbox: ProfileInbox = {
+              messages: messagesJson.data?.messages ?? [],
+              unreadCount,
+            };
+            commitInbox(item.id, inbox);
+          }
+
+          if (totalViews > previousViews) {
+            const newViews = totalViews - previousViews;
+            showAppNotification(
+              newViews === 1 ? "New profile visit" : `${newViews} new profile visits`,
+              `${item.displayName || "Your profile"} just got fresh audience activity.`,
+              "now",
+            );
+          }
+        } catch {
+          // Notification polling should stay quiet if a transient request fails.
+        }
+      }));
+    }
+
+    void checkProfileNotifications();
+    const timer = setInterval(checkProfileNotifications, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, uid, profiles.map(p => p.id).join("|")]);
 
   async function patchProfile(patch: Record<string, unknown>, optimisticMessage?: string) {
     if (!profile) return;
@@ -2862,6 +3206,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#111] text-white" style={{ fontFamily: "Inter, sans-serif" }}>
+      <AppNotificationToast items={notifications} />
       {toasts.length > 0 && <SystemToast toasts={toasts} />}
 
       {/* Mobile sidebar overlay */}
@@ -2912,7 +3257,7 @@ export default function DashboardPage() {
         {/* Mobile top bar */}
         <div className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-white/5 bg-[#0f0f0f] flex-shrink-0">
           <Link href="/" className="flex items-center gap-0">
-            <img src="/img/linkup-nav-mark.png" alt="LinkUp" className="h-11 w-9 object-contain" />
+            <img src="/img/linkup-nav-mark.png" alt="LinkUp" className="h-10 w-8 object-contain" />
             <span className="hidden font-bold text-sm">Link<span className="text-[#03A9F4]">Up</span></span>
           </Link>
           <button type="button" onClick={() => setGoldRequest("design")} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#03A9F4]/40 px-3 text-xs font-semibold text-[#03A9F4]">
@@ -2980,6 +3325,8 @@ export default function DashboardPage() {
             loading={inboxLoading}
             onClose={() => setInboxOpen(false)}
             onMarkRead={markInboxRead}
+            onDeleteMessage={deleteInboxMessage}
+            onDeleteAll={deleteAllInboxMessages}
           />
         )}
 

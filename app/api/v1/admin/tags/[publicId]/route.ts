@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { requireAdmin } from '@/lib/middleware/adminCheck';
 import { updateTagState, NotFoundError, InvalidTransitionError } from '@/lib/use-cases/updateTagState';
 import type { TagState } from '@/lib/domain/types';
+import { db } from '@/lib/db';
+import { del, tagCacheKey } from '@/lib/services/cacheService';
 
 const PatchBodySchema = z.object({
   state: z.enum(['MANUFACTURED', 'SOLD', 'CLAIMED', 'ACTIVE', 'SUSPENDED']),
@@ -43,4 +45,60 @@ export async function PATCH(
       return NextResponse.json({ data: null, error: { code: 'INVALID_TRANSITION', message: (err as Error).message } }, { status: 422 });
     throw err;
   }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  context: any
+) {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
+  const { publicId } = await context.params;
+
+  const result = await db.$transaction(async (tx) => {
+    const tag = await tx.tag.findUnique({
+      where: { publicId },
+      select: { id: true, publicId: true },
+    });
+
+    if (!tag) {
+      return { deleted: false, profilesDeleted: 0, nfcLinksDeleted: 0 };
+    }
+
+    const profiles = await tx.profile.findMany({
+      where: { publicId },
+      select: { id: true },
+    });
+    const profileIds = profiles.map((profile) => profile.id);
+
+    const nfcDelete = await tx.nfcTag.deleteMany({
+      where: {
+        OR: [
+          { uid: `PUBLIC:${publicId}` },
+          ...(profileIds.length ? [{ profileId: { in: profileIds } }] : []),
+        ],
+      },
+    });
+
+    const profileDelete = await tx.profile.deleteMany({ where: { publicId } });
+    await tx.tag.delete({ where: { publicId } });
+
+    return {
+      deleted: true,
+      profilesDeleted: profileDelete.count,
+      nfcLinksDeleted: nfcDelete.count,
+    };
+  });
+
+  if (!result.deleted) {
+    return NextResponse.json(
+      { data: null, error: { code: 'NOT_FOUND', message: `Tag with publicId "${publicId}" not found` } },
+      { status: 404 },
+    );
+  }
+
+  await del(tagCacheKey(publicId));
+  return NextResponse.json({ data: result, error: null });
 }
