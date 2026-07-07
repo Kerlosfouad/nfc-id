@@ -39,9 +39,14 @@ export function PushPermissionPrompt() {
     setBusy(true);
     setMessage("");
     try {
+      if (Notification.permission === "denied") {
+        setMessage("Notifications are blocked. Open browser site settings and allow notifications for LinkUp.");
+        return;
+      }
+
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
-        setMessage("Notifications were not allowed.");
+        setMessage("Notifications were not allowed. Tap Allow in the browser permission message.");
         return;
       }
 
@@ -77,7 +82,7 @@ export function PushPermissionPrompt() {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-x-3 bottom-4 z-[120] mx-auto max-w-md rounded-2xl border border-[#03A9F4]/30 bg-[#071722]/95 p-4 text-white shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+    <div className="fixed inset-x-3 top-4 z-[120] mx-auto max-w-md rounded-2xl border border-[#03A9F4]/30 bg-[#071722]/95 p-4 text-white shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:top-5">
       <div className="flex items-start gap-3">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white p-1.5">
           <img src="/img/linkup-nav-mark.png" alt="" className="h-full w-full object-contain" />
