@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireAdmin } from '@/lib/middleware/adminCheck';
-import { savePushSubscription, sendPushToUser } from '@/lib/services/pushNotifications';
+import { deletePushSubscription, savePushSubscription, sendPushToUser } from '@/lib/services/pushNotifications';
 
 const SubscriptionSchema = z.object({
   endpoint: z.string().url(),
@@ -31,5 +31,21 @@ export async function POST(request: NextRequest) {
     url: '/admin/orders',
     tag: 'linkup-push-test',
   });
+  return NextResponse.json({ data: { ok: true }, error: null });
+}
+
+export async function DELETE(request: NextRequest) {
+  const auth = await requireAdmin(request);
+  if (auth instanceof NextResponse) return auth;
+
+  const parsed = z.object({ endpoint: z.string().url() }).safeParse(await request.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { data: null, error: { code: 'VALIDATION_ERROR', message: 'Invalid push endpoint.' } },
+      { status: 400 },
+    );
+  }
+
+  await deletePushSubscription(parsed.data.endpoint);
   return NextResponse.json({ data: { ok: true }, error: null });
 }

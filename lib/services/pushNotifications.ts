@@ -55,6 +55,11 @@ export async function savePushSubscription(userId: string, subscription: PushSub
   `;
 }
 
+export async function deletePushSubscription(endpoint: string) {
+  await ensurePushSubscriptionTable();
+  await db.$executeRaw`DELETE FROM push_subscriptions WHERE endpoint = ${endpoint}`;
+}
+
 export async function sendPushToAdmins(payload: { title: string; body: string; url?: string; tag?: string }) {
   if (!configureWebPush()) return;
   await ensurePushSubscriptionTable();

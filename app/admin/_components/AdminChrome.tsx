@@ -44,9 +44,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
 
     setNotifications(current => {
       const next: AppNotification = { id, title, body, time, visible: false };
-      const kept = current.slice(0, 1);
-      const fading = current.slice(1).map(item => ({ ...item, visible: false }));
-      fading.forEach(item => {
+      current.forEach(item => {
         clearNotificationTimers(item.id);
         const removeTimer = setTimeout(() => {
           setNotifications(list => list.filter(notification => notification.id !== item.id));
@@ -54,7 +52,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
         }, exitDelay);
         notificationTimersRef.current[item.id] = [removeTimer];
       });
-      return [next, ...kept, ...fading].slice(0, 3);
+      return [next];
     });
 
     const enterTimer = setTimeout(() => {
@@ -126,6 +124,50 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
     } finally {
       setPushBusy(false);
     }
+  }
+
+  async function disablePushNotifications() {
+    if (pushBusy) return;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      setPushStatus("idle");
+      return;
+    }
+
+    setPushBusy(true);
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        const { endpoint } = subscription;
+        await subscription.unsubscribe();
+        const { data: { session } } = await createClient().auth.getSession();
+        if (session) {
+          await fetch("/api/v1/admin/push-subscriptions", {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+              "x-user-id": session.user.id,
+            },
+            body: JSON.stringify({ endpoint }),
+          });
+        }
+      }
+      setPushStatus("idle");
+      showAppNotification("Order alerts muted", "This device will not receive lock-screen order notifications.");
+    } catch (error) {
+      showAppNotification("Mute failed", error instanceof Error ? error.message : "Could not mute notifications.");
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
+  function togglePushNotifications() {
+    if (pushStatus === "enabled") {
+      void disablePushNotifications();
+      return;
+    }
+    void enablePushNotifications();
   }
 
   useEffect(() => {
@@ -250,7 +292,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={enablePushNotifications}
+                onClick={togglePushNotifications}
                 aria-label={pushButtonState.label}
                 title={pushButtonState.label}
                 className={`flex h-10 w-10 items-center justify-center rounded-full border transition-all ${pushButtonState.className}`}
