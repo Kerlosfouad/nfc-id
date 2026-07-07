@@ -2830,7 +2830,7 @@ export default function DashboardPage() {
   }
   function showAppNotification(title: string, body: string, time = "now") {
     const id = ++notificationIdRef.current;
-    const exitDelay = 420;
+    const exitDelay = 180;
 
     function clearNotificationTimers(notificationId: number) {
       notificationTimersRef.current[notificationId]?.forEach(clearTimeout);
@@ -2839,9 +2839,7 @@ export default function DashboardPage() {
 
     setNotifications(current => {
       const next: AppNotification = { id, title, body, time, visible: false };
-      const kept = current.slice(0, 1);
-      const fading = current.slice(1).map(item => ({ ...item, visible: false }));
-      fading.forEach(item => {
+      current.forEach(item => {
         clearNotificationTimers(item.id);
         const removeTimer = setTimeout(() => {
           setNotifications(list => list.filter(notification => notification.id !== item.id));
@@ -2849,7 +2847,7 @@ export default function DashboardPage() {
         }, exitDelay);
         notificationTimersRef.current[item.id] = [removeTimer];
       });
-      return [next, ...kept, ...fading].slice(0, 3);
+      return [next];
     });
 
     const enterTimer = setTimeout(() => {
@@ -2862,7 +2860,7 @@ export default function DashboardPage() {
         clearNotificationTimers(id);
       }, exitDelay);
       notificationTimersRef.current[id] = [...(notificationTimersRef.current[id] ?? []), removeTimer];
-    }, 5200);
+    }, 850);
 
     notificationTimersRef.current[id] = [enterTimer, dismissTimer];
   }
@@ -2879,8 +2877,8 @@ export default function DashboardPage() {
     if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return;
     const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     if (!vapidKey) return;
-    setPushBusy(true);
-    setPushEnabled(true);
+      setPushEnabled(true);
+      setPushBusy(true);
     try {
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
@@ -2913,8 +2911,8 @@ export default function DashboardPage() {
 
   async function disablePushNotifications() {
     if (pushBusy) return;
-    setPushBusy(true);
     setPushEnabled(false);
+    setPushBusy(true);
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
@@ -3359,7 +3357,7 @@ export default function DashboardPage() {
               aria-label={pushEnabled ? "Notifications enabled" : "Notifications muted"}
               className={`flex h-9 w-9 items-center justify-center rounded-full border transition ${pushEnabled ? "border-[#03A9F4]/45 bg-[#03A9F4]/15 text-[#03A9F4]" : "border-white/10 bg-white/[0.03] text-white/35"}`}
             >
-              <i className={`${pushBusy ? "ri-loader-4-line animate-spin" : pushEnabled ? "ri-notification-3-fill" : "ri-notification-off-line"} text-lg`} />
+              <i className={`${pushEnabled ? "ri-notification-3-fill" : "ri-notification-off-line"} text-lg`} />
             </button>
             <button type="button" onClick={() => setGoldRequest("design")} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#03A9F4]/40 px-3 text-xs font-semibold text-[#03A9F4]">
               <i className="ri-sparkling-2-line" />
