@@ -20,6 +20,8 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
   const pathname = usePathname();
   const router = useRouter();
   const [orderCount, setOrderCount] = useState(0);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const notificationIdRef = useRef(0);
   const notificationTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>[]>>({});
@@ -68,6 +70,61 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
     notificationTimersRef.current[id] = [enterTimer, dismissTimer];
   }
 
+  function urlBase64ToUint8Array(value: string) {
+    const padding = "=".repeat((4 - (value.length % 4)) % 4);
+    const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const raw = window.atob(base64);
+    return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
+  }
+
+  async function enablePushNotifications() {
+    if (pushBusy) return;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+      showAppNotification("Push not supported", "This browser does not support lock-screen web notifications.");
+      return;
+    }
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!vapidKey) {
+      showAppNotification("Push setup missing", "Add NEXT_PUBLIC_VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY to Vercel.");
+      return;
+    }
+
+    setPushBusy(true);
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        showAppNotification("Notifications blocked", "Allow notifications from the browser settings to receive order alerts.");
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.register("/sw.js");
+      const existing = await registration.pushManager.getSubscription();
+      const subscription = existing ?? await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      });
+
+      const { data: { session } } = await createClient().auth.getSession();
+      if (!session) return;
+      const res = await fetch("/api/v1/admin/push-subscriptions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          "x-user-id": session.user.id,
+        },
+        body: JSON.stringify(subscription.toJSON()),
+      });
+      if (!res.ok) throw new Error("Push subscription failed");
+      setPushEnabled(true);
+      showAppNotification("Order alerts enabled", "New orders can now appear on this phone lock screen.");
+    } catch (error) {
+      showAppNotification("Push setup failed", error instanceof Error ? error.message : "Could not enable notifications.");
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
   useEffect(() => {
     let alive = true;
     const supabase = createClient();
@@ -106,6 +163,14 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
   useEffect(() => {
     navItems.forEach((item) => router.prefetch(item.href));
   }, [router]);
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    navigator.serviceWorker.ready
+      .then((registration) => registration.pushManager.getSubscription())
+      .then((subscription) => setPushEnabled(Notification.permission === "granted" && !!subscription))
+      .catch(() => undefined);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0b0a0a] text-white" style={{ fontFamily: "Inter, sans-serif" }}>
@@ -164,14 +229,29 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
               </Link>
               <span className="sr-only">{title}: {subtitle}</span>
             </div>
-            <button
-              type="button"
-              onClick={signOutAdmin}
-              aria-label="Sign out"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition-all hover:border-[#03A9F4]/40 hover:text-[#03A9F4]"
-            >
-              <i className="ri-logout-box-r-line text-lg" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={enablePushNotifications}
+                aria-label="Enable order notifications"
+                title={pushEnabled ? "Order notifications enabled" : "Enable lock-screen order notifications"}
+                className={`flex h-10 w-10 items-center justify-center rounded-full border transition-all ${
+                  pushEnabled
+                    ? "border-[#03A9F4]/45 bg-[#03A9F4]/15 text-[#03A9F4]"
+                    : "border-white/10 bg-white/[0.03] text-white/70 hover:border-[#03A9F4]/40 hover:text-[#03A9F4]"
+                }`}
+              >
+                <i className={`${pushBusy ? "ri-loader-4-line animate-spin" : pushEnabled ? "ri-notification-3-fill" : "ri-notification-3-line"} text-lg`} />
+              </button>
+              <button
+                type="button"
+                onClick={signOutAdmin}
+                aria-label="Sign out"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition-all hover:border-[#03A9F4]/40 hover:text-[#03A9F4]"
+              >
+                <i className="ri-logout-box-r-line text-lg" />
+              </button>
+            </div>
           </div>
         </header>
 

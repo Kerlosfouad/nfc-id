@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createOrder } from '@/lib/services/orders';
+import { sendPushToAdmins } from '@/lib/services/pushNotifications';
 
 const optionalText = z.preprocess(
   (value) => (typeof value === 'string' && value.trim() === '' ? null : value),
@@ -51,6 +52,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const order = await createOrder(parsed.data);
+    void sendPushToAdmins({
+      title: 'New LinkUp order',
+      body: `${parsed.data.customerName} placed order #${order.orderNumber} for ${Number(order.total).toLocaleString('en-US')} EGP.`,
+      url: '/admin/orders',
+      tag: `linkup-order-${order.id}`,
+    });
     return NextResponse.json({ data: order, error: null }, { status: 201 });
   } catch (e) {
     return NextResponse.json(
