@@ -85,3 +85,33 @@ export async function sendPushToAdmins(payload: { title: string; body: string; u
     }),
   );
 }
+
+export async function sendPushToUser(userId: string, payload: { title: string; body: string; url?: string; tag?: string }) {
+  if (!configureWebPush()) return;
+  await ensurePushSubscriptionTable();
+
+  const subscriptions = await db.$queryRaw<Array<{ endpoint: string; p256dh: string; auth: string }>>`
+    SELECT endpoint, p256dh, auth
+    FROM push_subscriptions
+    WHERE user_id = ${userId}
+  `;
+
+  await Promise.allSettled(
+    subscriptions.map(async (subscription) => {
+      try {
+        await webPush.sendNotification(
+          {
+            endpoint: subscription.endpoint,
+            keys: { p256dh: subscription.p256dh, auth: subscription.auth },
+          },
+          JSON.stringify(payload),
+        );
+      } catch (error) {
+        const statusCode = typeof error === 'object' && error && 'statusCode' in error ? Number(error.statusCode) : 0;
+        if (statusCode === 404 || statusCode === 410) {
+          await db.$executeRaw`DELETE FROM push_subscriptions WHERE endpoint = ${subscription.endpoint}`;
+        }
+      }
+    }),
+  );
+}

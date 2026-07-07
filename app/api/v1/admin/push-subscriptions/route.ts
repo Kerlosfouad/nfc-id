@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireAdmin } from '@/lib/middleware/adminCheck';
-import { savePushSubscription } from '@/lib/services/pushNotifications';
+import { savePushSubscription, sendPushToUser } from '@/lib/services/pushNotifications';
 
 const SubscriptionSchema = z.object({
   endpoint: z.string().url(),
@@ -25,5 +25,11 @@ export async function POST(request: NextRequest) {
   }
 
   await savePushSubscription(auth.userId, parsed.data);
+  void sendPushToUser(auth.userId, {
+    title: 'LinkUp notifications enabled',
+    body: 'Order alerts are now active on this phone.',
+    url: '/admin/orders',
+    tag: 'linkup-push-test',
+  });
   return NextResponse.json({ data: { ok: true }, error: null });
 }

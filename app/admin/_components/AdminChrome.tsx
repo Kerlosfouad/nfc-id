@@ -142,14 +142,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
       const hasBaseline = localStorage.getItem("linkup:admin-orders") !== null;
       localStorage.setItem("linkup:admin-orders", String(nextCount));
       setOrderCount(nextCount);
-      if (!initial && hasBaseline && nextCount > previous) {
-        const added = nextCount - previous;
-        showAppNotification(
-          added === 1 ? "New shop order" : `${added} new shop orders`,
-          "A customer completed checkout. Open Orders to review fulfillment details.",
-          "now",
-        );
-      }
+      if (!initial && hasBaseline && nextCount > previous) return;
     }
 
     void checkOrders(true);
