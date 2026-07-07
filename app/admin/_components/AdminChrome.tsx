@@ -16,11 +16,13 @@ const navItems = [
   { href: "/admin/moderation", icon: "ri-shield-check-line", label: "Moderation" },
 ];
 
+type PushStatus = "idle" | "enabled" | "blocked";
+
 export function AdminChrome({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [orderCount, setOrderCount] = useState(0);
-  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushStatus, setPushStatus] = useState<PushStatus>("idle");
   const [pushBusy, setPushBusy] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const notificationIdRef = useRef(0);
@@ -93,6 +95,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
     try {
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
+        setPushStatus(permission === "denied" ? "blocked" : "idle");
         showAppNotification("Notifications blocked", "Allow notifications from the browser settings to receive order alerts.");
         return;
       }
@@ -116,7 +119,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
         body: JSON.stringify(subscription.toJSON()),
       });
       if (!res.ok) throw new Error("Push subscription failed");
-      setPushEnabled(true);
+      setPushStatus("enabled");
       showAppNotification("Order alerts enabled", "New orders can now appear on this phone lock screen.");
     } catch (error) {
       showAppNotification("Push setup failed", error instanceof Error ? error.message : "Could not enable notifications.");
@@ -159,11 +162,33 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
 
   useEffect(() => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    if ("Notification" in window && Notification.permission === "denied") {
+      setPushStatus("blocked");
+      return;
+    }
     navigator.serviceWorker.ready
       .then((registration) => registration.pushManager.getSubscription())
-      .then((subscription) => setPushEnabled(Notification.permission === "granted" && !!subscription))
+      .then((subscription) => setPushStatus(Notification.permission === "granted" && !!subscription ? "enabled" : "idle"))
       .catch(() => undefined);
   }, []);
+
+  const pushButtonState = pushStatus === "enabled"
+    ? {
+        label: "Order notifications enabled",
+        icon: "ri-notification-3-fill",
+        className: "border-[#03A9F4]/45 bg-[#03A9F4]/15 text-[#03A9F4]",
+      }
+    : pushStatus === "blocked"
+      ? {
+          label: "Notifications blocked",
+          icon: "ri-notification-off-line",
+          className: "border-white/10 bg-white/[0.03] text-white/35",
+        }
+      : {
+          label: "Enable lock-screen order notifications",
+          icon: "ri-notification-3-line",
+          className: "border-white/10 bg-white/[0.03] text-white/70 hover:border-[#03A9F4]/40 hover:text-[#03A9F4]",
+        };
 
   return (
     <div className="min-h-screen bg-[#0b0a0a] text-white" style={{ fontFamily: "Inter, sans-serif" }}>
@@ -226,15 +251,11 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
               <button
                 type="button"
                 onClick={enablePushNotifications}
-                aria-label="Enable order notifications"
-                title={pushEnabled ? "Order notifications enabled" : "Enable lock-screen order notifications"}
-                className={`flex h-10 w-10 items-center justify-center rounded-full border transition-all ${
-                  pushEnabled
-                    ? "border-[#03A9F4]/45 bg-[#03A9F4]/15 text-[#03A9F4]"
-                    : "border-white/10 bg-white/[0.03] text-white/70 hover:border-[#03A9F4]/40 hover:text-[#03A9F4]"
-                }`}
+                aria-label={pushButtonState.label}
+                title={pushButtonState.label}
+                className={`flex h-10 w-10 items-center justify-center rounded-full border transition-all ${pushButtonState.className}`}
               >
-                <i className={`${pushBusy ? "ri-loader-4-line animate-spin" : pushEnabled ? "ri-notification-3-fill" : "ri-notification-3-line"} text-lg`} />
+                <i className={`${pushBusy ? "ri-loader-4-line animate-spin" : pushButtonState.icon} text-lg`} />
               </button>
               <button
                 type="button"
