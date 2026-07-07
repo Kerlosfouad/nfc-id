@@ -194,10 +194,11 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
       if (!initial && hasBaseline && nextCount > previous) return;
     }
 
-    void checkOrders(true);
+    const initialTimer = setTimeout(() => void checkOrders(true), 1200);
     const timer = setInterval(() => void checkOrders(false), 30000);
     return () => {
       alive = false;
+      clearTimeout(initialTimer);
       clearInterval(timer);
     };
   }, []);

@@ -45,9 +45,11 @@ function shortDay(value: string) {
 export default function AdminPage() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats | null>(null);
 
   useEffect(() => {
+    let alive = true;
     const supabase = createClient();
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) {
@@ -60,6 +62,8 @@ export default function AdminPage() {
         "x-user-id": session.user.id,
       };
 
+      if (alive) setChecking(false);
+
       const statsRes = await fetch("/api/v1/admin/stats", { headers });
       if (statsRes.status === 403) {
         router.push("/dashboard");
@@ -68,10 +72,13 @@ export default function AdminPage() {
 
       if (statsRes.ok) {
         const json = await statsRes.json();
-        setStats(json.data);
+        if (alive) setStats(json.data);
       }
-      setChecking(false);
+      if (alive) setStatsLoading(false);
     });
+    return () => {
+      alive = false;
+    };
   }, [router]);
 
   if (checking) {
@@ -96,10 +103,10 @@ export default function AdminPage() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#8fdfff]/60">Live owner pulse</p>
             <h2 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
-              <AnimatedNumber value={stats?.totalOrders ?? 0} /> orders tracked
+              {statsLoading ? <span className="inline-block h-8 w-24 rounded-lg bg-white/8 align-middle animate-pulse" /> : <AnimatedNumber value={stats?.totalOrders ?? 0} />} orders tracked
             </h2>
             <p className="mt-1 text-sm text-white/48">
-              {money(stats?.totalRevenue ?? 0)} revenue with {activation}% NFC activation.
+              {statsLoading ? "Loading revenue and NFC activation..." : `${money(stats?.totalRevenue ?? 0)} revenue with ${activation}% NFC activation.`}
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 sm:min-w-[320px]">
