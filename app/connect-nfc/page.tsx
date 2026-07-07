@@ -74,7 +74,6 @@ export default function ConnectNfcPage() {
   const supabase = useMemo(() => createClient(), []);
   const [status, setStatus] = useState<NfcStatus>("checking-auth");
   const [error, setError] = useState("");
-  const [profileHref, setProfileHref] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [prefilledUid, setPrefilledUid] = useState("");
   const [prefilledPublicId, setPrefilledPublicId] = useState("");
@@ -85,12 +84,14 @@ export default function ConnectNfcPage() {
 
     async function prepareNfcFlow() {
       const { data } = await supabase.auth.getSession();
-      const uidFromRedirect = new URLSearchParams(window.location.search)
+      const searchParams = new URLSearchParams(window.location.search);
+      const mode = searchParams.get("mode") === "read" ? "read" : "write";
+      const uidFromRedirect = searchParams
         .get("uid")
         ?.trim()
         .toUpperCase()
         .replace(/[^A-Z0-9:_-]/g, "") ?? "";
-      const publicIdFromRedirect = new URLSearchParams(window.location.search)
+      const publicIdFromRedirect = searchParams
         .get("publicId")
         ?.trim()
         .replace(/[^a-zA-Z0-9_-]/g, "") ?? "";
@@ -99,7 +100,7 @@ export default function ConnectNfcPage() {
       setPrefilledUid(uidFromRedirect);
       setPrefilledPublicId(publicIdFromRedirect);
 
-      if (uidFromRedirect) {
+      if (mode === "read" && uidFromRedirect) {
         try {
           const response = await fetch(`/api/v1/nfc/resolve?uid=${encodeURIComponent(uidFromRedirect)}`);
           const body = await response.json();
@@ -122,7 +123,8 @@ export default function ConnectNfcPage() {
       }
 
       if (!data.session) {
-        router.replace("/login?redirect=/connect-nfc");
+        const redirect = `/connect-nfc${window.location.search || ""}`;
+        router.replace(`/login?redirect=${encodeURIComponent(redirect)}`);
         return;
       }
 
@@ -185,7 +187,6 @@ export default function ConnectNfcPage() {
       return;
     }
 
-    setProfileHref(href);
     setStatus(body.data.status === "already-linked" ? "already-linked" : "success");
     window.setTimeout(() => router.push("/dashboard"), 1800);
   }, [router, token, writeProfileLink]);
@@ -413,13 +414,6 @@ export default function ConnectNfcPage() {
                 <p className="mt-4 rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm leading-6 text-red-100 lg:mt-0">
                   {error}
                 </p>
-              )}
-
-              {profileHref && (
-                <Link href={profileHref} className="mt-4 flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 text-sm font-semibold text-white/78 transition hover:border-[#03A9F4]/40 hover:text-white">
-                  <i className="ri-external-link-line" />
-                  View public profile
-                </Link>
               )}
 
               <section className="mt-5 px-2 sm:mt-8 sm:px-5 lg:mt-0 lg:px-0">

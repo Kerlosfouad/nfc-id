@@ -22,7 +22,7 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get("redirect");
-  const redirectTo = redirectParam?.startsWith("/") && !redirectParam.startsWith("/connect-nfc") ? redirectParam : "/dashboard";
+  const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/dashboard";
   const resolveRedirect = useCallback((userEmail?: string | null) => {
     if (isOwnerEmail(userEmail) && !redirectParam) return "/admin";
     return redirectTo;
