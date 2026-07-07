@@ -16,13 +16,11 @@ const navItems = [
   { href: "/admin/moderation", icon: "ri-shield-check-line", label: "Moderation" },
 ];
 
-type PushStatus = "idle" | "enabled" | "blocked";
-
 export function AdminChrome({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [orderCount, setOrderCount] = useState(0);
-  const [pushStatus, setPushStatus] = useState<PushStatus>("idle");
+  const [pushEnabled, setPushEnabled] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const notificationIdRef = useRef(0);
@@ -84,7 +82,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
       return;
     }
     if (Notification.permission === "denied") {
-      setPushStatus("blocked");
+      setPushEnabled(false);
       return;
     }
     const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -94,10 +92,11 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
     }
 
     setPushBusy(true);
+    setPushEnabled(true);
     try {
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
-        setPushStatus(permission === "denied" ? "blocked" : "idle");
+        setPushEnabled(false);
         showAppNotification("Notifications blocked", "Allow notifications from the browser settings to receive order alerts.");
         return;
       }
@@ -121,9 +120,9 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
         body: JSON.stringify(subscription.toJSON()),
       });
       if (!res.ok) throw new Error("Push subscription failed");
-      setPushStatus("enabled");
       showAppNotification("Order alerts enabled", "New orders can now appear on this phone lock screen.");
     } catch (error) {
+      setPushEnabled(false);
       showAppNotification("Push setup failed", error instanceof Error ? error.message : "Could not enable notifications.");
     } finally {
       setPushBusy(false);
@@ -138,6 +137,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
     }
 
     setPushBusy(true);
+    setPushEnabled(false);
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
@@ -157,9 +157,9 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
           });
         }
       }
-      setPushStatus("idle");
       showAppNotification("Order alerts muted", "This device will not receive lock-screen order notifications.");
     } catch (error) {
+      setPushEnabled(true);
       showAppNotification("Mute failed", error instanceof Error ? error.message : "Could not mute notifications.");
     } finally {
       setPushBusy(false);
@@ -167,11 +167,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
   }
 
   function togglePushNotifications() {
-    if (pushStatus === "blocked") {
-      setPushStatus("blocked");
-      return;
-    }
-    if (pushStatus === "enabled") {
+    if (pushEnabled) {
       void disablePushNotifications();
       return;
     }
@@ -213,32 +209,26 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
   useEffect(() => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
     if ("Notification" in window && Notification.permission === "denied") {
-      setPushStatus("blocked");
+      setPushEnabled(false);
       return;
     }
     navigator.serviceWorker.ready
       .then((registration) => registration.pushManager.getSubscription())
-      .then((subscription) => setPushStatus(Notification.permission === "granted" && !!subscription ? "enabled" : "idle"))
+      .then((subscription) => setPushEnabled(Notification.permission === "granted" && !!subscription))
       .catch(() => undefined);
   }, []);
 
-  const pushButtonState = pushStatus === "enabled"
+  const pushButtonState = pushEnabled
     ? {
         label: "Order notifications enabled",
         icon: "ri-notification-3-fill",
         className: "border-[#03A9F4]/45 bg-[#03A9F4]/15 text-[#03A9F4]",
       }
-    : pushStatus === "blocked"
-      ? {
-          label: "Notifications blocked in site settings",
-          icon: "ri-notification-off-line",
-          className: "border-white/10 bg-white/[0.03] text-white/35",
-        }
-      : {
-          label: "Enable lock-screen order notifications",
-          icon: "ri-notification-3-line",
-          className: "border-white/10 bg-white/[0.03] text-white/70 hover:border-[#03A9F4]/40 hover:text-[#03A9F4]",
-        };
+    : {
+        label: "Order notifications muted",
+        icon: "ri-notification-off-line",
+        className: "border-white/10 bg-white/[0.03] text-white/35 hover:border-[#03A9F4]/30 hover:text-white/65",
+      };
 
   return (
     <div className="min-h-screen bg-[#0b0a0a] text-white" style={{ fontFamily: "Inter, sans-serif" }}>

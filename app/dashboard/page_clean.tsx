@@ -2763,6 +2763,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [pendingLinks, setPendingLinks] = useState<PendingLinks>({});
   const [editOpen, setEditOpen] = useState(false);
@@ -2865,6 +2867,85 @@ export default function DashboardPage() {
     notificationTimersRef.current[id] = [enterTimer, dismissTimer];
   }
   function hdrs() { return { "Content-Type": "application/json", Authorization: "Bearer " + token, "x-user-id": uid }; }
+  function urlBase64ToUint8Array(value: string) {
+    const padding = "=".repeat((4 - (value.length % 4)) % 4);
+    const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const raw = window.atob(base64);
+    return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
+  }
+
+  async function enablePushNotifications() {
+    if (pushBusy) return;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return;
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!vapidKey) return;
+    setPushBusy(true);
+    setPushEnabled(true);
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        setPushEnabled(false);
+        return;
+      }
+      const registration = await navigator.serviceWorker.register("/sw.js");
+      const existing = await registration.pushManager.getSubscription();
+      const subscription = existing ?? await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      });
+      const { data: { session } } = await createClient().auth.getSession();
+      if (!session) return;
+      await fetch("/api/v1/push-subscriptions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          "x-user-id": session.user.id,
+        },
+        body: JSON.stringify(subscription.toJSON()),
+      });
+    } catch {
+      setPushEnabled(false);
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
+  async function disablePushNotifications() {
+    if (pushBusy) return;
+    setPushBusy(true);
+    setPushEnabled(false);
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        const { endpoint } = subscription;
+        await subscription.unsubscribe();
+        const { data: { session } } = await createClient().auth.getSession();
+        if (session) {
+          await fetch("/api/v1/push-subscriptions", {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+              "x-user-id": session.user.id,
+            },
+            body: JSON.stringify({ endpoint }),
+          });
+        }
+      }
+    } catch {
+      setPushEnabled(true);
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
+  function togglePushNotifications() {
+    if (pushEnabled) void disablePushNotifications();
+    else void enablePushNotifications();
+  }
+
   function commitInbox(profileId: string, inbox: ProfileInbox) {
     inboxMemoryCache.set(profileId, inbox);
     setInboxes(prev => ({ ...prev, [profileId]: inbox }));
@@ -3007,6 +3088,18 @@ export default function DashboardPage() {
     // loadInbox closes over the latest auth headers and toast handler; this effect only needs to follow the selected profile.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id, token, uid]);
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return;
+    if (Notification.permission !== "granted") {
+      setPushEnabled(false);
+      return;
+    }
+    navigator.serviceWorker.ready
+      .then((registration) => registration.pushManager.getSubscription())
+      .then((subscription) => setPushEnabled(!!subscription))
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     if (!token || !uid || profiles.length === 0) return;
@@ -3259,10 +3352,20 @@ export default function DashboardPage() {
             <img src="/img/linkup-nav-mark.png" alt="LinkUp" className="h-7 w-7 object-contain" />
             <span className="pb-0.5 text-lg font-black uppercase leading-none tracking-wide text-white">LINK <span className="text-[#03A9F4]">UP</span></span>
           </Link>
-          <button type="button" onClick={() => setGoldRequest("design")} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#03A9F4]/40 px-3 text-xs font-semibold text-[#03A9F4]">
-            <i className="ri-sparkling-2-line" />
-            Try Pro For Free
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={togglePushNotifications}
+              aria-label={pushEnabled ? "Notifications enabled" : "Notifications muted"}
+              className={`flex h-9 w-9 items-center justify-center rounded-full border transition ${pushEnabled ? "border-[#03A9F4]/45 bg-[#03A9F4]/15 text-[#03A9F4]" : "border-white/10 bg-white/[0.03] text-white/35"}`}
+            >
+              <i className={`${pushBusy ? "ri-loader-4-line animate-spin" : pushEnabled ? "ri-notification-3-fill" : "ri-notification-off-line"} text-lg`} />
+            </button>
+            <button type="button" onClick={() => setGoldRequest("design")} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#03A9F4]/40 px-3 text-xs font-semibold text-[#03A9F4]">
+              <i className="ri-sparkling-2-line" />
+              Try Pro
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-hidden">

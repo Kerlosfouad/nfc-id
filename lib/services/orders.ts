@@ -285,6 +285,10 @@ function htmlCell(value: unknown) {
     .replace(/"/g, '&quot;');
 }
 
+function htmlAttr(value: unknown) {
+  return htmlCell(value).replace(/'/g, '&#39;');
+}
+
 const EXCEL_COLUMNS = [
   { key: 'index', label: '#', width: 64, className: 'center nowrap' },
   { key: 'orderNumber', label: 'Order', width: 78, className: 'center nowrap' },
@@ -464,6 +468,9 @@ export function ordersToPrintHtml(orders: AdminOrder[]) {
       <td class="phone">${htmlCell(order.secondaryPhone ?? '')}</td>
       <td>${htmlCell(order.city)}</td>
       <td class="address">${htmlCell(`${order.address} - ${order.apartment}`)}</td>
+      <td class="photo-cell">
+        <img class="product-photo" src="${htmlAttr(item?.imageUrl || '/img/logo.png')}" alt="${htmlAttr(item?.productName || 'Product')}" />
+      </td>
       <td>${htmlCell(item?.productName ?? '')}</td>
       <td>${htmlCell(item?.quantity ?? 0)}</td>
       <td>${htmlCell(item?.unitPrice ?? 0)}</td>
@@ -527,6 +534,17 @@ export function ordersToPrintHtml(orders: AdminOrder[]) {
       overflow-wrap: anywhere;
     }
     tr:nth-child(even) td { background: #f8fafc; }
+    .photo-cell { padding: 4px; text-align: center; vertical-align: middle; }
+    .product-photo {
+      display: block;
+      width: 54px;
+      height: 54px;
+      margin: 0 auto;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+    }
     .name, .address, .notes {
       direction: auto;
       unicode-bidi: plaintext;
@@ -569,22 +587,23 @@ export function ordersToPrintHtml(orders: AdminOrder[]) {
     <thead>
       <tr>
         <th style="width:5%">Order</th>
-        <th style="width:10%">Date</th>
-        <th style="width:12%">Name</th>
-        <th style="width:9%">Phone</th>
-        <th style="width:9%">Second</th>
-        <th style="width:8%">City</th>
-        <th style="width:15%">Address</th>
-        <th style="width:11%">Product</th>
+        <th style="width:9%">Date</th>
+        <th style="width:11%">Name</th>
+        <th style="width:8%">Phone</th>
+        <th style="width:8%">Second</th>
+        <th style="width:7%">City</th>
+        <th style="width:13%">Address</th>
+        <th style="width:7%">Photo</th>
+        <th style="width:10%">Product</th>
         <th style="width:4%">Qty</th>
-        <th style="width:6%">Unit</th>
-        <th style="width:6%">Line</th>
-        <th style="width:6%">Total</th>
-        <th style="width:9%">Notes</th>
+        <th style="width:5%">Unit</th>
+        <th style="width:5%">Line</th>
+        <th style="width:5%">Total</th>
+        <th style="width:8%">Notes</th>
       </tr>
     </thead>
     <tbody>
-      ${bodyRows || '<tr><td colspan="13" class="empty">No orders found</td></tr>'}
+      ${bodyRows || '<tr><td colspan="14" class="empty">No orders found</td></tr>'}
     </tbody>
   </table>
   <div class="actions">
