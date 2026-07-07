@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { requireAdmin } from '@/lib/middleware/adminCheck';
+import { requireAuth } from '@/lib/middleware/auth';
 import { deletePushSubscription, savePushSubscription, sendPushToUser } from '@/lib/services/pushNotifications';
 
 const SubscriptionSchema = z.object({
@@ -13,7 +13,7 @@ const SubscriptionSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdmin(request);
+  const auth = await requireAuth(request);
   if (auth instanceof NextResponse) return auth;
 
   const parsed = SubscriptionSchema.safeParse(await request.json().catch(() => null));
@@ -27,16 +27,17 @@ export async function POST(request: NextRequest) {
   await savePushSubscription(auth.userId, parsed.data);
   void sendPushToUser(auth.userId, {
     title: 'LinkUp notifications enabled',
-    body: 'Order alerts are now active on this phone',
-    url: '/admin/orders',
+    body: 'Alerts are now active on this device',
+    url: '/dashboard',
     image: '/img/linkup-nav-mark.png',
-    tag: 'linkup-push-test',
+    tag: 'linkup-user-push-test',
   });
+
   return NextResponse.json({ data: { ok: true }, error: null });
 }
 
 export async function DELETE(request: NextRequest) {
-  const auth = await requireAdmin(request);
+  const auth = await requireAuth(request);
   if (auth instanceof NextResponse) return auth;
 
   const parsed = z.object({ endpoint: z.string().url() }).safeParse(await request.json().catch(() => null));

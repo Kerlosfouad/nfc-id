@@ -11,9 +11,12 @@ self.addEventListener("push", (event) => {
     body: payload.body || "You have a new update.",
     icon: "/img/linkup-nav-mark.png",
     badge: "/img/linkup-nav-mark.png",
+    image: payload.image || "/img/linkup-nav-mark.png",
     tag: payload.tag || "linkup-notification",
     data: { url: payload.url || "/admin/orders" },
     requireInteraction: true,
+    silent: false,
+    vibrate: [160, 80, 160],
   };
 
   event.waitUntil(self.registration.showNotification(title, options));

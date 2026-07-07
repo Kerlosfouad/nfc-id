@@ -60,7 +60,7 @@ export async function deletePushSubscription(endpoint: string) {
   await db.$executeRaw`DELETE FROM push_subscriptions WHERE endpoint = ${endpoint}`;
 }
 
-export async function sendPushToAdmins(payload: { title: string; body: string; url?: string; tag?: string }) {
+export async function sendPushToAdmins(payload: { title: string; body: string; url?: string; tag?: string; image?: string }) {
   if (!configureWebPush()) return;
   await ensurePushSubscriptionTable();
 
@@ -91,7 +91,7 @@ export async function sendPushToAdmins(payload: { title: string; body: string; u
   );
 }
 
-export async function sendPushToUser(userId: string, payload: { title: string; body: string; url?: string; tag?: string }) {
+export async function sendPushToUser(userId: string, payload: { title: string; body: string; url?: string; tag?: string; image?: string }) {
   if (!configureWebPush()) return;
   await ensurePushSubscriptionTable();
 

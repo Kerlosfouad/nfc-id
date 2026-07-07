@@ -59,7 +59,7 @@ export function PushPermissionPrompt() {
 
       const { data: { session } } = await createClient().auth.getSession();
       if (session) {
-        await fetch("/api/v1/admin/push-subscriptions", {
+        await fetch("/api/v1/push-subscriptions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

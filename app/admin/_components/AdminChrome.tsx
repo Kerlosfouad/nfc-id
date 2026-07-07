@@ -83,6 +83,10 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
       showAppNotification("Push not supported", "This browser does not support lock-screen web notifications.");
       return;
     }
+    if (Notification.permission === "denied") {
+      setPushStatus("blocked");
+      return;
+    }
     const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     if (!vapidKey) {
       showAppNotification("Push setup missing", "Add NEXT_PUBLIC_VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY to Vercel.");
@@ -163,6 +167,10 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
   }
 
   function togglePushNotifications() {
+    if (pushStatus === "blocked") {
+      setPushStatus("blocked");
+      return;
+    }
     if (pushStatus === "enabled") {
       void disablePushNotifications();
       return;
@@ -222,7 +230,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
       }
     : pushStatus === "blocked"
       ? {
-          label: "Notifications blocked",
+          label: "Notifications blocked in site settings",
           icon: "ri-notification-off-line",
           className: "border-white/10 bg-white/[0.03] text-white/35",
         }

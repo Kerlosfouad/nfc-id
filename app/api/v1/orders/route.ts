@@ -53,9 +53,10 @@ export async function POST(request: NextRequest) {
   try {
     const order = await createOrder(parsed.data);
     void sendPushToAdmins({
-      title: 'New LinkUp order',
-      body: `${parsed.data.customerName} placed order #${order.orderNumber} for ${Number(order.total).toLocaleString('en-US')} EGP.`,
+      title: 'New shop order',
+      body: `${parsed.data.customerName} placed order #${order.orderNumber} · ${Number(order.total).toLocaleString('en-US')} EGP`,
       url: '/admin/orders',
+      image: '/img/linkup-nav-mark.png',
       tag: `linkup-order-${order.id}`,
     });
     return NextResponse.json({ data: order, error: null }, { status: 201 });

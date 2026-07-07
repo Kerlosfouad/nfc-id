@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'crypto';
 import { db } from '@/lib/db';
+import { sendPushToUser } from '@/lib/services/pushNotifications';
 import { ProfileMessageInputSchema } from '@/lib/validators/schemas';
 
 function hashIp(ip: string): string {
@@ -130,7 +131,7 @@ export async function POST(
   try {
     const profile = await db.profile.findUnique({
       where: { id },
-      select: { id: true, publicId: true, isSuspended: true, isActive: true },
+      select: { id: true, publicId: true, displayName: true, ownerId: true, isSuspended: true, isActive: true },
     });
 
     if (!profile || profile.isSuspended || !profile.isActive) {
@@ -156,6 +157,14 @@ export async function POST(
         message: true,
         createdAt: true,
       },
+    });
+
+    void sendPushToUser(profile.ownerId, {
+      title: 'New profile message',
+      body: `${parsed.data.senderName} sent a message to ${profile.displayName || 'your profile'}`,
+      url: '/dashboard',
+      image: '/img/linkup-nav-mark.png',
+      tag: `linkup-profile-message-${message.id}`,
     });
 
     return NextResponse.json({ data: message, error: null }, { status: 201 });
