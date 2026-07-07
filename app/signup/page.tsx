@@ -41,24 +41,36 @@ function SignupContent() {
       return;
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+
     setLoading(true);
     try {
-      const { error: signupError } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
-        password,
-        options: {
-          data: { full_name: fullName.trim() },
-          emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
-        },
+      const signupRes = await fetch("/api/v1/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: cleanEmail,
+          password,
+          fullName: fullName.trim(),
+        }),
       });
-
-      if (signupError) {
-        setError(signupError.message);
+      const signupBody = await signupRes.json().catch(() => ({}));
+      if (!signupRes.ok) {
+        setError(signupBody?.error?.message ?? "Account could not be created.");
         return;
       }
 
-      setVerificationSent(true);
-      setError("We sent a verification code to your email.");
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
+      if (signInError) {
+        setError("Account created. Please sign in to continue.");
+        router.replace(loginHref);
+        return;
+      }
+
+      router.replace(redirectTo);
     } catch {
       setError("An unexpected error occurred.");
     } finally {

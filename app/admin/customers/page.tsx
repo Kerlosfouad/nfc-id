@@ -38,6 +38,7 @@ export default function AdminCustomersPage() {
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [busyProfileId, setBusyProfileId] = useState<string | null>(null);
+  const [busyCustomerId, setBusyCustomerId] = useState<string | null>(null);
   const [durations, setDurations] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -121,6 +122,30 @@ export default function AdminCustomersPage() {
     }
   }
 
+  async function deleteCustomer(customer: CustomerRow) {
+    if (!authToken || customer.id === userId) return;
+    const ok = window.confirm(`Delete ${customer.email}? This removes the Auth user, database account, profiles, links, messages, and frees linked NFC medals.`);
+    if (!ok) return;
+
+    setBusyCustomerId(customer.id);
+    try {
+      const res = await fetch(`/api/v1/admin/customers?userId=${encodeURIComponent(customer.id)}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          "x-user-id": userId ?? "",
+        },
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error?.message ?? "Failed to delete customer");
+      setCustomers((current) => current.filter((item) => item.id !== customer.id));
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Failed to delete customer");
+    } finally {
+      setBusyCustomerId(null);
+    }
+  }
+
   if (checking) {
     return (
       <AdminChrome title="Customers" subtitle="Registered users, owned medals, and public profile counts.">
@@ -193,6 +218,16 @@ export default function AdminCustomersPage() {
                     {new Date(customer.createdAt).toLocaleDateString()}
                   </span>
                 </div>
+                {customer.id !== userId && (
+                  <button
+                    type="button"
+                    onClick={() => deleteCustomer(customer)}
+                    disabled={busyCustomerId === customer.id}
+                    className="mb-4 w-full rounded-lg border border-red-400/25 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-200 transition hover:border-red-300/45 hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {busyCustomerId === customer.id ? "Deleting..." : "Delete customer everywhere"}
+                  </button>
+                )}
 
                 {customer.profiles.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-white/10 py-8 text-center text-sm text-white/30">No profiles</div>

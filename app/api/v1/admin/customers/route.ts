@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/middleware/adminCheck';
 import { db } from '@/lib/db';
+import { deleteUserAccount } from '@/lib/services/deleteUserAccount';
 
 type CustomerExportRow = Awaited<ReturnType<typeof loadCustomers>>[number];
 type ExcelCustomerRow = {
@@ -194,4 +195,34 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   return NextResponse.json({ data: customers, error: null });
+}
+
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
+  const authResult = await requireAdmin(request);
+  if (authResult instanceof NextResponse) return authResult;
+
+  const userId = request.nextUrl.searchParams.get('userId');
+  if (!userId) {
+    return NextResponse.json(
+      { data: null, error: { code: 'BAD_REQUEST', message: 'Missing userId.' } },
+      { status: 400 },
+    );
+  }
+
+  if (userId === authResult.userId) {
+    return NextResponse.json(
+      { data: null, error: { code: 'BAD_REQUEST', message: 'Admins cannot delete their own account here.' } },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const deleted = await deleteUserAccount(userId);
+    return NextResponse.json({ data: deleted, error: null });
+  } catch (error) {
+    return NextResponse.json(
+      { data: null, error: { code: 'ACCOUNT_DELETE_FAILED', message: error instanceof Error ? error.message : 'Account could not be deleted.' } },
+      { status: 500 },
+    );
+  }
 }
