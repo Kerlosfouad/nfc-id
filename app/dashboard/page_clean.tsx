@@ -232,12 +232,11 @@ const PRESET_THEMES = [
   { id: "rose-gold", name: "Rose Gold", desc: "Elegant rose glow", colors: ["#21040c", "#7f1d1d", "#9f1239", "#fecdd3"], premium: false, accent: "#9f1239", coverUrl: "/assets/themes/rose-gold.png" },
   { id: "m-motorsport", name: "M Motorsport", desc: "Gloss white, BMW blue, carbon, and race red", colors: ["#EAF2FF", "#050B14", "#0054A6", "#DC2626"], premium: false, accent: "#0054A6", coverUrl: "/assets/themes/motorsport-m.jpg" },
   { id: "royal-wave", name: "Royal Wave", desc: "Pearl white, royal blue, cyan, and gold", colors: ["#F8FAFC", "#04245C", "#0EA5E9", "#D4A72C"], premium: false, accent: "#0EA5E9", coverUrl: "/assets/themes/royal-wave.png" },
+  { id: "black-surf", name: "Black Surf", desc: "Black sand, white foam, and red boat contrast", colors: ["#020407", "#111827", "#F8FAFC", "#FF1F2D"], premium: false, accent: "#FF1F2D", coverUrl: "/assets/themes/black-surf.jpg" },
   { id: "neon-red", name: "Neon Red", desc: "Dark carbon video with red light trails", colors: ["#05070D", "#242631", "#FF2A3D", "#F8FAFC"], premium: false, accent: "#FF2A3D", coverUrl: "/assets/themes/neon-red.mp4" },
   { id: "cosmic-nebula", name: "Cosmic Nebula", desc: "Starfield video with violet, magenta, and gold", colors: ["#07040F", "#2B145F", "#F43FB1", "#FFB347"], premium: false, accent: "#F43FB1", coverUrl: "/assets/themes/cosmic-nebula.mp4" },
   { id: "electric-grid", name: "Electric Grid", desc: "Carbon grid video with electric blue light", colors: ["#030814", "#101827", "#244BFF", "#AFC4FF"], premium: false, accent: "#244BFF", coverUrl: "/assets/themes/electric-grid.mp4" },
-  { id: "lava-fracture", name: "Lava Fracture", desc: "Dark fractured stone video with molten orange lines", colors: ["#050505", "#242120", "#FF5A1F", "#FFB15C"], premium: false, accent: "#FF5A1F", coverUrl: "/assets/themes/lava-fracture.mp4" },
   { id: "crimson-grid", name: "Crimson Grid", desc: "Dark tiled video with red neon grid lines", colors: ["#05070B", "#151A22", "#FF1E38", "#FF7A86"], premium: false, accent: "#FF1E38", coverUrl: "/assets/themes/crimson-grid.mp4" },
-  { id: "cyber-tunnel", name: "Cyber Tunnel", desc: "Electric blue circuit tunnel video", colors: ["#010A16", "#06213A", "#03A9F4", "#8DEBFF"], premium: false, accent: "#03A9F4", coverUrl: "/assets/themes/cyber-tunnel.mp4" },
 ];
 
 function isVideoUrl(url?: string | null): boolean {

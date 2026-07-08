@@ -304,7 +304,7 @@ export default function ConnectNfcPage() {
           height: 45px;
           border-radius: 999px;
           background:
-            radial-gradient(circle, #071725 0 54%, transparent 56%),
+            radial-gradient(circle, #07090c 0 54%, transparent 56%),
             conic-gradient(from 10deg, #03A9F4 0 82deg, rgba(3,169,244,0.16) 84deg 360deg);
           box-shadow: 0 0 20px rgba(3,169,244,0.35);
           animation: connectProgressSpin 1.8s linear infinite;
@@ -312,7 +312,7 @@ export default function ConnectNfcPage() {
 
         .connect-progress-done {
           background:
-            radial-gradient(circle, #071725 0 54%, transparent 56%),
+            radial-gradient(circle, #07090c 0 54%, transparent 56%),
             conic-gradient(#4ade80 0 360deg);
         }
 
@@ -320,13 +320,17 @@ export default function ConnectNfcPage() {
           .connect-shell {
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
             padding-top: max(14px, env(safe-area-inset-top));
             padding-bottom: max(12px, env(safe-area-inset-bottom));
           }
 
           .connect-reference-artwork {
-            inset: -9% -10% -5%;
+            inset: -8% -10% -5%;
+          }
+
+          .connect-artwork::after {
+            content: none;
           }
 
           .connect-status {
@@ -351,29 +355,30 @@ export default function ConnectNfcPage() {
         }
       `}</style>
       <div className="connect-shell mx-auto w-full max-w-6xl px-5 py-8 [font-family:Inter,system-ui,sans-serif] sm:px-8 lg:flex lg:min-h-screen lg:flex-col lg:justify-center lg:py-12">
-        <header className="mb-5 flex items-center justify-center sm:mb-8 lg:mb-14">
+        <header className="mb-3 flex items-center justify-center sm:mb-5 lg:mb-14">
           <Link href="/" className="flex w-fit items-center justify-center">
             <Image src="/assets/linkup/linkup-logo-compact.png" alt="LinkUp" width={260} height={304} className="h-auto w-[94px] sm:w-[126px] lg:w-[148px]" priority />
           </Link>
         </header>
 
-        <div className="connect-layout mx-auto grid w-full max-w-[430px] flex-1 items-center gap-4 sm:gap-7 lg:max-w-none lg:grid-cols-[0.9fr_1.1fr] lg:gap-x-12 lg:gap-y-8">
+        <div className="connect-layout mx-auto grid w-full max-w-[430px] flex-1 items-center gap-3 sm:gap-7 lg:max-w-none lg:grid-cols-[0.9fr_1.1fr] lg:gap-x-12 lg:gap-y-8">
           <section className="text-center lg:text-left">
-            <div className="inline-flex rounded-[13px] border border-[#03A9F4]/35 bg-[#03A9F4]/5 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[#03A9F4] sm:px-6 sm:py-2 sm:text-[13px]">
+            <div className="inline-flex max-w-full rounded-[13px] border border-[#03A9F4]/35 bg-[#03A9F4]/5 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#03A9F4] sm:px-6 sm:py-2 sm:text-[13px]">
               Link your NFC card
             </div>
 
-            <h1 className="mt-4 text-[31px] font-black leading-[1.08] tracking-[-0.02em] text-white sm:mt-8 sm:text-[46px] lg:text-[64px]">
-              Link Card
-              <span className="block text-[#088cff]">Now</span>
+            <h1 className="mx-auto mt-4 flex max-w-full flex-row flex-nowrap items-baseline justify-center gap-2 text-[clamp(28px,7.2vw,42px)] font-black leading-[1.08] tracking-[0] text-white sm:mt-8 sm:block sm:text-[clamp(42px,5.8vw,64px)] sm:leading-[1.05] lg:mx-0 lg:text-left">
+              <span className="block whitespace-nowrap sm:inline">Link Your</span>
+              <span className="block whitespace-nowrap text-[#088cff] sm:inline sm:pl-3">Card</span>
             </h1>
 
-            <p className="mx-auto mt-3 max-w-[315px] text-[14px] leading-6 text-white/72 sm:mt-6 sm:max-w-[350px] sm:text-[17px] sm:leading-8 lg:mx-0 lg:max-w-[430px] lg:text-[19px]">
-              Hold the card near your phone. We will write your profile link automatically.
+            <p className="mx-auto mt-4 flex max-w-full flex-col items-center gap-1.5 text-[clamp(13px,3.65vw,15px)] leading-[1.45] text-white/76 sm:mt-6 sm:block sm:max-w-[38rem] sm:text-[clamp(17px,1.65vw,19px)] sm:leading-8 lg:mx-0 lg:text-left">
+              <span className="block sm:inline">Hold the card near your phone.</span>
+              <span className="block sm:inline sm:pl-1">Your profile link will be written automatically.</span>
             </p>
           </section>
 
-          <section className="connect-visual relative h-[245px] overflow-visible sm:h-[330px] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:h-[500px]" aria-label="LinkUp card approaching the back of a phone">
+          <section className="connect-visual relative mt-8 h-[245px] overflow-visible sm:mt-10 sm:h-[330px] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:h-[500px]" aria-label="LinkUp card approaching the back of a phone">
             <div className={`connect-artwork connect-reference-artwork ${isBusy ? "connect-artwork-active" : ""}`}>
               <Image
                 src="/assets/linkup/connect-nfc-phone-card-v2.png"
@@ -399,7 +404,7 @@ export default function ConnectNfcPage() {
               }}
               className={`connect-status grid w-full grid-cols-[58px_1fr_48px] items-center gap-3 rounded-[18px] border border-white/10 bg-[#071725]/86 px-4 py-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition sm:gap-4 sm:rounded-[22px] sm:px-5 sm:py-5 ${handlePrimaryAction ? "cursor-pointer hover:border-[#03A9F4]/35 hover:bg-[#092033] active:scale-[0.99]" : "cursor-default"}`}
             >
-              <span className="flex h-[38px] w-[38px] items-center justify-center rounded-full border border-white/10 bg-[#0a1824] sm:h-[52px] sm:w-[52px]">
+              <span className="flex h-[38px] w-[38px] items-center justify-center rounded-full border border-white/10 bg-[#0b0d10] sm:h-[52px] sm:w-[52px]">
                 <i className={`${copy.icon} ${status === "connecting" ? "animate-spin" : ""} text-2xl ${isPositive ? "text-green-300" : "text-[#03A9F4]"} sm:text-3xl`} />
               </span>
               <span>
@@ -433,7 +438,7 @@ export default function ConnectNfcPage() {
           </section>
         </div>
 
-        <footer className="mx-auto mt-5 w-full max-w-4xl border-t border-white/10 px-5 pb-2 pt-4 sm:mt-8 sm:pb-8 sm:pt-7">
+        <footer className="mx-auto mt-5 w-full max-w-4xl border-t border-white/15 px-5 pb-2 pt-4 sm:mt-8 sm:pb-8 sm:pt-7">
           <p className="flex items-center justify-center gap-3 text-center text-[13px] text-white/55 sm:text-[15px]">
             <i className="ri-lock-line text-xl text-white/45" />
             Your connection is <span className="text-[#03A9F4]">secure</span> and encrypted.

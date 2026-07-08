@@ -148,6 +148,8 @@ function getThemeVars(theme: ProfileTheme) {
       return { textPrimary: '#ffffff', textSecondary: 'rgba(226,232,240,0.76)', isDark: true, glass: 'rgba(2,6,23,0.54)', glassBorder: 'rgba(14,165,233,0.28)' };
     case 'royal-wave':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(226,232,240,0.78)', isDark: true, glass: 'rgba(4,36,92,0.48)', glassBorder: 'rgba(212,167,44,0.30)' };
+    case 'black-surf':
+      return { textPrimary: '#ffffff', textSecondary: 'rgba(248,250,252,0.80)', isDark: true, glass: 'rgba(2,4,7,0.62)', glassBorder: 'rgba(248,250,252,0.22)' };
     case 'neon-red':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(226,232,240,0.78)', isDark: true, glass: 'rgba(5,7,13,0.58)', glassBorder: 'rgba(255,42,61,0.30)' };
     case 'crimson-grid':
@@ -156,10 +158,6 @@ function getThemeVars(theme: ProfileTheme) {
       return { textPrimary: '#ffffff', textSecondary: 'rgba(238,232,255,0.80)', isDark: true, glass: 'rgba(16,10,36,0.58)', glassBorder: 'rgba(244,63,177,0.28)' };
     case 'electric-grid':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(226,236,255,0.78)', isDark: true, glass: 'rgba(3,8,20,0.60)', glassBorder: 'rgba(64,112,255,0.30)' };
-    case 'cyber-tunnel':
-      return { textPrimary: '#ffffff', textSecondary: 'rgba(226,246,255,0.80)', isDark: true, glass: 'rgba(1,10,22,0.62)', glassBorder: 'rgba(3,169,244,0.34)' };
-    case 'lava-fracture':
-      return { textPrimary: '#ffffff', textSecondary: 'rgba(255,237,213,0.78)', isDark: true, glass: 'rgba(5,5,5,0.62)', glassBorder: 'rgba(255,90,31,0.32)' };
     default:
       return { textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.64)', isDark: true, glass: 'rgba(255,255,255,0.12)', glassBorder: 'rgba(255,255,255,0.14)' };
   }
@@ -172,12 +170,11 @@ const THEME_COVER_URLS: Partial<Record<ProfileTheme['style'], string>> = {
   'rose-gold': '/assets/themes/rose-gold.png',
   'm-motorsport': '/assets/themes/motorsport-m.jpg',
   'royal-wave': '/assets/themes/royal-wave.png',
+  'black-surf': '/assets/themes/black-surf.jpg',
   'neon-red': '/assets/themes/neon-red.mp4',
   'cosmic-nebula': '/assets/themes/cosmic-nebula.mp4',
   'electric-grid': '/assets/themes/electric-grid.mp4',
-  'lava-fracture': '/assets/themes/lava-fracture.mp4',
   'crimson-grid': '/assets/themes/crimson-grid.mp4',
-  'cyber-tunnel': '/assets/themes/cyber-tunnel.mp4',
 };
 
 function isVideoUrl(url?: string | null): boolean {
@@ -206,6 +203,13 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
         backgroundPosition: 'center top',
       };
     }
+    if (theme.style === 'black-surf') {
+      return {
+        backgroundImage: `linear-gradient(180deg, rgba(2,4,7,0.22) 0%, rgba(2,4,7,0.36) 42%, rgba(2,4,7,0.90) 100%), linear-gradient(135deg, rgba(255,31,45,0.24) 0%, transparent 28%, rgba(248,250,252,0.18) 78%, transparent 100%), url(${coverUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      };
+    }
     return {
       backgroundImage: `url(${coverUrl})`,
       backgroundSize: 'cover',
@@ -218,12 +222,11 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
     case 'purple-haze': return { background: 'radial-gradient(circle at 72% 18%, rgba(124,58,237,0.28), transparent 34%), linear-gradient(150deg,#11102f,#3b1d78 54%,#0c071d)' };
     case 'm-motorsport': return { background: 'radial-gradient(circle at 18% 12%, rgba(0,84,166,0.28), transparent 30%), radial-gradient(circle at 86% 20%, rgba(220,38,38,0.22), transparent 30%), linear-gradient(155deg,#dbeafe 0%,#0f2f57 38%,#07111f 100%)' };
     case 'royal-wave': return { background: 'radial-gradient(circle at 18% 12%, rgba(14,165,233,0.22), transparent 30%), radial-gradient(circle at 80% 18%, rgba(212,167,44,0.22), transparent 32%), linear-gradient(155deg,#f8fafc 0%,#0b3b79 38%,#020817 100%)' };
+    case 'black-surf': return { background: 'radial-gradient(circle at 18% 42%, rgba(255,31,45,0.24), transparent 28%), radial-gradient(circle at 82% 24%, rgba(248,250,252,0.16), transparent 34%), linear-gradient(155deg,#020407 0%,#111827 54%,#030406 100%)' };
     case 'neon-red': return { background: 'radial-gradient(circle at 72% 18%, rgba(255,42,61,0.24), transparent 34%), linear-gradient(155deg,#1d1f29 0%,#080a11 48%,#030408 100%)' };
     case 'crimson-grid': return { background: 'radial-gradient(circle at 64% 30%, rgba(255,30,56,0.30), transparent 34%), linear-gradient(155deg,#151a22 0%,#07090e 50%,#020304 100%)' };
     case 'cosmic-nebula': return { background: 'radial-gradient(circle at 58% 36%, rgba(244,63,177,0.26), transparent 34%), radial-gradient(circle at 24% 42%, rgba(59,130,246,0.20), transparent 32%), linear-gradient(155deg,#12081f 0%,#07040f 52%,#02030a 100%)' };
     case 'electric-grid': return { background: 'radial-gradient(circle at 64% 30%, rgba(50,83,255,0.30), transparent 34%), linear-gradient(155deg,#0b1020 0%,#050811 50%,#02040a 100%)' };
-    case 'cyber-tunnel': return { background: 'radial-gradient(circle at 52% 38%, rgba(3,169,244,0.34), transparent 34%), linear-gradient(155deg,#06213a 0%,#03101d 48%,#01050b 100%)' };
-    case 'lava-fracture': return { background: 'radial-gradient(circle at 72% 18%, rgba(255,90,31,0.26), transparent 34%), linear-gradient(155deg,#242120 0%,#080706 50%,#020202 100%)' };
     case 'dark':      return { background: `radial-gradient(circle at 72% 18%, ${pc}44, transparent 34%), linear-gradient(150deg,#030712,#111827 52%,#020617)` };
     default:          return { background: `radial-gradient(circle at 72% 18%, ${pc}3d, transparent 34%), linear-gradient(150deg,#04111c,#0b2438 52%,#020617)` };
   }
@@ -238,7 +241,7 @@ function isRoyalWaveTheme(style?: ProfileTheme['style']): boolean {
 }
 
 function isNeonRedTheme(style?: ProfileTheme['style']): boolean {
-  return style === 'neon-red' || style === 'crimson-grid';
+  return style === 'neon-red' || style === 'crimson-grid' || style === 'black-surf';
 }
 
 function isCosmicNebulaTheme(style?: ProfileTheme['style']): boolean {
@@ -246,12 +249,9 @@ function isCosmicNebulaTheme(style?: ProfileTheme['style']): boolean {
 }
 
 function isElectricGridTheme(style?: ProfileTheme['style']): boolean {
-  return style === 'electric-grid' || style === 'cyber-tunnel';
+  return style === 'electric-grid';
 }
 
-function isLavaFractureTheme(style?: ProfileTheme['style']): boolean {
-  return style === 'lava-fracture';
-}
 
 function motorsportSurface() {
   return {
@@ -303,16 +303,6 @@ function electricGridSurface() {
   };
 }
 
-function lavaFractureSurface() {
-  return {
-    ink: '#050505',
-    stone: '#242120',
-    ember: '#FF5A1F',
-    glow: '#FF8A2A',
-    line: '#FFB15C',
-    white: '#FFF7ED',
-  };
-}
 
 /* ── Link Row ─────────────────────────────────────────────── */
 
@@ -329,8 +319,6 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
   const isCosmic = isCosmicNebulaTheme(themeStyle);
   const electric = electricGridSurface();
   const isElectric = isElectricGridTheme(themeStyle);
-  const lava = lavaFractureSurface();
-  const isLava = isLavaFractureTheme(themeStyle);
 
   return (
     <a
@@ -354,8 +342,6 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
                 ? cosmic.ink
               : isElectric
                 ? electric.ink
-              : isLava
-                ? lava.ink
               : accentColor,
           boxShadow: isMotorsport
             ? `0 6px 20px ${withAlpha(motorsport.navy, 0.42)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.22)}`
@@ -367,8 +353,6 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
                 ? `0 6px 22px ${withAlpha(cosmic.magenta, 0.30)}, 0 0 0 1px ${withAlpha(cosmic.blue, 0.24)}`
               : isElectric
                 ? `0 6px 22px ${withAlpha(electric.blue, 0.34)}, 0 0 0 1px ${withAlpha(electric.line, 0.24)}`
-              : isLava
-                ? `0 6px 22px ${withAlpha(lava.ember, 0.34)}, 0 0 0 1px ${withAlpha(lava.line, 0.24)}`
               : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
         }}
       >
@@ -391,10 +375,8 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
               ? `linear-gradient(90deg, ${withAlpha(cosmic.ink, 0.86)} 0%, ${withAlpha(cosmic.violet, 0.66)} 54%, ${withAlpha(cosmic.magenta, 0.22)} 100%)`
             : isElectric
               ? `linear-gradient(90deg, ${withAlpha(electric.ink, 0.88)} 0%, ${withAlpha(electric.carbon, 0.70)} 55%, ${withAlpha(electric.blue, 0.24)} 100%)`
-            : isLava
-              ? `linear-gradient(90deg, ${withAlpha(lava.ink, 0.88)} 0%, ${withAlpha(lava.stone, 0.72)} 56%, ${withAlpha(lava.ember, 0.24)} 100%)`
             : withAlpha(accentColor, 0.14),
-          borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : isRoyal ? withAlpha(royal.cyan, 0.34) : isNeon ? withAlpha(neon.red, 0.32) : isCosmic ? withAlpha(cosmic.magenta, 0.30) : isElectric ? withAlpha(electric.blue, 0.32) : isLava ? withAlpha(lava.ember, 0.34) : withAlpha(accentColor, 0.26),
+          borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : isRoyal ? withAlpha(royal.cyan, 0.34) : isNeon ? withAlpha(neon.red, 0.32) : isCosmic ? withAlpha(cosmic.magenta, 0.30) : isElectric ? withAlpha(electric.blue, 0.32) : withAlpha(accentColor, 0.26),
           backdropFilter: 'blur(14px)',
           WebkitBackdropFilter: 'blur(14px)',
           boxShadow: isMotorsport
@@ -407,8 +389,6 @@ function LinkRow({ link, primaryColor, themeStyle, compact = false, onOpen }: { 
               ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(cosmic.magenta, 0.16)}`
             : isElectric
               ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(electric.blue, 0.18)}`
-            : isLava
-              ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(lava.ember, 0.18)}`
             : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
         }}
       >
@@ -436,8 +416,6 @@ function LinkGridTile({ link, primaryColor, themeStyle, onOpen }: { link: Profil
   const isCosmic = isCosmicNebulaTheme(themeStyle);
   const electric = electricGridSurface();
   const isElectric = isElectricGridTheme(themeStyle);
-  const lava = lavaFractureSurface();
-  const isLava = isLavaFractureTheme(themeStyle);
 
   return (
     <a
@@ -457,20 +435,18 @@ function LinkGridTile({ link, primaryColor, themeStyle, onOpen }: { link: Profil
             ? `linear-gradient(145deg, ${withAlpha(cosmic.ink, 0.86)} 0%, ${withAlpha(cosmic.violet, 0.62)} 52%, ${withAlpha(cosmic.magenta, 0.18)} 100%)`
           : isElectric
             ? `linear-gradient(145deg, ${withAlpha(electric.ink, 0.88)} 0%, ${withAlpha(electric.carbon, 0.66)} 54%, ${withAlpha(electric.blue, 0.18)} 100%)`
-          : isLava
-            ? `linear-gradient(145deg, ${withAlpha(lava.ink, 0.88)} 0%, ${withAlpha(lava.stone, 0.68)} 54%, ${withAlpha(lava.ember, 0.20)} 100%)`
           : withAlpha(accentColor, 0.14),
-        borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : isRoyal ? withAlpha(royal.cyan, 0.34) : isNeon ? withAlpha(neon.red, 0.32) : isCosmic ? withAlpha(cosmic.magenta, 0.30) : isElectric ? withAlpha(electric.blue, 0.32) : isLava ? withAlpha(lava.ember, 0.34) : withAlpha(accentColor, 0.26),
+        borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.34) : isRoyal ? withAlpha(royal.cyan, 0.34) : isNeon ? withAlpha(neon.red, 0.32) : isCosmic ? withAlpha(cosmic.magenta, 0.30) : isElectric ? withAlpha(electric.blue, 0.32) : withAlpha(accentColor, 0.26),
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
-        boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 24px ${withAlpha(motorsport.navy, 0.30)}` : isRoyal ? `inset 0 1px 0 rgba(255,255,255,0.16), 0 8px 24px ${withAlpha(royal.blue, 0.30)}` : isNeon ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(neon.red, 0.16)}` : isCosmic ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(cosmic.magenta, 0.16)}` : isElectric ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(electric.blue, 0.18)}` : isLava ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(lava.ember, 0.18)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
+        boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 24px ${withAlpha(motorsport.navy, 0.30)}` : isRoyal ? `inset 0 1px 0 rgba(255,255,255,0.16), 0 8px 24px ${withAlpha(royal.blue, 0.30)}` : isNeon ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(neon.red, 0.16)}` : isCosmic ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(cosmic.magenta, 0.16)}` : isElectric ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 26px ${withAlpha(electric.blue, 0.18)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
       }}
     >
       <div
         className="h-11 w-11 rounded-full flex items-center justify-center overflow-hidden"
         style={{
-          background: isMotorsport ? motorsport.navy : isRoyal ? royal.blue : isNeon ? neon.ink : isCosmic ? cosmic.ink : isElectric ? electric.ink : isLava ? lava.ink : accentColor,
-          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.navy, 0.42)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.32)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.30)}` : isElectric ? `0 5px 18px ${withAlpha(electric.blue, 0.34)}` : isLava ? `0 5px 18px ${withAlpha(lava.ember, 0.34)}` : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
+          background: isMotorsport ? motorsport.navy : isRoyal ? royal.blue : isNeon ? neon.ink : isCosmic ? cosmic.ink : isElectric ? electric.ink : accentColor,
+          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.navy, 0.42)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.32)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.30)}` : isElectric ? `0 5px 18px ${withAlpha(electric.blue, 0.34)}` : `0 5px 18px ${withAlpha(accentColor, 0.4)}`,
         }}
       >
         {link.thumbnailUrl
@@ -587,8 +563,6 @@ function ProfileMessageForm({
   const isCosmic = isCosmicNebulaTheme(themeStyle);
   const electric = electricGridSurface();
   const isElectric = isElectricGridTheme(themeStyle);
-  const lava = lavaFractureSurface();
-  const isLava = isLavaFractureTheme(themeStyle);
 
   return (
     <form
@@ -605,21 +579,19 @@ function ProfileMessageForm({
             ? `linear-gradient(145deg, ${withAlpha(cosmic.ink, 0.86)} 0%, ${withAlpha(cosmic.violet, 0.62)} 55%, ${withAlpha(cosmic.magenta, 0.18)} 100%)`
           : isElectric
             ? `linear-gradient(145deg, ${withAlpha(electric.ink, 0.88)} 0%, ${withAlpha(electric.carbon, 0.66)} 56%, ${withAlpha(electric.blue, 0.18)} 100%)`
-          : isLava
-            ? `linear-gradient(145deg, ${withAlpha(lava.ink, 0.88)} 0%, ${withAlpha(lava.stone, 0.70)} 56%, ${withAlpha(lava.ember, 0.20)} 100%)`
           : withAlpha(accentColor, 0.14),
-        borderColor: isMotorsport ? withAlpha(motorsport.white, 0.22) : isRoyal ? withAlpha(royal.gold, 0.30) : isNeon ? withAlpha(neon.red, 0.32) : isCosmic ? withAlpha(cosmic.magenta, 0.30) : isElectric ? withAlpha(electric.blue, 0.32) : isLava ? withAlpha(lava.ember, 0.34) : withAlpha(accentColor, 0.26),
+        borderColor: isMotorsport ? withAlpha(motorsport.white, 0.22) : isRoyal ? withAlpha(royal.gold, 0.30) : isNeon ? withAlpha(neon.red, 0.32) : isCosmic ? withAlpha(cosmic.magenta, 0.30) : isElectric ? withAlpha(electric.blue, 0.32) : withAlpha(accentColor, 0.26),
         backdropFilter: 'blur(14px)',
         WebkitBackdropFilter: 'blur(14px)',
-        boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.18), 0 10px 28px ${withAlpha(motorsport.navy, 0.34)}` : isRoyal ? `inset 0 1px 0 rgba(255,255,255,0.20), 0 10px 28px ${withAlpha(royal.blue, 0.34)}` : isNeon ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 30px ${withAlpha(neon.red, 0.18)}` : isCosmic ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 30px ${withAlpha(cosmic.magenta, 0.18)}` : isElectric ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 30px ${withAlpha(electric.blue, 0.18)}` : isLava ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 30px ${withAlpha(lava.ember, 0.18)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
+        boxShadow: isMotorsport ? `inset 0 1px 0 rgba(255,255,255,0.18), 0 10px 28px ${withAlpha(motorsport.navy, 0.34)}` : isRoyal ? `inset 0 1px 0 rgba(255,255,255,0.20), 0 10px 28px ${withAlpha(royal.blue, 0.34)}` : isNeon ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 30px ${withAlpha(neon.red, 0.18)}` : isCosmic ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 30px ${withAlpha(cosmic.magenta, 0.18)}` : isElectric ? `inset 0 1px 0 rgba(255,255,255,0.14), 0 10px 30px ${withAlpha(electric.blue, 0.18)}` : `inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 22px ${withAlpha(accentColor, 0.08)}`,
       }}
     >
       <div className="mb-3 flex items-center gap-2">
         <span
           className="flex h-9 w-9 items-center justify-center rounded-full"
           style={{
-            background: isMotorsport ? motorsport.navy : isRoyal ? royal.blue : isNeon ? neon.ink : isCosmic ? cosmic.ink : isElectric ? electric.ink : isLava ? lava.ink : accentColor,
-            boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.navy, 0.42)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.32)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.30)}` : isElectric ? `0 5px 18px ${withAlpha(electric.blue, 0.34)}` : isLava ? `0 5px 18px ${withAlpha(lava.ember, 0.34)}` : `0 5px 18px ${withAlpha(accentColor, 0.35)}`,
+            background: isMotorsport ? motorsport.navy : isRoyal ? royal.blue : isNeon ? neon.ink : isCosmic ? cosmic.ink : isElectric ? electric.ink : accentColor,
+            boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.navy, 0.42)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.blue, 0.36)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.32)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.30)}` : isElectric ? `0 5px 18px ${withAlpha(electric.blue, 0.34)}` : `0 5px 18px ${withAlpha(accentColor, 0.35)}`,
           }}
         >
           <i className="ri-message-3-line text-lg text-white" style={FORCE_WHITE_TEXT} />
@@ -638,8 +610,8 @@ function ProfileMessageForm({
           disabled={state === 'submitting'}
           className="h-11 w-full rounded-xl border px-3 text-sm font-medium text-white outline-none transition placeholder:text-white/45 disabled:opacity-60"
           style={{
-            backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : isRoyal ? withAlpha(royal.blue, 0.58) : isNeon ? withAlpha(neon.ink, 0.66) : isCosmic ? withAlpha(cosmic.ink, 0.66) : isElectric ? withAlpha(electric.ink, 0.66) : isLava ? withAlpha(lava.ink, 0.68) : withAlpha(accentColor, 0.13),
-            borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : isRoyal ? withAlpha(royal.gold, 0.25) : isNeon ? withAlpha(neon.red, 0.28) : isCosmic ? withAlpha(cosmic.magenta, 0.28) : isElectric ? withAlpha(electric.blue, 0.30) : isLava ? withAlpha(lava.ember, 0.30) : withAlpha(accentColor, 0.25),
+            backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : isRoyal ? withAlpha(royal.blue, 0.58) : isNeon ? withAlpha(neon.ink, 0.66) : isCosmic ? withAlpha(cosmic.ink, 0.66) : isElectric ? withAlpha(electric.ink, 0.66) : withAlpha(accentColor, 0.13),
+            borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : isRoyal ? withAlpha(royal.gold, 0.25) : isNeon ? withAlpha(neon.red, 0.28) : isCosmic ? withAlpha(cosmic.magenta, 0.28) : isElectric ? withAlpha(electric.blue, 0.30) : withAlpha(accentColor, 0.25),
             ...FORCE_WHITE_TEXT,
             caretColor: accentColor,
           }}
@@ -652,8 +624,8 @@ function ProfileMessageForm({
           disabled={state === 'submitting'}
           className="w-full resize-none rounded-xl border px-3 py-3 text-sm font-medium text-white outline-none transition placeholder:text-white/45 disabled:opacity-60"
           style={{
-            backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : isRoyal ? withAlpha(royal.blue, 0.58) : isNeon ? withAlpha(neon.ink, 0.66) : isCosmic ? withAlpha(cosmic.ink, 0.66) : isElectric ? withAlpha(electric.ink, 0.66) : isLava ? withAlpha(lava.ink, 0.68) : withAlpha(accentColor, 0.13),
-            borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : isRoyal ? withAlpha(royal.gold, 0.25) : isNeon ? withAlpha(neon.red, 0.28) : isCosmic ? withAlpha(cosmic.magenta, 0.28) : isElectric ? withAlpha(electric.blue, 0.30) : isLava ? withAlpha(lava.ember, 0.30) : withAlpha(accentColor, 0.25),
+            backgroundColor: isMotorsport ? withAlpha(motorsport.navy, 0.58) : isRoyal ? withAlpha(royal.blue, 0.58) : isNeon ? withAlpha(neon.ink, 0.66) : isCosmic ? withAlpha(cosmic.ink, 0.66) : isElectric ? withAlpha(electric.ink, 0.66) : withAlpha(accentColor, 0.13),
+            borderColor: isMotorsport ? withAlpha(motorsport.cyan, 0.28) : isRoyal ? withAlpha(royal.gold, 0.25) : isNeon ? withAlpha(neon.red, 0.28) : isCosmic ? withAlpha(cosmic.magenta, 0.28) : isElectric ? withAlpha(electric.blue, 0.30) : withAlpha(accentColor, 0.25),
             ...FORCE_WHITE_TEXT,
             caretColor: accentColor,
           }}
@@ -672,8 +644,8 @@ function ProfileMessageForm({
         disabled={!canSubmit}
         className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl text-sm font-bold text-white transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45"
         style={{
-          background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red}, ${motorsport.cyan})` : isRoyal ? `linear-gradient(90deg, ${royal.gold}, ${royal.cyan}, ${royal.blue})` : isNeon ? `linear-gradient(90deg, ${neon.red}, ${neon.glow})` : isCosmic ? `linear-gradient(90deg, ${cosmic.magenta}, ${cosmic.blue}, ${cosmic.gold})` : isElectric ? `linear-gradient(90deg, ${electric.blue}, ${electric.glow}, ${electric.line})` : isLava ? `linear-gradient(90deg, ${lava.ember}, ${lava.glow}, ${lava.line})` : accentColor,
-          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.34)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.38)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.36)}` : isElectric ? `0 5px 18px ${withAlpha(electric.blue, 0.38)}` : isLava ? `0 5px 18px ${withAlpha(lava.ember, 0.38)}` : `0 4px 16px ${withAlpha(accentColor, 0.45)}`,
+          background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red}, ${motorsport.cyan})` : isRoyal ? `linear-gradient(90deg, ${royal.gold}, ${royal.cyan}, ${royal.blue})` : isNeon ? `linear-gradient(90deg, ${neon.red}, ${neon.glow})` : isCosmic ? `linear-gradient(90deg, ${cosmic.magenta}, ${cosmic.blue}, ${cosmic.gold})` : isElectric ? `linear-gradient(90deg, ${electric.blue}, ${electric.glow}, ${electric.line})` : accentColor,
+          boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.34)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.38)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.36)}` : isElectric ? `0 5px 18px ${withAlpha(electric.blue, 0.38)}` : `0 4px 16px ${withAlpha(accentColor, 0.45)}`,
           ...FORCE_WHITE_TEXT,
         }}
       >
@@ -701,8 +673,6 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
   const cosmic = cosmicNebulaSurface();
   const isElectric = isElectricGridTheme(profile.theme.style);
   const electric = electricGridSurface();
-  const isLava = isLavaFractureTheme(profile.theme.style);
-  const lava = lavaFractureSurface();
   const coverUrl = getThemeCoverUrl(profile.theme);
   const isVideoCover = isVideoUrl(coverUrl);
 
@@ -770,7 +740,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
       )}
       {/* Dark overlay for readability when cover image is set */}
       {coverUrl && (
-        <div className={`fixed inset-0 z-0 ${isMotorsport || isRoyal || isNeon || isCosmic || isElectric || isLava ? 'bg-black/20' : 'bg-black/40'}`} />
+        <div className={`fixed inset-0 z-0 ${isMotorsport || isRoyal || isNeon || isCosmic || isElectric ? 'bg-black/20' : 'bg-black/40'}`} />
       )}
 
       <div className={`relative z-10 flex min-h-screen w-full max-w-[390px] flex-col items-center mx-auto px-7 ${isHero ? 'pt-7' : 'pt-16'} pb-8`}>
@@ -798,10 +768,10 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
           <div
             className={`${isHero ? 'relative z-10 w-[108px] h-[108px]' : 'w-[126px] h-[126px]'} rounded-full p-[3px] mb-4 mx-auto`}
             style={{
-              background: isMotorsport ? `linear-gradient(135deg, ${motorsport.white} 0%, ${motorsport.cyan} 34%, ${motorsport.navy} 58%, ${motorsport.red} 100%)` : isRoyal ? `linear-gradient(135deg, ${royal.pearl} 0%, ${royal.gold} 32%, ${royal.cyan} 66%, ${royal.blue} 100%)` : isNeon ? `linear-gradient(135deg, ${neon.smoke} 0%, ${neon.red} 56%, ${neon.ink} 100%)` : isCosmic ? `linear-gradient(135deg, ${cosmic.violet} 0%, ${cosmic.magenta} 46%, ${cosmic.blue} 76%, ${cosmic.gold} 100%)` : isElectric ? `linear-gradient(135deg, ${electric.ink} 0%, ${electric.blue} 50%, ${electric.line} 100%)` : isLava ? `linear-gradient(135deg, ${lava.ink} 0%, ${lava.stone} 32%, ${lava.ember} 68%, ${lava.line} 100%)` : `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
+              background: isMotorsport ? `linear-gradient(135deg, ${motorsport.white} 0%, ${motorsport.cyan} 34%, ${motorsport.navy} 58%, ${motorsport.red} 100%)` : isRoyal ? `linear-gradient(135deg, ${royal.pearl} 0%, ${royal.gold} 32%, ${royal.cyan} 66%, ${royal.blue} 100%)` : isNeon ? `linear-gradient(135deg, ${neon.smoke} 0%, ${neon.red} 56%, ${neon.ink} 100%)` : isCosmic ? `linear-gradient(135deg, ${cosmic.violet} 0%, ${cosmic.magenta} 46%, ${cosmic.blue} 76%, ${cosmic.gold} 100%)` : isElectric ? `linear-gradient(135deg, ${electric.ink} 0%, ${electric.blue} 50%, ${electric.line} 100%)` : `linear-gradient(135deg, ${primaryColor}, ${primaryColor}80)`,
               boxShadow: isHero
                 ? `0 18px 42px rgba(0,0,0,0.45), 0 0 0 8px rgba(255,255,255,0.08), 0 0 34px ${withAlpha(primaryColor, 0.42)}`
-                : isMotorsport ? `0 0 34px ${withAlpha(motorsport.cyan, 0.42)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.28)}` : isRoyal ? `0 0 34px ${withAlpha(royal.gold, 0.36)}, 0 0 0 1px ${withAlpha(royal.pearl, 0.26)}` : isNeon ? `0 0 34px ${withAlpha(neon.red, 0.38)}, 0 0 0 1px ${withAlpha(neon.glow, 0.24)}` : isCosmic ? `0 0 34px ${withAlpha(cosmic.magenta, 0.36)}, 0 0 0 1px ${withAlpha(cosmic.blue, 0.24)}` : isElectric ? `0 0 34px ${withAlpha(electric.blue, 0.38)}, 0 0 0 1px ${withAlpha(electric.line, 0.24)}` : isLava ? `0 0 34px ${withAlpha(lava.ember, 0.40)}, 0 0 0 1px ${withAlpha(lava.line, 0.24)}` : `0 0 32px ${primaryColor}60`,
+                : isMotorsport ? `0 0 34px ${withAlpha(motorsport.cyan, 0.42)}, 0 0 0 1px ${withAlpha(motorsport.white, 0.28)}` : isRoyal ? `0 0 34px ${withAlpha(royal.gold, 0.36)}, 0 0 0 1px ${withAlpha(royal.pearl, 0.26)}` : isNeon ? `0 0 34px ${withAlpha(neon.red, 0.38)}, 0 0 0 1px ${withAlpha(neon.glow, 0.24)}` : isCosmic ? `0 0 34px ${withAlpha(cosmic.magenta, 0.36)}, 0 0 0 1px ${withAlpha(cosmic.blue, 0.24)}` : isElectric ? `0 0 34px ${withAlpha(electric.blue, 0.38)}, 0 0 0 1px ${withAlpha(electric.line, 0.24)}` : `0 0 32px ${primaryColor}60`,
             }}
           >
             <div
@@ -831,7 +801,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
               {profile.bio}
             </p>
           )}
-          <p className={`${isHero ? 'relative z-10 mt-3 inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 backdrop-blur-md' : 'mb-6'} text-xs font-semibold tracking-widest uppercase`} style={{ color: isMotorsport ? motorsport.cyan : isRoyal ? royal.gold : isNeon ? neon.glow : isCosmic ? cosmic.magenta : isElectric ? electric.glow : isLava ? lava.line : primaryColor }}>
+          <p className={`${isHero ? 'relative z-10 mt-3 inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 backdrop-blur-md' : 'mb-6'} text-xs font-semibold tracking-widest uppercase`} style={{ color: isMotorsport ? motorsport.cyan : isRoyal ? royal.gold : isNeon ? neon.glow : isCosmic ? cosmic.magenta : isElectric ? electric.glow : primaryColor }}>
             LinkUp
           </p>
         </div>
@@ -871,10 +841,10 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
             }}
             className={`${cvLink ? 'flex-1' : 'w-full'} min-w-0 flex items-center justify-center gap-2 px-7 py-3 rounded-full text-sm font-semibold transition-all active:scale-95`}
             style={{
-              background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red} 0%, ${motorsport.navy} 46%, ${motorsport.cyan} 100%)` : isRoyal ? `linear-gradient(90deg, ${royal.gold} 0%, ${royal.cyan} 52%, ${royal.blue} 100%)` : isNeon ? `linear-gradient(90deg, ${neon.red} 0%, ${neon.glow} 100%)` : isCosmic ? `linear-gradient(90deg, ${cosmic.magenta} 0%, ${cosmic.blue} 58%, ${cosmic.gold} 100%)` : isElectric ? `linear-gradient(90deg, ${electric.blue} 0%, ${electric.glow} 58%, ${electric.line} 100%)` : isLava ? `linear-gradient(90deg, ${lava.ember} 0%, ${lava.glow} 58%, ${lava.line} 100%)` : primaryColor,
+              background: isMotorsport ? `linear-gradient(90deg, ${motorsport.red} 0%, ${motorsport.navy} 46%, ${motorsport.cyan} 100%)` : isRoyal ? `linear-gradient(90deg, ${royal.gold} 0%, ${royal.cyan} 52%, ${royal.blue} 100%)` : isNeon ? `linear-gradient(90deg, ${neon.red} 0%, ${neon.glow} 100%)` : isCosmic ? `linear-gradient(90deg, ${cosmic.magenta} 0%, ${cosmic.blue} 58%, ${cosmic.gold} 100%)` : isElectric ? `linear-gradient(90deg, ${electric.blue} 0%, ${electric.glow} 58%, ${electric.line} 100%)` : primaryColor,
               color: '#fff',
               WebkitTextFillColor: '#ffffff',
-              boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.32)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.38)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.36)}` : isElectric ? `0 5px 18px ${withAlpha(electric.blue, 0.38)}` : isLava ? `0 5px 18px ${withAlpha(lava.ember, 0.38)}` : `0 4px 16px ${primaryColor}60`,
+              boxShadow: isMotorsport ? `0 5px 18px ${withAlpha(motorsport.cyan, 0.38)}` : isRoyal ? `0 5px 18px ${withAlpha(royal.gold, 0.32)}` : isNeon ? `0 5px 18px ${withAlpha(neon.red, 0.38)}` : isCosmic ? `0 5px 18px ${withAlpha(cosmic.magenta, 0.36)}` : isElectric ? `0 5px 18px ${withAlpha(electric.blue, 0.38)}` : `0 4px 16px ${primaryColor}60`,
             }}
           >
             <i className="ri-contacts-line text-base" style={FORCE_WHITE_TEXT} />
