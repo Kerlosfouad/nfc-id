@@ -14,6 +14,26 @@ function urlBase64ToUint8Array(value: string) {
   return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
 }
 
+function getApplicationServerKey() {
+  const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
+  const applicationServerKey = urlBase64ToUint8Array(vapidKey);
+  if (applicationServerKey.byteLength !== 65) {
+    throw new Error("Push public key is invalid. Generate a new VAPID key pair.");
+  }
+  return { vapidKey, applicationServerKey };
+}
+
+function toPushErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+  if (/push service/i.test(message)) {
+    return "Push service registration failed. Check the VAPID keys, then refresh and try again.";
+  }
+  if (/applicationServerKey|VAPID|public key/i.test(message)) {
+    return message;
+  }
+  return error instanceof Error ? error.message : "Could not enable notifications.";
+}
+
 export function getPushSupportError() {
   if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
     return "This browser does not support web notifications.";
@@ -31,7 +51,7 @@ export async function subscribeDeviceToPush(options: {
   const supportError = getPushSupportError();
   if (supportError) throw new Error(supportError);
   if (!options.session) throw new Error("Sign in again to enable notifications.");
-  const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
+  const { vapidKey, applicationServerKey } = getApplicationServerKey();
 
   if (Notification.permission === "denied") {
     throw new Error("Notifications are blocked in browser settings.");
@@ -51,10 +71,14 @@ export async function subscribeDeviceToPush(options: {
     subscription = null;
   }
   if (!subscription) {
-    subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidKey),
-    });
+    try {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey,
+      });
+    } catch (error) {
+      throw new Error(toPushErrorMessage(error));
+    }
   }
 
   const response = await fetch(options.endpoint, {
