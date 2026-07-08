@@ -2,13 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-
-function urlBase64ToUint8Array(value: string) {
-  const padding = "=".repeat((4 - (value.length % 4)) % 4);
-  const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const raw = window.atob(base64);
-  return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
-}
+import { getPushSupportError, subscribeDeviceToPush } from "@/lib/pushClient";
 
 export function PushPermissionPrompt() {
   const [visible, setVisible] = useState(false);
@@ -16,11 +10,19 @@ export function PushPermissionPrompt() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    if (getPushSupportError()) return;
     if (Notification.permission !== "default") return;
     if (localStorage.getItem("linkup:push-prompt-dismissed") === "1") return;
-    const timer = window.setTimeout(() => setVisible(true), 900);
-    return () => window.clearTimeout(timer);
+    let alive = true;
+    let timer: number | undefined;
+    createClient().auth.getSession().then(({ data: { session } }) => {
+      if (!alive || !session) return;
+      timer = window.setTimeout(() => setVisible(true), 900);
+    });
+    return () => {
+      alive = false;
+      if (timer) window.clearTimeout(timer);
+    };
   }, []);
 
   function dismiss() {
@@ -30,50 +32,22 @@ export function PushPermissionPrompt() {
 
   async function enableNotifications() {
     if (busy) return;
-    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    if (!vapidKey) {
-      setMessage("Notifications are not configured yet.");
+    const supportError = getPushSupportError();
+    if (supportError) {
+      setMessage(supportError);
       return;
     }
 
     setBusy(true);
     setMessage("");
     try {
-      if (Notification.permission === "denied") {
-        setMessage("Notifications are blocked. Open browser site settings and allow notifications for LinkUp.");
-        return;
-      }
-
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        setMessage("Notifications were not allowed. Tap Allow in the browser permission message.");
-        return;
-      }
-
-      const registration = await navigator.serviceWorker.register("/sw.js");
-      const existing = await registration.pushManager.getSubscription();
-      const subscription = existing ?? await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey),
-      });
-
       const { data: { session } } = await createClient().auth.getSession();
-      if (session) {
-        await fetch("/api/v1/push-subscriptions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-            "x-user-id": session.user.id,
-          },
-          body: JSON.stringify(subscription.toJSON()),
-        });
-      }
+      await subscribeDeviceToPush({ session, endpoint: "/api/v1/push-subscriptions" });
 
       localStorage.setItem("linkup:push-prompt-dismissed", "1");
       setVisible(false);
-    } catch {
-      setMessage("Could not enable notifications on this browser.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not enable notifications on this browser.");
     } finally {
       setBusy(false);
     }

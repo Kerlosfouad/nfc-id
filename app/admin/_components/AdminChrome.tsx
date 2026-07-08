@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { AppNotificationToast, type AppNotification } from "@/components/AppNotificationToast";
+import { getPushSupportError, subscribeDeviceToPush, unsubscribeDeviceFromPush } from "@/lib/pushClient";
 
 const navItems = [
   { href: "/admin", icon: "ri-dashboard-line", label: "Overview" },
@@ -68,58 +69,19 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
     notificationTimersRef.current[id] = [enterTimer, dismissTimer];
   }
 
-  function urlBase64ToUint8Array(value: string) {
-    const padding = "=".repeat((4 - (value.length % 4)) % 4);
-    const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
-    const raw = window.atob(base64);
-    return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
-  }
-
   async function enablePushNotifications() {
     if (pushBusy) return;
-    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
-      showAppNotification("Push not supported", "This browser does not support lock-screen web notifications.");
-      return;
-    }
-    if (Notification.permission === "denied") {
-      setPushEnabled(false);
-      return;
-    }
-    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    if (!vapidKey) {
-      showAppNotification("Push setup missing", "Add NEXT_PUBLIC_VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY to Vercel.");
+    const supportError = getPushSupportError();
+    if (supportError) {
+      showAppNotification("Push setup failed", supportError);
       return;
     }
 
     setPushBusy(true);
     setPushEnabled(true);
     try {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        setPushEnabled(false);
-        showAppNotification("Notifications blocked", "Allow notifications from the browser settings to receive order alerts.");
-        return;
-      }
-
-      const registration = await navigator.serviceWorker.register("/sw.js");
-      const existing = await registration.pushManager.getSubscription();
-      const subscription = existing ?? await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey),
-      });
-
       const { data: { session } } = await createClient().auth.getSession();
-      if (!session) return;
-      const res = await fetch("/api/v1/admin/push-subscriptions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-          "x-user-id": session.user.id,
-        },
-        body: JSON.stringify(subscription.toJSON()),
-      });
-      if (!res.ok) throw new Error("Push subscription failed");
+      await subscribeDeviceToPush({ session, endpoint: "/api/v1/admin/push-subscriptions" });
       showAppNotification("Order alerts enabled", "New orders can now appear on this phone lock screen.");
     } catch (error) {
       setPushEnabled(false);
@@ -139,24 +101,8 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
     setPushBusy(true);
     setPushEnabled(false);
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      if (subscription) {
-        const { endpoint } = subscription;
-        await subscription.unsubscribe();
-        const { data: { session } } = await createClient().auth.getSession();
-        if (session) {
-          await fetch("/api/v1/admin/push-subscriptions", {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.access_token}`,
-              "x-user-id": session.user.id,
-            },
-            body: JSON.stringify({ endpoint }),
-          });
-        }
-      }
+      const { data: { session } } = await createClient().auth.getSession();
+      await unsubscribeDeviceFromPush({ session, endpoint: "/api/v1/admin/push-subscriptions" });
       showAppNotification("Order alerts muted", "This device will not receive lock-screen order notifications.");
     } catch (error) {
       setPushEnabled(true);

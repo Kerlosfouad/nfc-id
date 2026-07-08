@@ -10,6 +10,7 @@ import ProfileView from "@/components/profile/ProfileView";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import { AppNotificationToast, type AppNotification } from "@/components/AppNotificationToast";
 import type { Link as PublicLink, Profile as PublicProfile, ProfileTheme as PublicProfileTheme } from "@/lib/domain/types";
+import { getPushSupportError, subscribeDeviceToPush, unsubscribeDeviceFromPush } from "@/lib/pushClient";
 
 interface LinkItem { id: string; type: string; title: string; url: string; displayOrder: number; activeFrom: string | null; activeTo: string | null; thumbnailUrl: string | null; isActive?: boolean; }
 interface ProfileTheme { style: string; primaryColor: string; fontFamily: string; linksLayout?: "list" | "grid"; profileLayout?: "classic" | "hero"; coverUrl?: string | null; }
@@ -30,15 +31,36 @@ type LinkPickerItem = { label: string; icon: string; color: string; type?: strin
 type LinkDraft = { type: string; title: string; url: string };
 type PendingLinks = Record<string, "add" | "update" | "delete" | "toggle">;
 type GoldServiceId = "design" | "verification";
+type GoldBillingCycle = "monthly" | "yearly";
+type GoldPlan = { cycle: GoldBillingCycle; label: string; duration: string; price: number; badge?: string };
+type GoldRequest = { service: GoldServiceId; cycle?: GoldBillingCycle };
 type ToastItem = { id: number; msg: string; ok: boolean; visible: boolean };
 type ProfileInboxMessage = { id: string; senderName: string; message: string; readAt: string | null; createdAt: string };
 type ProfileInbox = { messages: ProfileInboxMessage[]; unreadCount: number };
 
 const CLOSED_LINK_TIMESTAMP = "2000-01-01T00:00:00.000Z";
 const COMPANY_WHATSAPP = "201211632456";
-const GOLD_SERVICES: { id: GoldServiceId; name: string; price: number; icon: string; description: string }[] = [
-  { id: "design", name: "Gold Design Themes", price: 150, icon: "ri-palette-line", description: "Premium themes, cover styling, and advanced profile layouts." },
-  { id: "verification", name: "Verified Badge", price: 200, icon: "ri-verified-badge-line", description: "Manual profile verification and the verified mark on your public profile." },
+const GOLD_SERVICES: { id: GoldServiceId; name: string; icon: string; description: string; plans: GoldPlan[] }[] = [
+  {
+    id: "design",
+    name: "Gold Design Themes",
+    icon: "ri-palette-line",
+    description: "Premium themes, cover styling, and advanced profile layouts.",
+    plans: [
+      { cycle: "monthly", label: "Monthly", duration: "1 month", price: 150 },
+      { cycle: "yearly", label: "Yearly", duration: "12 months", price: 1200, badge: "Save 600 EGP" },
+    ],
+  },
+  {
+    id: "verification",
+    name: "Verified Badge",
+    icon: "ri-verified-badge-line",
+    description: "Manual profile verification and the verified mark on your public profile.",
+    plans: [
+      { cycle: "monthly", label: "Monthly", duration: "1 month", price: 200 },
+      { cycle: "yearly", label: "Yearly", duration: "12 months", price: 1800, badge: "Save 600 EGP" },
+    ],
+  },
 ];
 
 const analyticsMemoryCache = new Map<string, AnalyticsSummary>();
@@ -1737,7 +1759,7 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
   );
 }
 
-function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDeleted }: { profile: ProfileData; email: string; token: string; uid: string; onPatch: (patch: Record<string, unknown>) => Promise<void>; onRequestGold: (service?: GoldServiceId) => void; onDeleted: (profileId: string) => void }) {
+function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDeleted }: { profile: ProfileData; email: string; token: string; uid: string; onPatch: (patch: Record<string, unknown>) => Promise<void>; onRequestGold: (request?: GoldRequest) => void; onDeleted: (profileId: string) => void }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   const [panel, setPanel] = useState<"main" | "products" | "subscription" | "security" | "support">("main");
@@ -1968,8 +1990,8 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
     const designDays = daysLeft(profile.primeDesignUntil);
     const verifiedDays = daysLeft(profile.verifiedUntil);
     const plans = [
-      { id: "design" as GoldServiceId, name: "Prime Design", price: 150, active: designActive, days: designDays, icon: "ri-palette-line", features: ["Premium themes", "Grid links layout", "Hero profile layout", "Cover styling"] },
-      { id: "verification" as GoldServiceId, name: "Verified Badge", price: 200, active: verifiedActive, days: verifiedDays, icon: "ri-verified-badge-line", features: ["Verified mark", "Manual review", "Trusted profile signal"] },
+      { id: "design" as GoldServiceId, name: "Prime Design", service: GOLD_SERVICES.find(item => item.id === "design")!, active: designActive, days: designDays, icon: "ri-palette-line", features: ["Premium themes", "Grid links layout", "Hero profile layout", "Cover styling"] },
+      { id: "verification" as GoldServiceId, name: "Verified Badge", service: GOLD_SERVICES.find(item => item.id === "verification")!, active: verifiedActive, days: verifiedDays, icon: "ri-verified-badge-line", features: ["Verified mark", "Manual review", "Trusted profile signal"] },
     ];
     return (
       <div className="mx-auto w-full max-w-md pb-4">
@@ -1998,13 +2020,28 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate text-sm font-bold text-white">{plan.name}</p>
-                      <span className="rounded-full bg-[#03A9F4] px-2.5 py-1 text-xs font-bold text-white">{plan.price} EGP</span>
+                      <span className="rounded-full bg-[#03A9F4] px-2.5 py-1 text-xs font-bold text-white">From {plan.service.plans[0].price} EGP</span>
                     </div>
                     <p className="mt-1 text-xs text-white/45">{plan.active ? `Active${plan.days !== null ? ` - ${plan.days} days left` : ""}` : "Available to activate"}</p>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      {plan.service.plans.map(option => (
+                        <button
+                          key={option.cycle}
+                          type="button"
+                          disabled={plan.active}
+                          onClick={() => onRequestGold({ service: plan.id, cycle: option.cycle })}
+                          className={`rounded-xl border px-3 py-2 text-left transition ${plan.active ? "cursor-default border-white/10 bg-white/[0.03] opacity-60" : "border-[#03A9F4]/20 bg-[#03A9F4]/8 hover:border-[#03A9F4]/45"}`}
+                        >
+                          <span className="block text-xs font-bold text-white">{option.label}</span>
+                          <span className="mt-0.5 block text-[11px] text-white/45">{option.duration}</span>
+                          <span className="mt-1 block text-xs font-black text-[#03A9F4]">{option.price} EGP</span>
+                        </button>
+                      ))}
+                    </div>
                     <div className="mt-3 grid gap-1.5">
                       {plan.features.map(feature => <p key={feature} className="flex items-center gap-2 text-xs text-white/55"><i className="ri-check-line text-[#03A9F4]" />{feature}</p>)}
                     </div>
-                    {!plan.active && <button type="button" onClick={() => onRequestGold(plan.id)} className="mt-3 w-full rounded-xl border border-[#03A9F4]/25 bg-[#03A9F4]/10 px-3 py-2 text-xs font-bold text-[#03A9F4]">Request activation</button>}
+                    {!plan.active && <button type="button" onClick={() => onRequestGold({ service: plan.id })} className="mt-3 w-full rounded-xl border border-[#03A9F4]/25 bg-[#03A9F4]/10 px-3 py-2 text-xs font-bold text-[#03A9F4]">Request activation</button>}
                   </div>
                 </div>
               </div>
@@ -2069,7 +2106,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
                   <p className="text-sm font-bold text-white">Verification</p>
                   <p className="mt-1 text-xs leading-relaxed text-white/45">{verifiedActive ? "Your profile has the verified badge enabled." : "Request manual review to show the verified badge on your public profile."}</p>
                   {!verifiedActive && (
-                    <button type="button" onClick={() => onRequestGold("verification")} className="mt-3 rounded-xl border border-[#03A9F4]/30 bg-[#03A9F4]/10 px-3 py-2 text-xs font-bold text-[#03A9F4]">
+                    <button type="button" onClick={() => onRequestGold({ service: "verification" })} className="mt-3 rounded-xl border border-[#03A9F4]/30 bg-[#03A9F4]/10 px-3 py-2 text-xs font-bold text-[#03A9F4]">
                       Request Verification
                     </button>
                   )}
@@ -2254,20 +2291,23 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
   );
 }
 
-function GoldUpgradeModal({ profile, email, initialService, onClose }: { profile: ProfileData | null; email: string; initialService?: GoldServiceId; onClose: () => void }) {
-  const [serviceId, setServiceId] = useState<GoldServiceId>(initialService ?? "design");
+function GoldUpgradeModal({ profile, email, initialRequest, onClose }: { profile: ProfileData | null; email: string; initialRequest?: GoldRequest; onClose: () => void }) {
+  const [serviceId, setServiceId] = useState<GoldServiceId>(initialRequest?.service ?? "design");
+  const [billingCycle, setBillingCycle] = useState<GoldBillingCycle>(initialRequest?.cycle ?? "monthly");
   const [name, setName] = useState(profile?.displayName ?? "");
   const [customerEmail, setCustomerEmail] = useState(email);
   const [phone, setPhone] = useState("");
   const [receiptName, setReceiptName] = useState("");
   const service = GOLD_SERVICES.find(item => item.id === serviceId) ?? GOLD_SERVICES[0];
+  const selectedPlan = service.plans.find(plan => plan.cycle === billingCycle) ?? service.plans[0];
   const paymentNumber = "01030732613";
 
   function submit() {
     const message = [
       "Gold service request",
       `Service: ${service.name}`,
-      `Price: ${service.price} EGP`,
+      `Plan: ${selectedPlan.label} (${selectedPlan.duration})`,
+      `Price: ${selectedPlan.price} EGP`,
       `Name: ${name}`,
       `Email: ${customerEmail}`,
       `Phone: ${phone}`,
@@ -2302,17 +2342,43 @@ function GoldUpgradeModal({ profile, email, initialService, onClose }: { profile
             <button
               key={item.id}
               type="button"
-              onClick={() => setServiceId(item.id)}
+              onClick={() => {
+                setServiceId(item.id);
+                setBillingCycle("monthly");
+              }}
               className={`rounded-2xl border p-3 text-left transition-all ${serviceId === item.id ? "border-[#03A9F4]/65 bg-[#03A9F4]/10" : "border-white/10 bg-white/[0.03] hover:border-white/20"}`}
             >
               <div className="mb-2 flex items-center justify-between">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#03A9F4]/10 text-[#03A9F4]"><i className={item.icon} /></span>
-                <span className="rounded-full bg-[#03A9F4] px-2.5 py-1 text-xs font-bold text-white">{item.price} EGP</span>
+                <span className="rounded-full bg-[#03A9F4] px-2.5 py-1 text-xs font-bold text-white">From {item.plans[0].price} EGP</span>
               </div>
               <p className="text-sm font-bold">{item.name}</p>
               <p className="mt-1 text-xs leading-relaxed text-white/40">{item.description}</p>
             </button>
           ))}
+        </div>
+
+        <div className="mb-4">
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-white/35">Choose Duration</p>
+          <div className="grid grid-cols-2 gap-2">
+            {service.plans.map(plan => (
+              <button
+                key={plan.cycle}
+                type="button"
+                onClick={() => setBillingCycle(plan.cycle)}
+                className={`relative rounded-2xl border p-3 text-left transition-all ${billingCycle === plan.cycle ? "border-[#03A9F4]/70 bg-[#03A9F4]/12" : "border-white/10 bg-white/[0.03] hover:border-white/20"}`}
+              >
+                {plan.badge && (
+                  <span className="absolute right-2 top-2 rounded-full bg-green-400/15 px-2 py-0.5 text-[10px] font-bold text-green-300">
+                    {plan.badge}
+                  </span>
+                )}
+                <span className="block text-sm font-black text-white">{plan.label}</span>
+                <span className="mt-1 block text-xs text-white/45">{plan.duration}</span>
+                <span className="mt-3 block text-lg font-black text-[#03A9F4]">{plan.price} EGP</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="mb-3 rounded-2xl border border-[#03A9F4]/35 bg-[#03A9F4]/10 p-3">
@@ -2515,7 +2581,7 @@ function MessageInboxSheet({
   );
 }
 
-function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: ProfileData; saving: boolean; onSave: (t: ProfileTheme, message?: string) => void; onRequestGold: (service?: GoldServiceId) => void }) {
+function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: ProfileData; saving: boolean; onSave: (t: ProfileTheme, message?: string) => void; onRequestGold: (request?: GoldRequest) => void }) {
   const theme = profile.theme ?? { style: "dark", primaryColor: "#03A9F4", fontFamily: "Inter" };
   const [style, setStyle] = useState(theme.style || "dark");
   const [linksLayout, setLinksLayout] = useState<"list" | "grid">(theme.linksLayout || "list");
@@ -2533,7 +2599,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
   function applyTheme(themeId: string) {
     const selectedTheme = PRESET_THEMES.find(t => t.id === themeId);
     if (selectedTheme?.premium && !isPrime) {
-      onRequestGold("design");
+      onRequestGold({ service: "design" });
       return;
     }
     const accent = selectedTheme?.accent ?? theme.primaryColor;
@@ -2543,7 +2609,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
 
   function applyLayout(ll: "list" | "grid", pl: "classic" | "hero") {
     if (!isPrime && (ll === "grid" || pl === "hero")) {
-      onRequestGold("design");
+      onRequestGold({ service: "design" });
       return;
     }
     setLinksLayout(ll); setProfileLayout(pl);
@@ -2567,7 +2633,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
             <i className="ri-vip-crown-fill text-[#03A9F4] text-lg flex-shrink-0" />
             <span className="text-[#03A9F4] font-semibold text-sm">{isPrime ? "Prime is active for this profile" : "Prime Design costs 150 EGP and unlocks all Prime themes and layouts"}</span>
           </div>
-          {!isPrime && <button onClick={() => onRequestGold("design")} className="bg-[#03A9F4]/15 text-[#03A9F4] hover:bg-[#03A9F4]/25 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap">Upgrade Now</button>}
+          {!isPrime && <button onClick={() => onRequestGold({ service: "design" })} className="bg-[#03A9F4]/15 text-[#03A9F4] hover:bg-[#03A9F4]/25 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap">Upgrade Now</button>}
         </div>
 
         {/* Themes header + filter */}
@@ -2771,7 +2837,7 @@ export default function DashboardPage() {
   const [editLink, setEditLink] = useState<LinkItem | null>(null);
   const [copied, setCopied] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [goldRequest, setGoldRequest] = useState<GoldServiceId | null>(null);
+  const [goldRequest, setGoldRequest] = useState<GoldRequest | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [inboxOpen, setInboxOpen] = useState(false);
   const [inboxes, setInboxes] = useState<Record<string, ProfileInbox>>({});
@@ -2864,45 +2930,22 @@ export default function DashboardPage() {
     notificationTimersRef.current[id] = [enterTimer, dismissTimer];
   }
   function hdrs() { return { "Content-Type": "application/json", Authorization: "Bearer " + token, "x-user-id": uid }; }
-  function urlBase64ToUint8Array(value: string) {
-    const padding = "=".repeat((4 - (value.length % 4)) % 4);
-    const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
-    const raw = window.atob(base64);
-    return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
-  }
-
   async function enablePushNotifications() {
     if (pushBusy) return;
-    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return;
-    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    if (!vapidKey) return;
-      setPushEnabled(true);
-      setPushBusy(true);
+    const supportError = getPushSupportError();
+    if (supportError) {
+      showAppNotification("Notifications unavailable", supportError);
+      return;
+    }
+    setPushEnabled(true);
+    setPushBusy(true);
     try {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        setPushEnabled(false);
-        return;
-      }
-      const registration = await navigator.serviceWorker.register("/sw.js");
-      const existing = await registration.pushManager.getSubscription();
-      const subscription = existing ?? await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey),
-      });
       const { data: { session } } = await createClient().auth.getSession();
-      if (!session) return;
-      await fetch("/api/v1/push-subscriptions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-          "x-user-id": session.user.id,
-        },
-        body: JSON.stringify(subscription.toJSON()),
-      });
-    } catch {
+      await subscribeDeviceToPush({ session, endpoint: "/api/v1/push-subscriptions" });
+      showAppNotification("Notifications enabled", "Profile alerts are active on this device.");
+    } catch (error) {
       setPushEnabled(false);
+      showAppNotification("Notifications failed", error instanceof Error ? error.message : "Could not enable notifications.");
     } finally {
       setPushBusy(false);
     }
@@ -2913,26 +2956,12 @@ export default function DashboardPage() {
     setPushEnabled(false);
     setPushBusy(true);
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      if (subscription) {
-        const { endpoint } = subscription;
-        await subscription.unsubscribe();
-        const { data: { session } } = await createClient().auth.getSession();
-        if (session) {
-          await fetch("/api/v1/push-subscriptions", {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.access_token}`,
-              "x-user-id": session.user.id,
-            },
-            body: JSON.stringify({ endpoint }),
-          });
-        }
-      }
-    } catch {
+      const { data: { session } } = await createClient().auth.getSession();
+      await unsubscribeDeviceFromPush({ session, endpoint: "/api/v1/push-subscriptions" });
+      showAppNotification("Notifications muted", "This device will stop receiving profile alerts.");
+    } catch (error) {
       setPushEnabled(true);
+      showAppNotification("Mute failed", error instanceof Error ? error.message : "Could not mute notifications.");
     } finally {
       setPushBusy(false);
     }
@@ -3319,7 +3348,7 @@ export default function DashboardPage() {
               <i className={n.icon + " text-base"} />{n.label}
             </button>
           ))}
-          <button onClick={() => setGoldRequest("design")} className="mt-3 w-full rounded-xl border border-[#03A9F4]/20 bg-[#03A9F4]/10 px-3 py-3 text-left text-sm font-semibold text-[#03A9F4] hover:bg-[#03A9F4]/15">
+          <button onClick={() => setGoldRequest({ service: "design" })} className="mt-3 w-full rounded-xl border border-[#03A9F4]/20 bg-[#03A9F4]/10 px-3 py-3 text-left text-sm font-semibold text-[#03A9F4] hover:bg-[#03A9F4]/15">
             <span className="flex items-center gap-2"><i className="ri-vip-crown-fill" />Try Pro For Free</span>
             <span className="mt-1 block text-[10px] font-normal text-white/45">Prime services and payment review</span>
           </button>
@@ -3358,7 +3387,7 @@ export default function DashboardPage() {
             >
               <i className={`${pushEnabled ? "ri-notification-3-fill" : "ri-notification-off-line"} text-lg`} />
             </button>
-            <button type="button" onClick={() => setGoldRequest("design")} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#03A9F4]/40 px-3 text-xs font-semibold text-[#03A9F4]">
+            <button type="button" onClick={() => setGoldRequest({ service: "design" })} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#03A9F4]/40 px-3 text-xs font-semibold text-[#03A9F4]">
               <i className="ri-sparkling-2-line" />
               Try Pro
             </button>
@@ -3394,13 +3423,13 @@ export default function DashboardPage() {
                       token={token}
                       uid={uid}
                       onPatch={patchProfile}
-                      onRequestGold={(service = "design") => setGoldRequest(service)}
+                      onRequestGold={(request = { service: "design" }) => setGoldRequest(request)}
                       onDeleted={removeProfile}
                     />
                   )}
                 </div>
               )}
-              {tab === "design" && <DesignTab profile={profile} saving={saving} onSave={(t, message) => patchProfile({ theme: t }, message)} onRequestGold={(service = "design") => setGoldRequest(service)} />}
+              {tab === "design" && <DesignTab profile={profile} saving={saving} onSave={(t, message) => patchProfile({ theme: t }, message)} onRequestGold={(request = { service: "design" }) => setGoldRequest(request)} />}
             </div>
           )}
         </div>
@@ -3409,7 +3438,7 @@ export default function DashboardPage() {
           <GoldUpgradeModal
             profile={profile}
             email={email}
-            initialService={goldRequest}
+            initialRequest={goldRequest}
             onClose={() => setGoldRequest(null)}
           />
         )}
@@ -3469,4 +3498,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
