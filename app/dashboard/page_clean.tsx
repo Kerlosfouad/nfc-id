@@ -1766,7 +1766,6 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
   const [securityName, setSecurityName] = useState(profile.displayName);
   const [securityBio, setSecurityBio] = useState(profile.bio ?? "");
   const [savingSecurity, setSavingSecurity] = useState(false);
-  const [passwords, setPasswords] = useState({ current: "", next: "", confirm: "" });
   const [changingPassword, setChangingPassword] = useState(false);
   const [supportForm, setSupportForm] = useState({ name: profile.displayName, email, subject: "", message: "" });
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/${profile.publicId}` : `/${profile.publicId}`;
@@ -1778,7 +1777,6 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
   useEffect(() => {
     setSecurityName(profile.displayName);
     setSecurityBio(profile.bio ?? "");
-    setPasswords({ current: "", next: "", confirm: "" });
     setSupportForm(prev => ({ ...prev, name: profile.displayName, email }));
   }, [profile.id, profile.displayName, profile.bio, email]);
 
@@ -1834,22 +1832,15 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
 
   async function changePassword() {
     if (changingPassword) return;
-    if (passwords.next.length < 6) {
-      alert("New password must be at least 6 characters");
-      return;
-    }
-    if (passwords.next !== passwords.confirm) {
-      alert("Passwords do not match");
-      return;
-    }
     setChangingPassword(true);
     try {
-      const { error } = await createClient().auth.updateUser({ password: passwords.next });
+      const { error } = await createClient().auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?redirect=/dashboard`,
+      });
       if (error) throw error;
-      setPasswords({ current: "", next: "", confirm: "" });
-      alert("Password changed");
+      alert("Password reset email sent. Check your inbox.");
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed to change password");
+      alert(e instanceof Error ? e.message : "Failed to send password reset email");
     } finally {
       setChangingPassword(false);
     }
@@ -2138,27 +2129,19 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-base font-bold text-white">Security</p>
-                  <p className="mt-1 text-xs leading-relaxed text-white/45">Manage your password and security settings.</p>
+                  <p className="mt-1 text-xs leading-relaxed text-white/45">Send a secure password reset link to your account email.</p>
                 </div>
                 <i className="ri-shield-check-line text-2xl text-white/75" />
               </div>
 
               <div className="mt-5 space-y-4">
                 <div>
-                  <FieldLabel>Current Password</FieldLabel>
-                  <input type="password" value={passwords.current} onChange={e => setPasswords(prev => ({ ...prev, current: e.target.value }))} placeholder="Optional" className={fieldClass} />
-                </div>
-                <div>
-                  <FieldLabel>New Password</FieldLabel>
-                  <input type="password" value={passwords.next} onChange={e => setPasswords(prev => ({ ...prev, next: e.target.value }))} className={fieldClass} />
-                </div>
-                <div>
-                  <FieldLabel>Confirm New Password</FieldLabel>
-                  <input type="password" value={passwords.confirm} onChange={e => setPasswords(prev => ({ ...prev, confirm: e.target.value }))} className={fieldClass} />
+                  <FieldLabel>Account Email</FieldLabel>
+                  <input value={email} readOnly className={`${fieldClass} text-white/55`} />
                 </div>
                 <button type="button" onClick={changePassword} disabled={changingPassword} className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-black disabled:opacity-60">
-                  <i className={changingPassword ? "ri-loader-4-line animate-spin" : "ri-lock-password-line"} />
-                  {changingPassword ? "Changing..." : "Change Password"}
+                  <i className={changingPassword ? "ri-loader-4-line animate-spin" : "ri-mail-send-line"} />
+                  {changingPassword ? "Sending..." : "Send Password Reset Email"}
                 </button>
               </div>
             </div>
