@@ -23,6 +23,7 @@ function SignupContent() {
   const searchParams = useSearchParams();
   const redirectParam = searchParams.get("redirect");
   const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/connect-nfc";
+  const requiresEmailVerification = redirectTo.startsWith("/connect-nfc") || redirectTo.startsWith("/claim/");
   const loginHref = redirectParam?.startsWith("/")
     ? `/login?redirect=${encodeURIComponent(redirectParam)}`
     : "/login";
@@ -264,7 +265,7 @@ function SignupContent() {
           </form>
           )}
 
-          {!verificationSent && (
+          {!verificationSent && !requiresEmailVerification && (
             <>
               <div className="flex items-center gap-3 my-6">
                 <div className="h-px flex-1 bg-[#8fdfff]/12" />
