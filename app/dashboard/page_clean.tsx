@@ -1798,8 +1798,10 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
 
   async function deleteProfile() {
     if (deleting) return;
-    const ok = window.confirm(`Delete your account? This will remove your profile, free the NFC card, and allow this email to be registered again.`);
+    const ok = window.confirm("Delete your account permanently? Your login, profile, links, messages, analytics, notifications, and related order records will be removed. You can register again with the same email after deletion.");
     if (!ok) return;
+    const typed = window.prompt('Type DELETE to confirm permanent account deletion.');
+    if (typed !== "DELETE") return;
     setDeleting(true);
     try {
       const res = await fetch(`/api/v1/profiles/${profile.id}`, {
@@ -2121,7 +2123,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
                 <i className="ri-delete-bin-line mt-0.5 text-2xl text-red-400" />
                 <div>
                   <p className="text-base font-bold text-red-400">Delete Account</p>
-                  <p className="mt-2 text-sm leading-relaxed text-white/45">Permanently delete this profile, its links, and release the medal code for another claim.</p>
+                  <p className="mt-2 text-sm leading-relaxed text-white/45">Permanently delete your login, database account, profiles, links, messages, analytics, notifications, and related order records. You can register again with the same email after deletion.</p>
                   <button type="button" onClick={deleteProfile} disabled={deleting} className="mt-4 flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-red-600 px-4 text-sm font-bold text-white disabled:opacity-60">
                     <i className={deleting ? "ri-loader-4-line animate-spin" : "ri-delete-bin-line"} />
                     {deleting ? "Deleting..." : "Delete My Profile"}

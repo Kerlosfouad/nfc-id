@@ -17,12 +17,15 @@ export async function deleteUserAccount(userId: string) {
       email: true,
       profiles: { select: { id: true, publicId: true } },
       tags: { select: { publicId: true } },
+      nfcTags: { select: { uid: true } },
     },
   });
 
   const cachePublicIds = new Set<string>();
   for (const profile of user?.profiles ?? []) cachePublicIds.add(profile.publicId);
   for (const tag of user?.tags ?? []) cachePublicIds.add(tag.publicId);
+  const profileIds = (user?.profiles ?? []).map((profile) => profile.id);
+  const email = user?.email?.toLowerCase() ?? null;
 
   const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -34,13 +37,12 @@ export async function deleteUserAccount(userId: string) {
   }
 
   await db.$transaction(async (tx) => {
-    await tx.nfcTag.updateMany({
-      where: { userId },
-      data: {
-        userId: null,
-        profileId: null,
-        status: 'UNLINKED',
-        linkedAt: null,
+    await tx.nfcTag.deleteMany({
+      where: {
+        OR: [
+          { userId },
+          ...(profileIds.length > 0 ? [{ profileId: { in: profileIds } }] : []),
+        ],
       },
     });
 
@@ -49,8 +51,23 @@ export async function deleteUserAccount(userId: string) {
       data: { ownerId: null, state: 'SOLD' },
     });
 
+    await tx.tagAuditLog.deleteMany({ where: { adminId: userId } });
     await tx.user.deleteMany({ where: { id: userId } });
   });
+
+  try {
+    await db.$executeRaw`DELETE FROM push_subscriptions WHERE user_id = ${userId}`;
+  } catch (error) {
+    if (!/does not exist|undefined_table/i.test(error instanceof Error ? error.message : String(error))) throw error;
+  }
+
+  if (email) {
+    try {
+      await db.$executeRaw`DELETE FROM shop_orders WHERE lower(email) = ${email}`;
+    } catch (error) {
+      if (!/does not exist|undefined_table/i.test(error instanceof Error ? error.message : String(error))) throw error;
+    }
+  }
 
   for (const publicId of cachePublicIds) {
     void del(profileCacheKey(publicId));

@@ -124,8 +124,10 @@ export default function AdminCustomersPage() {
 
   async function deleteCustomer(customer: CustomerRow) {
     if (!authToken || customer.id === userId) return;
-    const ok = window.confirm(`Delete ${customer.email}? This removes the Auth user, database account, profiles, links, messages, and frees linked NFC medals.`);
-    if (!ok) return;
+    const typedEmail = window.prompt(
+      `Delete ${customer.email} everywhere?\n\nThis permanently removes the Auth user, database user, profiles, links, messages, analytics, leads, notifications, and related order records. The email can be registered again.\n\nType the customer email to confirm.`
+    );
+    if (typedEmail !== customer.email) return;
 
     setBusyCustomerId(customer.id);
     try {

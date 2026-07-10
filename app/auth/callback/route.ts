@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { isOwnerEmail } from "@/lib/config/ownerAccess";
+import { db } from "@/lib/db";
 
 /**
  * OAuth callback handler — exchanges the auth code for a session.
@@ -33,6 +34,14 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      if (data.user?.id && data.user.email) {
+        await db.user.upsert({
+          where: { id: data.user.id },
+          update: { email: data.user.email.toLowerCase() },
+          create: { id: data.user.id, email: data.user.email.toLowerCase(), role: "USER" },
+        });
+      }
+
       const finalRedirect = isOwnerEmail(data.user?.email) && redirectTo === "/dashboard"
         ? "/admin"
         : redirectTo;
