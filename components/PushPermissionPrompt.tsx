@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getPushSupportError, subscribeDeviceToPush } from "@/lib/pushClient";
 
 export function PushPermissionPrompt() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    if (pathname?.startsWith("/admin")) return;
     if (getPushSupportError()) return;
     if (Notification.permission !== "default") return;
     if (localStorage.getItem("linkup:push-prompt-dismissed") === "1") return;
@@ -23,7 +26,7 @@ export function PushPermissionPrompt() {
       alive = false;
       if (timer) window.clearTimeout(timer);
     };
-  }, []);
+  }, [pathname]);
 
   function dismiss() {
     localStorage.setItem("linkup:push-prompt-dismissed", "1");

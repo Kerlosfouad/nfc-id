@@ -44,6 +44,10 @@ export function getPushSupportError() {
   return null;
 }
 
+export function getNotificationPermissionHelp() {
+  return "Notifications are blocked for this site. Open browser site settings, allow Notifications, then refresh and try again.";
+}
+
 export async function subscribeDeviceToPush(options: {
   session: PushSession | null;
   endpoint: "/api/v1/push-subscriptions" | "/api/v1/admin/push-subscriptions";
@@ -54,12 +58,12 @@ export async function subscribeDeviceToPush(options: {
   const { vapidKey, applicationServerKey } = getApplicationServerKey();
 
   if (Notification.permission === "denied") {
-    throw new Error("Notifications are blocked in browser settings.");
+    throw new Error(getNotificationPermissionHelp());
   }
 
   const permission = await Notification.requestPermission();
   if (permission !== "granted") {
-    throw new Error("Notifications were not allowed.");
+    throw new Error(getNotificationPermissionHelp());
   }
 
   const registration = await navigator.serviceWorker.register("/sw.js");

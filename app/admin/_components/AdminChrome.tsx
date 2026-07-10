@@ -94,7 +94,8 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
   async function disablePushNotifications() {
     if (pushBusy) return;
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      setPushStatus("idle");
+      setPushEnabled(false);
+      showAppNotification("Push setup failed", "This browser does not support web notifications.");
       return;
     }
 
