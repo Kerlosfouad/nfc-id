@@ -129,7 +129,7 @@ function SignupContent() {
     setError(resendError ? resendError.message : "We sent a new verification code.");
   }
 
-  async function handleOAuth(provider: "google" | "apple") {
+  async function handleOAuth(provider: "google") {
     setError(null);
     await supabase.auth.signInWithOAuth({
       provider,
@@ -277,11 +277,6 @@ function SignupContent() {
                   className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#8fdfff]/12 bg-[#071722] py-3.5 text-sm font-semibold text-white transition-all hover:border-[#03A9F4]/50 hover:bg-[#061522]">
                   <i className="ri-google-fill text-lg text-[#EA4335]" />
                   Continue with Google
-                </button>
-                <button type="button" onClick={() => handleOAuth("apple")}
-                  className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#8fdfff]/12 bg-[#071722] py-3.5 text-sm font-semibold text-white transition-all hover:border-[#03A9F4]/50 hover:bg-[#061522]">
-                  <i className="ri-apple-fill text-lg" />
-                  Continue with Apple
                 </button>
               </div>
             </>
