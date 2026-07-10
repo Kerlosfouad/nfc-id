@@ -31,12 +31,14 @@ function SignupContent() {
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    const cleanPassword = password.trim();
+    const cleanConfirmPassword = confirmPassword.trim();
 
-    if (password !== confirmPassword) {
+    if (cleanPassword !== cleanConfirmPassword) {
       setError("Passwords do not match.");
       return;
     }
-    if (password.length < 8) {
+    if (cleanPassword.length < 8) {
       setError("Password must be at least 8 characters.");
       return;
     }
@@ -50,7 +52,7 @@ function SignupContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: cleanEmail,
-          password,
+          password: cleanPassword,
           fullName: fullName.trim(),
           emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
         }),

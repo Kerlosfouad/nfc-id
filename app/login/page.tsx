@@ -40,7 +40,7 @@ function LoginContent() {
     setError(null);
     setLoading(true);
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password: password.trim() });
       if (signInError) { setError(signInError.message); return; }
       const { data: mfaData } = await supabase.auth.mfa.listFactors();
       const totpFactor = mfaData?.totp?.find((f) => f.status === "verified");
