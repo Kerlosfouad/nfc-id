@@ -91,8 +91,8 @@ function SignupContent() {
   async function handleVerifyCode(e: React.FormEvent) {
     e.preventDefault();
     const token = verificationCode.replace(/\D/g, "");
-    if (token.length !== 6) {
-      setError("Enter the 6-digit code sent to your email.");
+    if (token.length < 6 || token.length > 8) {
+      setError("Enter the verification code sent to your email.");
       return;
     }
 
@@ -169,7 +169,7 @@ function SignupContent() {
                   </div>
                 </div>
                 <p className="text-sm leading-6 text-white/60">
-                  Enter the 6-digit code we sent so we can confirm the email before linking your NFC card.
+                  Enter the code we sent so we can confirm the email before linking your NFC card.
                 </p>
               </div>
 
@@ -181,7 +181,7 @@ function SignupContent() {
                     type="text"
                     inputMode="numeric"
                     autoComplete="one-time-code"
-                    maxLength={6}
+                    maxLength={8}
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))}
                     required
@@ -193,7 +193,7 @@ function SignupContent() {
 
               {error && <p className={`text-xs ${error.toLowerCase().includes("sent") ? "text-[#8fdfff]" : "text-red-400"}`}>{error}</p>}
 
-              <button type="submit" disabled={verifying || verificationCode.length !== 6}
+              <button type="submit" disabled={verifying || verificationCode.length < 6}
                 className="mt-2 w-full rounded-xl bg-[#03A9F4] py-3.5 text-sm font-bold uppercase tracking-wider text-white transition-all hover:bg-[#20bfff] hover:shadow-[0_0_25px_rgba(3,169,244,0.35)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">
                 {verifying ? "Verifying..." : "Verify Email"}
               </button>
