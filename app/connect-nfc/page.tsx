@@ -117,6 +117,15 @@ export default function ConnectNfcPage() {
           router.replace(savedRedirect);
           return;
         }
+
+        const rememberedRedirect = await fetch("/auth/remember-redirect", { cache: "no-store" })
+          .then((response) => response.ok ? response.json() : null)
+          .catch(() => null);
+        const serverRedirect = rememberedRedirect?.data?.redirect;
+        if (typeof serverRedirect === "string" && serverRedirect.startsWith("/connect-nfc?")) {
+          router.replace(serverRedirect);
+          return;
+        }
       }
 
       setPrefilledUid(uidFromRedirect);

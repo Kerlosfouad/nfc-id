@@ -13,8 +13,13 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const cookieStore = await cookies();
   const cookieRedirect = cookieStore.get("linkup_auth_redirect")?.value;
+  const cookieNfcSession = cookieStore.get("linkup_nfc_session")?.value?.replace(/[^a-zA-Z0-9_-]/g, "");
   const requestedRedirect = searchParams.get("redirect") ?? (cookieRedirect ? decodeURIComponent(cookieRedirect) : null);
-  const redirectTo = requestedRedirect?.startsWith("/") ? requestedRedirect : "/dashboard";
+  const redirectTo = requestedRedirect?.startsWith("/")
+    ? requestedRedirect
+    : cookieNfcSession
+      ? `/connect-nfc?nfcSession=${encodeURIComponent(cookieNfcSession)}`
+      : "/dashboard";
 
   if (code) {
     const supabase = createServerClient(

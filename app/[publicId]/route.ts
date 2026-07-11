@@ -31,6 +31,32 @@ async function resolveDestination(state: TagState, publicId: string): Promise<st
   return '/suspended';
 }
 
+function redirectWithNfcSession(url: URL, sessionId?: string) {
+  const response = NextResponse.redirect(url);
+  if (sessionId) {
+    response.cookies.set('linkup_nfc_session', sessionId, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 15 * 60,
+    });
+    response.cookies.set('linkup_auth_redirect', encodeURIComponent(`/connect-nfc?nfcSession=${encodeURIComponent(sessionId)}`), {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 15 * 60,
+    });
+  }
+  return response;
+}
+
+function getNfcSessionFromHref(href: string) {
+  const session = new URL(href, 'https://linkup.local').searchParams.get('nfcSession');
+  return session?.replace(/[^a-zA-Z0-9_-]/g, '') || undefined;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ publicId: string }> },
@@ -64,9 +90,8 @@ export async function GET(
       }
     }
 
-    return NextResponse.redirect(
-      new URL(await resolveDestination(cachedState, publicId), request.url),
-    );
+    const href = await resolveDestination(cachedState, publicId);
+    return redirectWithNfcSession(new URL(href, request.url), getNfcSessionFromHref(href));
   }
 
   const tag = await db.tag.findUnique({
@@ -99,7 +124,6 @@ export async function GET(
     }
   }
 
-  return NextResponse.redirect(
-    new URL(await resolveDestination(tag.state as TagState, publicId), request.url),
-  );
+  const href = await resolveDestination(tag.state as TagState, publicId);
+  return redirectWithNfcSession(new URL(href, request.url), getNfcSessionFromHref(href));
 }
