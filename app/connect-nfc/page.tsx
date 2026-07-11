@@ -75,6 +75,7 @@ export default function ConnectNfcPage() {
   const [status, setStatus] = useState<NfcStatus>("checking-auth");
   const [error, setError] = useState("");
   const [token, setToken] = useState<string | null>(null);
+  const [prefilledUid, setPrefilledUid] = useState("");
   const [prefilledPublicId, setPrefilledPublicId] = useState("");
   const writeStartedRef = useRef(false);
   const writeActiveRef = useRef(true);
@@ -92,12 +93,18 @@ export default function ConnectNfcPage() {
     async function prepareNfcFlow() {
       const { data } = await supabase.auth.getSession();
       const searchParams = new URLSearchParams(window.location.search);
+      const uidFromRedirect = searchParams
+        .get("uid")
+        ?.trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9:_-]/g, "") ?? "";
       const publicIdFromRedirect = searchParams
         .get("publicId")
         ?.trim()
         .replace(/[^a-zA-Z0-9_-]/g, "") ?? "";
 
       if (cancelled) return;
+      setPrefilledUid(uidFromRedirect);
       setPrefilledPublicId(publicIdFromRedirect);
 
       if (!data.session) {
@@ -145,8 +152,9 @@ export default function ConnectNfcPage() {
     }
   }, [isTransientWriteError]);
 
-  const linkCard = useCallback(async ({ publicId }: { publicId?: string }) => {
+  const linkCard = useCallback(async ({ uid, publicId }: { uid?: string; publicId?: string }) => {
     if (!token) return;
+    const normalizedUid = uid?.trim();
     const normalizedPublicId = publicId?.trim();
     setStatus("connecting");
     setError("");
@@ -158,6 +166,7 @@ export default function ConnectNfcPage() {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
+        ...(normalizedUid ? { uid: normalizedUid } : {}),
         ...(normalizedPublicId ? { publicId: normalizedPublicId } : {}),
       }),
     });
@@ -188,13 +197,18 @@ export default function ConnectNfcPage() {
     setError("");
 
     if (prefilledPublicId) {
-      await linkCard({ publicId: prefilledPublicId });
+      await linkCard({ publicId: prefilledPublicId, ...(prefilledUid ? { uid: prefilledUid } : {}) });
+      return;
+    }
+
+    if (prefilledUid) {
+      await linkCard({ uid: prefilledUid });
       return;
     }
 
     setStatus("error");
     setError("Open this page from an unlinked LinkUp medal scan link. This protects already-linked medals from being overwritten.");
-  }, [linkCard, prefilledPublicId, token]);
+  }, [linkCard, prefilledPublicId, prefilledUid, token]);
 
   useEffect(() => {
     if (!token || status !== "ready" || writeStartedRef.current) return;
@@ -227,6 +241,8 @@ export default function ConnectNfcPage() {
   const statusBody =
     status === "ready" && prefilledPublicId
         ? "We found the card link from your first scan. Hold the card near your phone."
+      : status === "ready" && prefilledUid
+        ? "We found the card from your first scan. Hold the card near your phone."
       : status === "ready"
       ? "Open this page from an unlinked LinkUp medal scan link before writing."
       : status === "writing"
