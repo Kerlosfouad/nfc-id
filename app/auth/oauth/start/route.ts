@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 
 const ALLOWED_PROVIDERS = new Set(["google"]);
 
@@ -20,9 +20,21 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
   }
 
-  const supabase = createClient(supabaseUrl, anonKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
+  const pendingCookies: Parameters<Parameters<typeof createServerClient>[2]["cookies"]["setAll"]>[0] = [];
+  const supabase = createServerClient(supabaseUrl, anonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          request.cookies.set(name, value);
+          pendingCookies.push({ name, value, options });
+        });
+      },
+    },
   });
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
@@ -35,13 +47,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
   }
 
-  const response = NextResponse.redirect(data.url);
-  response.cookies.set("linkup_auth_redirect", encodeURIComponent(safeRedirect), {
+  const redirectResponse = NextResponse.redirect(data.url);
+  pendingCookies.forEach(({ name, value, options }) => {
+    redirectResponse.cookies.set(name, value, options);
+  });
+  redirectResponse.cookies.set("linkup_auth_redirect", encodeURIComponent(safeRedirect), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: 15 * 60,
   });
-  return response;
+  return redirectResponse;
 }
