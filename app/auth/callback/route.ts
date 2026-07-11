@@ -11,10 +11,12 @@ import { db } from "@/lib/db";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const redirectTo = searchParams.get("redirect") ?? "/dashboard";
+  const cookieStore = await cookies();
+  const cookieRedirect = cookieStore.get("linkup_auth_redirect")?.value;
+  const requestedRedirect = searchParams.get("redirect") ?? (cookieRedirect ? decodeURIComponent(cookieRedirect) : null);
+  const redirectTo = requestedRedirect?.startsWith("/") ? requestedRedirect : "/dashboard";
 
   if (code) {
-    const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -45,7 +47,9 @@ export async function GET(request: NextRequest) {
       const finalRedirect = isOwnerEmail(data.user?.email) && redirectTo === "/dashboard"
         ? "/admin"
         : redirectTo;
-      return NextResponse.redirect(`${origin}${finalRedirect}`);
+      const response = NextResponse.redirect(`${origin}${finalRedirect}`);
+      response.cookies.set("linkup_auth_redirect", "", { path: "/", maxAge: 0 });
+      return response;
     }
   }
 

@@ -66,6 +66,7 @@ function LoginContent() {
 
   async function handleOAuth(provider: "google") {
     setError(null);
+    document.cookie = `linkup_auth_redirect=${encodeURIComponent(redirectTo)}; Path=/; Max-Age=900; SameSite=Lax`;
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}` },
