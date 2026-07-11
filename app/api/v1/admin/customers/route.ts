@@ -209,13 +209,6 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  if (userId === authResult.userId) {
-    return NextResponse.json(
-      { data: null, error: { code: 'BAD_REQUEST', message: 'Admins cannot delete their own account here.' } },
-      { status: 400 },
-    );
-  }
-
   try {
     const deleted = await deleteUserAccount(userId);
     return NextResponse.json({ data: deleted, error: null });

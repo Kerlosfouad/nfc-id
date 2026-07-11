@@ -123,7 +123,7 @@ export default function AdminCustomersPage() {
   }
 
   async function deleteCustomer(customer: CustomerRow) {
-    if (!authToken || customer.id === userId) return;
+    if (!authToken) return;
     const typedEmail = window.prompt(
       `Delete ${customer.email} everywhere?\n\nThis permanently removes the Auth user, database user, profiles, links, messages, analytics, leads, notifications, and related order records. The email can be registered again.\n\nType the customer email to confirm.`
     );
@@ -157,15 +157,17 @@ export default function AdminCustomersPage() {
   }
 
   const normalizedSearch = searchQuery.trim().toLowerCase();
+  const ownerAccounts = customers.filter((customer) => customer.role === "ADMIN");
+  const regularCustomers = customers.filter((customer) => customer.role !== "ADMIN");
   const visibleCustomers = normalizedSearch
-    ? customers.filter((customer) => {
+    ? regularCustomers.filter((customer) => {
         const profileMatch = customer.profiles.some((profile) =>
           [profile.displayName, profile.publicId, profile.bio ?? ""].some((value) => value.toLowerCase().includes(normalizedSearch))
         );
         const tagMatch = customer.tags.some((tag) => tag.publicId.toLowerCase().includes(normalizedSearch));
         return customer.email.toLowerCase().includes(normalizedSearch) || profileMatch || tagMatch;
       })
-    : customers;
+    : regularCustomers;
 
   return (
     <AdminChrome title="Customers" subtitle="Registered users, owned medals, and public profile counts.">
@@ -191,7 +193,43 @@ export default function AdminCustomersPage() {
           )}
         </div>
 
-        {customers.length === 0 ? (
+        {ownerAccounts.length > 0 && (
+          <div className="mb-5 rounded-xl border border-[#03A9F4]/25 bg-[#03A9F4]/8 p-3 sm:p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-xs font-bold uppercase tracking-[0.18em] text-[#8ddfff]">Owner account</h3>
+              <span className="rounded-full bg-[#03A9F4]/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#8ddfff]">
+                Dashboard
+              </span>
+            </div>
+            <div className="grid min-w-0 gap-4">
+              {ownerAccounts.map((customer) => (
+                <article key={customer.id} className="min-w-0 rounded-xl border border-white/10 bg-black/20 p-3 sm:p-4">
+                  <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+                    <div className="min-w-0">
+                      <h3 className="break-words text-sm font-bold leading-snug text-white">{customer.email}</h3>
+                      <p className="mt-1 text-xs text-white/35">
+                        {customer.role} · {customer._count.tags} medals · {customer._count.profiles} profiles
+                      </p>
+                    </div>
+                    <span className="w-fit shrink-0 rounded-full bg-white/5 px-2.5 py-1 text-[10px] text-white/40">
+                      {new Date(customer.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => deleteCustomer(customer)}
+                    disabled={busyCustomerId === customer.id}
+                    className="mt-4 w-full rounded-lg border border-red-400/25 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-200 transition hover:border-red-300/45 hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {busyCustomerId === customer.id ? "Deleting..." : "Delete owner account"}
+                  </button>
+                </article>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {regularCustomers.length === 0 ? (
           <EmptyState icon="ri-user-search-line" title="No customers yet" body="When users sign up, they will appear here automatically." />
         ) : visibleCustomers.length === 0 ? (
           <EmptyState icon="ri-search-line" title="No matching customers" body="Try another customer name, profile code, or NFC medal code." />
@@ -220,16 +258,14 @@ export default function AdminCustomersPage() {
                     {new Date(customer.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                {customer.id !== userId && (
-                  <button
-                    type="button"
-                    onClick={() => deleteCustomer(customer)}
-                    disabled={busyCustomerId === customer.id}
-                    className="mb-4 w-full rounded-lg border border-red-400/25 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-200 transition hover:border-red-300/45 hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {busyCustomerId === customer.id ? "Deleting..." : "Delete customer everywhere"}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => deleteCustomer(customer)}
+                  disabled={busyCustomerId === customer.id}
+                  className="mb-4 w-full rounded-lg border border-red-400/25 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-200 transition hover:border-red-300/45 hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {busyCustomerId === customer.id ? "Deleting..." : "Delete customer everywhere"}
+                </button>
 
                 {customer.profiles.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-white/10 py-8 text-center text-sm text-white/30">No profiles</div>

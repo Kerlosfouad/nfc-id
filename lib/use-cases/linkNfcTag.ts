@@ -219,6 +219,12 @@ export async function linkPublicTag(
     if (publicTag.ownerId && publicTag.ownerId !== userId) {
       throw new NfcTagLinkedToAnotherUserError();
     }
+    if (publicTag.ownerId === userId && publicTag.state === 'ACTIVE') {
+      throw new NfcTagLinkedToAnotherUserError('This NFC card is already linked to your account');
+    }
+    if (!publicTag.ownerId && (publicTag.state === 'CLAIMED' || publicTag.state === 'ACTIVE' || publicTag.state === 'SUSPENDED')) {
+      throw new NfcTagLinkedToAnotherUserError('This NFC card is already linked or unavailable');
+    }
 
     const existingProfile = await tx.profile.findUnique({
       where: { publicId: normalizedPublicId },

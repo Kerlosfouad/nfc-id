@@ -145,23 +145,6 @@ export default function ConnectNfcPage() {
     }
   }, [isTransientWriteError]);
 
-  const prepareProfileWrite = useCallback(async () => {
-    if (!token) return null;
-    const response = await fetch("/api/v1/nfc/prepare-write", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const body = await response.json();
-
-    if (!response.ok) {
-      throw new Error(body?.error?.message ?? "Could not prepare your profile link.");
-    }
-
-    return `/profile/${body.data.profile.publicId}`;
-  }, [token]);
-
   const linkCard = useCallback(async ({ publicId }: { publicId?: string }) => {
     if (!token) return;
     const normalizedPublicId = publicId?.trim();
@@ -209,19 +192,9 @@ export default function ConnectNfcPage() {
       return;
     }
 
-    try {
-      const href = await prepareProfileWrite();
-      if (!href) return;
-      await writeProfileLink(href);
-    } catch (writeError) {
-      setStatus("error");
-      setError(writeError instanceof Error ? writeError.message : "The profile link could not be written to this card.");
-      return;
-    }
-
-    setStatus("success");
-    window.setTimeout(() => router.push("/dashboard"), 1800);
-  }, [linkCard, prefilledPublicId, prepareProfileWrite, router, token, writeProfileLink]);
+    setStatus("error");
+    setError("Open this page from an unlinked LinkUp medal scan link. This protects already-linked medals from being overwritten.");
+  }, [linkCard, prefilledPublicId, token]);
 
   useEffect(() => {
     if (!token || status !== "ready" || writeStartedRef.current) return;
@@ -255,7 +228,7 @@ export default function ConnectNfcPage() {
     status === "ready" && prefilledPublicId
         ? "We found the card link from your first scan. Hold the card near your phone."
       : status === "ready"
-      ? "Hold the card near your phone. Writing starts automatically."
+      ? "Open this page from an unlinked LinkUp medal scan link before writing."
       : status === "writing"
         ? "Waiting for the card. Keep this page open and hold the card near your phone."
       : status === "unsupported"
