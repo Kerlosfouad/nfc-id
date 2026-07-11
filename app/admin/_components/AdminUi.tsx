@@ -80,9 +80,9 @@ export function MetricCard({
 
 export function Panel({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-[#2c2c2c] bg-white/[0.03] p-5 backdrop-blur-md">
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <h2 className="text-base font-bold uppercase tracking-wide">{title}</h2>
+    <section className="min-w-0 rounded-xl border border-[#2c2c2c] bg-white/[0.03] p-3 backdrop-blur-md sm:p-5">
+      <div className="mb-5 flex min-w-0 items-center justify-between gap-3">
+        <h2 className="min-w-0 text-sm font-bold uppercase tracking-wide sm:text-base">{title}</h2>
         {action}
       </div>
       {children}

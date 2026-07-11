@@ -179,7 +179,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
       };
 
   return (
-    <div className="min-h-screen bg-[#0b0a0a] text-white" style={{ fontFamily: "Inter, sans-serif" }}>
+    <div className="min-h-screen overflow-x-hidden bg-[#0b0a0a] text-white" style={{ fontFamily: "Inter, sans-serif" }}>
       <AppNotificationToast items={notifications} />
       <div className="fixed inset-0 pointer-events-none hero-grid opacity-50" />
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[220px] border-r border-white/5 bg-[#0f0f0f] lg:flex lg:flex-col">
@@ -225,7 +225,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
         </div>
       </aside>
 
-      <main className="relative z-10 flex min-h-screen flex-col lg:pl-[220px]">
+      <main className="relative z-10 flex min-h-screen min-w-0 flex-col lg:pl-[220px]">
         <header className="sticky top-0 z-20 border-b border-white/5 bg-[#0b0a0a]/90 px-4 py-4 backdrop-blur-xl sm:px-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
@@ -257,7 +257,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-4 py-5 pb-24 sm:px-6 sm:py-6 lg:pb-6">{children}</div>
+        <div className="min-w-0 flex-1 overflow-y-auto px-3 py-4 pb-24 sm:px-6 sm:py-6 lg:pb-6">{children}</div>
       </main>
 
       <nav className="fixed bottom-0 left-0 right-0 z-40 flex border-t border-white/5 bg-[#0f0f0f] lg:hidden">

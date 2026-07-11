@@ -170,9 +170,9 @@ export default function AdminCustomersPage() {
   return (
     <AdminChrome title="Customers" subtitle="Registered users, owned medals, and public profile counts.">
       <Panel title="Customer Directory">
-        <div className="mb-5 grid gap-3 lg:grid-cols-[1fr_auto]">
-          <div>
-            <label className="mb-2 block text-xs uppercase tracking-widest text-white/35">Search customer or medal</label>
+        <div className="mb-5 grid min-w-0 gap-3 lg:grid-cols-[1fr_auto]">
+          <div className="min-w-0">
+            <label className="mb-2 block text-[11px] uppercase tracking-[0.16em] text-white/35 sm:text-xs sm:tracking-widest">Search customer or medal</label>
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
@@ -196,16 +196,16 @@ export default function AdminCustomersPage() {
         ) : visibleCustomers.length === 0 ? (
           <EmptyState icon="ri-search-line" title="No matching customers" body="Try another customer name, profile code, or NFC medal code." />
         ) : (
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid min-w-0 gap-4 lg:grid-cols-2">
             {visibleCustomers.map((customer) => (
-              <article key={customer.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <div className="mb-4 flex items-start justify-between gap-3">
+              <article key={customer.id} className="min-w-0 rounded-xl border border-white/10 bg-black/20 p-3 sm:p-4">
+                <div className="mb-4 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                   <div className="min-w-0">
-                    <h3 className="truncate text-sm font-bold text-white">{customer.email}</h3>
+                    <h3 className="break-words text-sm font-bold leading-snug text-white">{customer.email}</h3>
                     {customer.tags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {customer.tags.slice(0, 4).map((tag) => (
-                          <span key={tag.publicId} className="rounded-md border border-[#03A9F4]/20 bg-[#03A9F4]/10 px-2 py-1 font-mono text-[10px] text-[#8ddfff]">
+                          <span key={tag.publicId} className="max-w-full break-all rounded-md border border-[#03A9F4]/20 bg-[#03A9F4]/10 px-2 py-1 font-mono text-[10px] text-[#8ddfff]">
                             {tag.publicId}
                           </span>
                         ))}
@@ -216,7 +216,7 @@ export default function AdminCustomersPage() {
                       {customer.role} · {customer._count.tags} medals · {customer._count.profiles} profiles
                     </p>
                   </div>
-                  <span className="rounded-full bg-white/5 px-2.5 py-1 text-[10px] text-white/40">
+                  <span className="w-fit shrink-0 rounded-full bg-white/5 px-2.5 py-1 text-[10px] text-white/40">
                     {new Date(customer.createdAt).toLocaleDateString()}
                   </span>
                 </div>
@@ -236,27 +236,27 @@ export default function AdminCustomersPage() {
                 ) : (
                   <div className="space-y-3">
                     {customer.profiles.map((profile) => (
-                      <div key={profile.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                        <div className="flex gap-3">
+                      <div key={profile.id} className="min-w-0 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                        <div className="flex min-w-0 gap-3">
                           {profile.avatarUrl ? (
-                            <div className="h-14 w-14 rounded-xl bg-cover bg-center" style={{ backgroundImage: `url(${profile.avatarUrl})` }} />
+                            <div className="h-14 w-14 shrink-0 rounded-xl bg-cover bg-center" style={{ backgroundImage: `url(${profile.avatarUrl})` }} />
                           ) : (
-                            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#03A9F4]/15 text-lg font-bold text-[#8ddfff]">
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#03A9F4]/15 text-lg font-bold text-[#8ddfff]">
                               {profile.displayName.charAt(0).toUpperCase()}
                             </div>
                           )}
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
+                            <div className="flex min-w-0 items-center gap-2">
                               <p className="truncate text-sm font-bold text-white">{profile.displayName}</p>
-                              {isActiveUntil(profile.verifiedUntil) && <i className="ri-verified-badge-fill text-[#1877F2]" />}
+                              {isActiveUntil(profile.verifiedUntil) && <i className="ri-verified-badge-fill shrink-0 text-[#1877F2]" />}
                             </div>
-                            <a href={`/profile/${profile.publicId}`} target="_blank" rel="noopener noreferrer" className="font-mono text-[11px] text-[#03A9F4]">
+                            <a href={`/profile/${profile.publicId}`} target="_blank" rel="noopener noreferrer" className="block break-all font-mono text-[11px] text-[#03A9F4]">
                               /profile/{profile.publicId}
                             </a>
                             <p className="mt-1 truncate text-xs text-white/35">{profile.bio || "No bio"}</p>
                             <div className="mt-2 grid gap-1 text-xs text-white/45">
-                              <span>Email: <span className="text-white/70">{customer.email}</span></span>
-                              <span>Phone: <span className="text-white/70">{phoneFromLinks(profile)}</span></span>
+                              <span className="min-w-0">Email: <span className="break-all text-white/70">{customer.email}</span></span>
+                              <span className="min-w-0">Phone: <span className="break-all text-white/70">{phoneFromLinks(profile)}</span></span>
                             </div>
                           </div>
                         </div>
