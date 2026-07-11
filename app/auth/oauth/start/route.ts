@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { createNfcOAuthFlow } from "@/lib/use-cases/nfcLinkSession";
 
 const ALLOWED_PROVIDERS = new Set(["google"]);
 
@@ -50,6 +51,11 @@ export async function GET(request: NextRequest) {
 
   if (error || !data.url) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
+  }
+
+  const providerState = new URL(data.url).searchParams.get("state") ?? "";
+  if (providerState && nfcSession) {
+    await createNfcOAuthFlow({ providerState, nfcSessionId: nfcSession });
   }
 
   const redirectResponse = NextResponse.redirect(data.url);

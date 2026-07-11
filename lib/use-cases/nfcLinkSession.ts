@@ -48,3 +48,41 @@ export async function resolveNfcLinkSession(id: string) {
     publicId: session.publicId ?? undefined,
   };
 }
+
+export async function createNfcOAuthFlow(input: { providerState: string; nfcSessionId: string }) {
+  const providerState = input.providerState.trim();
+  const nfcSessionId = input.nfcSessionId.trim().replace(/[^a-zA-Z0-9_-]/g, '');
+  if (!providerState || !nfcSessionId) return;
+
+  await db.nfcOAuthFlow.upsert({
+    where: { providerState },
+    create: {
+      providerState,
+      nfcSessionId,
+      expiresAt: new Date(Date.now() + LINK_SESSION_TTL_MS),
+    },
+    update: {
+      nfcSessionId,
+      expiresAt: new Date(Date.now() + LINK_SESSION_TTL_MS),
+    },
+  });
+}
+
+export async function resolveNfcOAuthFlow(providerState: string) {
+  const state = providerState.trim();
+  if (!state) return null;
+
+  const flow = await db.nfcOAuthFlow.findUnique({
+    where: { providerState: state },
+    select: { nfcSessionId: true, expiresAt: true },
+  });
+
+  if (!flow || flow.expiresAt.getTime() <= Date.now()) {
+    if (flow) {
+      await db.nfcOAuthFlow.delete({ where: { providerState: state } }).catch(() => undefined);
+    }
+    return null;
+  }
+
+  return flow.nfcSessionId;
+}

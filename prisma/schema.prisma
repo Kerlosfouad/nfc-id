@@ -108,6 +108,16 @@ model NfcLinkSession {
   @@index([expiresAt])
 }
 
+model NfcOAuthFlow {
+  id            String   @id @default(uuid())
+  providerState String   @unique
+  nfcSessionId  String
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime
+
+  @@index([expiresAt])
+}
+
 model Profile {
   id               String   @id @default(uuid())
   publicId         String   @unique
