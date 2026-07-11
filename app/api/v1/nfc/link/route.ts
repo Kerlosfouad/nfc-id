@@ -64,10 +64,7 @@ export async function POST(request: NextRequest) {
     const result = publicId
       ? await linkPublicTag(auth.userId, publicId, uid)
       : await linkNfcTag(auth.userId, uid!);
-    const response = NextResponse.json({ data: result, error: null }, { status: 200 });
-    response.cookies.set('linkup_nfc_session', '', { path: '/', maxAge: 0 });
-    response.cookies.set('linkup_auth_redirect', '', { path: '/', maxAge: 0 });
-    return response;
+    return NextResponse.json({ data: result, error: null }, { status: 200 });
   } catch (error) {
     if (error instanceof InvalidNfcUidError) {
       return NextResponse.json(
