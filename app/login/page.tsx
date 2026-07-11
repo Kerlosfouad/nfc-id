@@ -69,18 +69,13 @@ function LoginContent() {
 
   async function handleOAuth(provider: "google") {
     setError(null);
-    const oauthNfcSession = nfcSession || (
-      redirectTo.startsWith("/connect-nfc?")
-        ? new URL(redirectTo, window.location.origin).searchParams.get("nfcSession")?.replace(/[^a-zA-Z0-9_-]/g, "") ?? ""
-        : ""
-    );
     window.localStorage.setItem("linkup_auth_redirect", redirectTo);
     await fetch("/auth/remember-redirect", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ redirect: redirectTo, nfcSession: oauthNfcSession }),
+      body: JSON.stringify({ redirect: redirectTo }),
     }).catch(() => undefined);
-    window.location.assign(`/auth/oauth/start?provider=${provider}&redirect=${encodeURIComponent(redirectTo)}${oauthNfcSession ? `&nfcSession=${encodeURIComponent(oauthNfcSession)}` : ""}`);
+    window.location.assign(`/auth/oauth/start?provider=${provider}&redirect=${encodeURIComponent(redirectTo)}`);
   }
 
   async function handlePasswordReset() {

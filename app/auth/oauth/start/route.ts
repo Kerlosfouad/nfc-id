@@ -7,17 +7,12 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const provider = searchParams.get("provider") ?? "google";
   const redirect = searchParams.get("redirect") ?? "/dashboard";
-  const explicitNfcSession = searchParams.get("nfcSession")?.replace(/[^a-zA-Z0-9_-]/g, "") ?? "";
 
   if (!ALLOWED_PROVIDERS.has(provider)) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
   }
 
   const safeRedirect = redirect.startsWith("/") ? redirect : "/dashboard";
-  const redirectNfcSession = safeRedirect.startsWith("/connect-nfc?")
-    ? new URL(safeRedirect, origin).searchParams.get("nfcSession")?.replace(/[^a-zA-Z0-9_-]/g, "") ?? ""
-    : "";
-  const nfcSession = explicitNfcSession || redirectNfcSession;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -63,14 +58,5 @@ export async function GET(request: NextRequest) {
     path: "/",
     maxAge: 15 * 60,
   });
-  if (nfcSession) {
-    redirectResponse.cookies.set("linkup_nfc_session", nfcSession, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 15 * 60,
-    });
-  }
   return redirectResponse;
 }
