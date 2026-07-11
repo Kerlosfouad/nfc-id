@@ -201,6 +201,78 @@ export async function linkOnlyAvailableNfcTag(userId: string): Promise<LinkNfcTa
   return linkNfcTag(userId, availableTags[0].uid);
 }
 
+export async function linkAccountWriteOnlyNfcTag(userId: string): Promise<LinkNfcTagResult> {
+  const syntheticUid = `ACCOUNT:${normalizeUid(userId)}`;
+
+  return db.$transaction(async (tx) => {
+    const usersLinkedTag = await tx.nfcTag.findUnique({
+      where: { userId },
+      include: { profile: true },
+    });
+
+    const user = await tx.user.findUnique({ where: { id: userId }, select: { email: true } });
+    const profile =
+      usersLinkedTag?.profile ??
+      (await tx.profile.findFirst({
+        where: { ownerId: userId },
+        orderBy: { createdAt: 'asc' },
+        select: { id: true, publicId: true, displayName: true },
+      })) ??
+      (await tx.profile.create({
+        data: defaultProfile(userId, user?.email?.split('@')[0] || 'My Profile'),
+        select: { id: true, publicId: true, displayName: true },
+      }));
+
+    if (usersLinkedTag) {
+      const tag =
+        usersLinkedTag.profileId === profile.id && usersLinkedTag.status === 'LINKED'
+          ? usersLinkedTag
+          : await tx.nfcTag.update({
+              where: { userId },
+              data: {
+                profileId: profile.id,
+                status: 'LINKED',
+                linkedAt: usersLinkedTag.linkedAt ?? new Date(),
+              },
+            });
+
+      return {
+        status: 'already-linked' as const,
+        tag: {
+          id: tag.id,
+          uid: tag.uid,
+          userId: tag.userId ?? userId,
+          profileId: tag.profileId,
+          linkedAt: tag.linkedAt,
+        },
+        profile,
+      };
+    }
+
+    const tag = await tx.nfcTag.create({
+      data: {
+        uid: syntheticUid,
+        userId,
+        profileId: profile.id,
+        status: 'LINKED',
+        linkedAt: new Date(),
+      },
+    });
+
+    return {
+      status: 'linked' as const,
+      tag: {
+        id: tag.id,
+        uid: tag.uid,
+        userId: tag.userId ?? userId,
+        profileId: tag.profileId,
+        linkedAt: tag.linkedAt,
+      },
+      profile,
+    };
+  });
+}
+
 export async function linkPublicTag(
   userId: string,
   publicId: string,
