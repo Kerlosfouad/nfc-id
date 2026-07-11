@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 const ALLOWED_PROVIDERS = new Set(["google"]);
 
@@ -13,16 +14,28 @@ export async function GET(request: NextRequest) {
 
   const safeRedirect = redirect.startsWith("/") ? redirect : "/dashboard";
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl) {
+  if (!supabaseUrl || !anonKey) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
   }
 
-  const authorizeUrl = new URL(`${supabaseUrl}/auth/v1/authorize`);
-  authorizeUrl.searchParams.set("provider", provider);
-  authorizeUrl.searchParams.set("redirect_to", `${origin}/auth/callback`);
+  const supabase = createClient(supabaseUrl, anonKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+      skipBrowserRedirect: true,
+    },
+  });
 
-  const response = NextResponse.redirect(authorizeUrl);
+  if (error || !data.url) {
+    return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
+  }
+
+  const response = NextResponse.redirect(data.url);
   response.cookies.set("linkup_auth_redirect", encodeURIComponent(safeRedirect), {
     httpOnly: true,
     sameSite: "lax",
