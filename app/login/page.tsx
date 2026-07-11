@@ -38,6 +38,24 @@ function LoginContent() {
       setError("Sign in could not be completed. Please try again.");
     }
   }, [callbackError]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function redirectSignedInNfcUser() {
+      if (!nfcSession) return;
+      const { data } = await supabase.auth.getSession();
+      if (!cancelled && data.session) {
+        router.replace(`/connect-nfc?nfcSession=${encodeURIComponent(nfcSession)}`);
+      }
+    }
+
+    void redirectSignedInNfcUser();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [nfcSession, router, supabase]);
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
