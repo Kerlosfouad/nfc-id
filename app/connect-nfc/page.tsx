@@ -77,6 +77,7 @@ export default function ConnectNfcPage() {
   const [token, setToken] = useState<string | null>(null);
   const [prefilledUid, setPrefilledUid] = useState("");
   const [prefilledPublicId, setPrefilledPublicId] = useState("");
+  const [nfcSession, setNfcSession] = useState("");
   const writeStartedRef = useRef(false);
   const writeActiveRef = useRef(true);
 
@@ -102,10 +103,25 @@ export default function ConnectNfcPage() {
         .get("publicId")
         ?.trim()
         .replace(/[^a-zA-Z0-9_-]/g, "") ?? "";
+      const sessionFromRedirect = searchParams
+        .get("nfcSession")
+        ?.trim()
+        .replace(/[^a-zA-Z0-9_-]/g, "") ?? "";
 
       if (cancelled) return;
+
+      if (!uidFromRedirect && !publicIdFromRedirect && !sessionFromRedirect) {
+        const savedRedirect = window.localStorage.getItem("linkup_auth_redirect");
+        if (savedRedirect?.startsWith("/connect-nfc?")) {
+          window.localStorage.removeItem("linkup_auth_redirect");
+          router.replace(savedRedirect);
+          return;
+        }
+      }
+
       setPrefilledUid(uidFromRedirect);
       setPrefilledPublicId(publicIdFromRedirect);
+      setNfcSession(sessionFromRedirect);
 
       if (!data.session) {
         const redirect = `/connect-nfc${window.location.search || ""}`;
@@ -152,7 +168,7 @@ export default function ConnectNfcPage() {
     }
   }, [isTransientWriteError]);
 
-  const linkCard = useCallback(async ({ uid, publicId }: { uid?: string; publicId?: string }) => {
+  const linkCard = useCallback(async ({ uid, publicId, session }: { uid?: string; publicId?: string; session?: string }) => {
     if (!token) return;
     const normalizedUid = uid?.trim();
     const normalizedPublicId = publicId?.trim();
@@ -168,6 +184,7 @@ export default function ConnectNfcPage() {
       body: JSON.stringify({
         ...(normalizedUid ? { uid: normalizedUid } : {}),
         ...(normalizedPublicId ? { publicId: normalizedPublicId } : {}),
+        ...(session ? { nfcSession: session } : {}),
       }),
     });
     const body = await response.json();
@@ -206,9 +223,14 @@ export default function ConnectNfcPage() {
       return;
     }
 
+    if (nfcSession) {
+      await linkCard({ session: nfcSession });
+      return;
+    }
+
     setStatus("error");
     setError("Open this page from an unlinked LinkUp medal scan link. This protects already-linked medals from being overwritten.");
-  }, [linkCard, prefilledPublicId, prefilledUid, token]);
+  }, [linkCard, nfcSession, prefilledPublicId, prefilledUid, token]);
 
   useEffect(() => {
     if (!token || status !== "ready" || writeStartedRef.current) return;
@@ -243,6 +265,8 @@ export default function ConnectNfcPage() {
         ? "We found the card link from your first scan. Hold the card near your phone."
       : status === "ready" && prefilledUid
         ? "We found the card from your first scan. Hold the card near your phone."
+      : status === "ready" && nfcSession
+        ? "We found the medal session from your first scan. Hold the card near your phone."
       : status === "ready"
       ? "Open this page from an unlinked LinkUp medal scan link before writing."
       : status === "writing"

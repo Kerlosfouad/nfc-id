@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { requireAuth } from '@/lib/middleware/auth';
 import {
   InvalidNfcUidError,
-  linkOnlyAvailableNfcTag,
   linkPublicTag,
   linkNfcTag,
   MultipleAvailableNfcTagsError,
@@ -11,10 +10,12 @@ import {
   NfcTagLinkedToAnotherUserError,
   UserAlreadyHasNfcTagError,
 } from '@/lib/use-cases/linkNfcTag';
+import { resolveNfcLinkSession } from '@/lib/use-cases/nfcLinkSession';
 
 const LinkNfcSchema = z.object({
   uid: z.string().min(1).max(128).optional(),
   publicId: z.string().min(1).max(128).optional(),
+  nfcSession: z.string().min(1).max(128).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -40,11 +41,29 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = parsed.data.publicId
-      ? await linkPublicTag(auth.userId, parsed.data.publicId, parsed.data.uid)
-      : parsed.data.uid
-        ? await linkNfcTag(auth.userId, parsed.data.uid)
-        : await linkOnlyAvailableNfcTag(auth.userId);
+    const sessionData = parsed.data.nfcSession
+      ? await resolveNfcLinkSession(parsed.data.nfcSession)
+      : null;
+    if (parsed.data.nfcSession && !sessionData) {
+      return NextResponse.json(
+        { data: null, error: { code: 'LINK_SESSION_EXPIRED', message: 'This NFC linking session expired. Scan the medal again.' } },
+        { status: 410 },
+      );
+    }
+
+    const publicId = parsed.data.publicId ?? sessionData?.publicId;
+    const uid = parsed.data.uid ?? sessionData?.uid;
+
+    if (!publicId && !uid) {
+      return NextResponse.json(
+        { data: null, error: { code: 'BAD_REQUEST', message: 'Open this page from a valid LinkUp medal scan.' } },
+        { status: 400 },
+      );
+    }
+
+    const result = publicId
+      ? await linkPublicTag(auth.userId, publicId, uid)
+      : await linkNfcTag(auth.userId, uid!);
     return NextResponse.json({ data: result, error: null }, { status: 200 });
   } catch (error) {
     if (error instanceof InvalidNfcUidError) {

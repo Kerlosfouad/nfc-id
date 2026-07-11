@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import * as cacheService from '@/lib/services/cacheService';
 import type { TagState } from '@/lib/domain/types';
+import { createNfcLinkSession } from '@/lib/use-cases/nfcLinkSession';
 
 const RESERVED_PUBLIC_PATHS = new Set([
   'admin',
@@ -21,9 +22,10 @@ const RESERVED_PUBLIC_PATHS = new Set([
   'terms',
 ]);
 
-function resolveDestination(state: TagState, publicId: string): string {
+async function resolveDestination(state: TagState, publicId: string): Promise<string> {
   if (state === 'MANUFACTURED' || state === 'SOLD') {
-    return `/signup?redirect=${encodeURIComponent(`/connect-nfc?publicId=${encodeURIComponent(publicId)}`)}`;
+    const sessionId = await createNfcLinkSession({ publicId });
+    return `/signup?nfcSession=${encodeURIComponent(sessionId)}`;
   }
   if (state === 'CLAIMED' || state === 'ACTIVE') return `/profile/${publicId}`;
   return '/suspended';
@@ -63,7 +65,7 @@ export async function GET(
     }
 
     return NextResponse.redirect(
-      new URL(resolveDestination(cachedState, publicId), request.url),
+      new URL(await resolveDestination(cachedState, publicId), request.url),
     );
   }
 
@@ -98,6 +100,6 @@ export async function GET(
   }
 
   return NextResponse.redirect(
-    new URL(resolveDestination(tag.state as TagState, publicId), request.url),
+    new URL(await resolveDestination(tag.state as TagState, publicId), request.url),
   );
 }

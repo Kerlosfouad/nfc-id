@@ -21,8 +21,11 @@ function LoginContent() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const nfcSession = searchParams.get("nfcSession")?.replace(/[^a-zA-Z0-9_-]/g, "") ?? "";
   const redirectParam = searchParams.get("redirect");
-  const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/dashboard";
+  const redirectTo = nfcSession
+    ? `/connect-nfc?nfcSession=${encodeURIComponent(nfcSession)}`
+    : redirectParam?.startsWith("/") ? redirectParam : "/dashboard";
   const resolveRedirect = useCallback((userEmail?: string | null) => {
     if (isOwnerEmail(userEmail) && !redirectParam) return "/admin";
     return redirectTo;
@@ -66,6 +69,7 @@ function LoginContent() {
 
   async function handleOAuth(provider: "google") {
     setError(null);
+    window.localStorage.setItem("linkup_auth_redirect", redirectTo);
     window.location.assign(`/auth/oauth/start?provider=${provider}&redirect=${encodeURIComponent(redirectTo)}`);
   }
 
@@ -178,7 +182,7 @@ function LoginContent() {
           </div>
           <p className="mt-6 text-center text-sm text-white/60">
             Don&apos;t have an account?{" "}
-            <Link href={redirectParam?.startsWith("/connect-nfc") ? `/signup?redirect=${encodeURIComponent(redirectParam)}` : "/signup"} className="font-semibold text-[#48c7ff] transition-colors hover:text-white">Create one free</Link>
+            <Link href={nfcSession ? `/signup?nfcSession=${encodeURIComponent(nfcSession)}` : redirectParam?.startsWith("/connect-nfc") ? `/signup?redirect=${encodeURIComponent(redirectParam)}` : "/signup"} className="font-semibold text-[#48c7ff] transition-colors hover:text-white">Create one free</Link>
           </p>
         </div>
       </div>

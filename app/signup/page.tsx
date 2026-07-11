@@ -46,10 +46,15 @@ function SignupContent() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const nfcSession = searchParams.get("nfcSession")?.replace(/[^a-zA-Z0-9_-]/g, "") ?? "";
   const redirectParam = searchParams.get("redirect");
-  const redirectTo = redirectParam?.startsWith("/") ? redirectParam : "/connect-nfc";
+  const redirectTo = nfcSession
+    ? `/connect-nfc?nfcSession=${encodeURIComponent(nfcSession)}`
+    : redirectParam?.startsWith("/") ? redirectParam : "/connect-nfc";
   const loginHref = redirectParam?.startsWith("/")
     ? `/login?redirect=${encodeURIComponent(redirectParam)}`
+    : nfcSession
+      ? `/login?nfcSession=${encodeURIComponent(nfcSession)}`
     : "/login";
   const supabase = createClient();
 
@@ -158,6 +163,7 @@ function SignupContent() {
 
   async function handleOAuth(provider: "google") {
     setError(null);
+    window.localStorage.setItem("linkup_auth_redirect", redirectTo);
     window.location.assign(`/auth/oauth/start?provider=${provider}&redirect=${encodeURIComponent(redirectTo)}`);
   }
 

@@ -98,6 +98,16 @@ model NfcTag {
   @@index([profileId])
 }
 
+model NfcLinkSession {
+  id        String   @id @default(uuid())
+  uid       String?
+  publicId  String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
 model Profile {
   id               String   @id @default(uuid())
   publicId         String   @unique

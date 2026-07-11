@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { createNfcLinkSession } from '@/lib/use-cases/nfcLinkSession';
 
 export type NfcUidDestination =
   | { kind: 'profile'; href: string; publicId: string }
@@ -7,8 +8,9 @@ export type NfcUidDestination =
 
 export async function resolveNfcUidDestination(uid: string): Promise<NfcUidDestination> {
   const normalizedUid = uid.trim().toUpperCase().replace(/[^A-Z0-9:_-]/g, '');
-  if (!normalizedUid) return { kind: 'register', href: '/signup?redirect=%2Fconnect-nfc' };
-  const registerHref = `/signup?redirect=${encodeURIComponent(`/connect-nfc?uid=${encodeURIComponent(normalizedUid)}`)}`;
+  if (!normalizedUid) return { kind: 'register', href: '/signup' };
+  const sessionId = await createNfcLinkSession({ uid: normalizedUid });
+  const registerHref = `/signup?nfcSession=${encodeURIComponent(sessionId)}`;
 
   const tag = await db.nfcTag.findUnique({
     where: { uid: normalizedUid },
