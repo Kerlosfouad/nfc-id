@@ -41,12 +41,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const cookieNfcSession = request.cookies.get('linkup_nfc_session')?.value?.replace(/[^a-zA-Z0-9_-]/g, '');
-    const requestedSession = parsed.data.nfcSession ?? cookieNfcSession;
-    const sessionData = requestedSession
-      ? await resolveNfcLinkSession(requestedSession)
+    const sessionData = parsed.data.nfcSession
+      ? await resolveNfcLinkSession(parsed.data.nfcSession)
       : null;
-    if (requestedSession && !sessionData) {
+    if (parsed.data.nfcSession && !sessionData) {
       return NextResponse.json(
         { data: null, error: { code: 'LINK_SESSION_EXPIRED', message: 'This NFC linking session expired. Scan the medal again.' } },
         { status: 410 },

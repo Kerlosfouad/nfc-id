@@ -218,18 +218,6 @@ export default function ConnectNfcPage() {
     window.setTimeout(() => router.push("/dashboard"), 1800);
   }, [router, token, writeProfileLink]);
 
-  const getRememberedNfcSession = useCallback(async () => {
-    const rememberedRedirect = await fetch("/auth/remember-redirect", { cache: "no-store" })
-      .then((response) => response.ok ? response.json() : null)
-      .catch(() => null);
-    const serverRedirect = rememberedRedirect?.data?.redirect;
-    if (typeof serverRedirect !== "string" || !serverRedirect.startsWith("/connect-nfc?")) return "";
-    return new URL(serverRedirect, window.location.origin)
-      .searchParams
-      .get("nfcSession")
-      ?.replace(/[^a-zA-Z0-9_-]/g, "") ?? "";
-  }, []);
-
   const startWriting = useCallback(async () => {
     if (!token) return;
     setError("");
@@ -249,16 +237,9 @@ export default function ConnectNfcPage() {
       return;
     }
 
-    const rememberedSession = await getRememberedNfcSession();
-    if (rememberedSession) {
-      setNfcSession(rememberedSession);
-      await linkCard({ session: rememberedSession });
-      return;
-    }
-
-    await linkCard({});
-    return;
-  }, [getRememberedNfcSession, linkCard, nfcSession, prefilledPublicId, prefilledUid, token]);
+    setStatus("error");
+    setError("Open this page from an unlinked LinkUp medal scan link. This protects already-linked medals from being overwritten.");
+  }, [linkCard, nfcSession, prefilledPublicId, prefilledUid, token]);
 
   useEffect(() => {
     if (!token || status !== "ready" || writeStartedRef.current) return;
@@ -296,7 +277,7 @@ export default function ConnectNfcPage() {
       : status === "ready" && nfcSession
         ? "We found the medal session from your first scan. Hold the card near your phone."
       : status === "ready"
-      ? "Checking the medal session from your first scan. Keep this page open."
+      ? "Open this page from an unlinked LinkUp medal scan link before writing."
       : status === "writing"
         ? "Waiting for the card. Keep this page open and hold the card near your phone."
       : status === "unsupported"
