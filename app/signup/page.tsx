@@ -164,6 +164,11 @@ function SignupContent() {
   async function handleOAuth(provider: "google") {
     setError(null);
     window.localStorage.setItem("linkup_auth_redirect", redirectTo);
+    await fetch("/auth/remember-redirect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ redirect: redirectTo }),
+    }).catch(() => undefined);
     window.location.assign(`/auth/oauth/start?provider=${provider}&redirect=${encodeURIComponent(redirectTo)}`);
   }
 
