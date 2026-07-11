@@ -158,15 +158,7 @@ function SignupContent() {
 
   async function handleOAuth(provider: "google") {
     setError(null);
-    await fetch("/auth/remember-redirect", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ redirect: redirectTo }),
-    }).catch(() => undefined);
-    await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}` },
-    });
+    window.location.assign(`/auth/oauth/start?provider=${provider}&redirect=${encodeURIComponent(redirectTo)}`);
   }
 
   return (
