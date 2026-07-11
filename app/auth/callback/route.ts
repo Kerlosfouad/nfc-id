@@ -3,7 +3,6 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { isOwnerEmail } from "@/lib/config/ownerAccess";
 import { db } from "@/lib/db";
-import { resolveNfcOAuthFlow } from "@/lib/use-cases/nfcLinkSession";
 
 /**
  * OAuth callback handler — exchanges the auth code for a session.
@@ -12,15 +11,11 @@ import { resolveNfcOAuthFlow } from "@/lib/use-cases/nfcLinkSession";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const oauthState = searchParams.get("state") ?? "";
   const cookieStore = await cookies();
   const cookieRedirect = cookieStore.get("linkup_auth_redirect")?.value;
   const cookieNfcSession = cookieStore.get("linkup_nfc_session")?.value?.replace(/[^a-zA-Z0-9_-]/g, "");
-  const dbNfcSession = oauthState ? await resolveNfcOAuthFlow(oauthState) : null;
   const requestedRedirect = searchParams.get("redirect") ?? (cookieRedirect ? decodeURIComponent(cookieRedirect) : null);
-  const redirectTo = dbNfcSession
-    ? `/connect-nfc?nfcSession=${encodeURIComponent(dbNfcSession)}`
-    : requestedRedirect?.startsWith("/")
+  const redirectTo = requestedRedirect?.startsWith("/")
     ? requestedRedirect
     : cookieNfcSession
       ? `/connect-nfc?nfcSession=${encodeURIComponent(cookieNfcSession)}`
