@@ -6,6 +6,31 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+function readableAuthError(message: unknown) {
+  const fallback = "Account could not be created. Please try again.";
+  if (typeof message !== "string" || !message.trim()) return fallback;
+
+  const normalized = message.toLowerCase();
+  if (
+    normalized.includes("testing emails") ||
+    normalized.includes("verify a domain") ||
+    normalized.includes("resend.com/domains")
+  ) {
+    return "Confirmation email could not be sent because the email service is still in test mode. Please use the configured test email or verify the sending domain.";
+  }
+
+  if (message.trim().startsWith("{")) {
+    try {
+      const parsed = JSON.parse(message);
+      return readableAuthError(parsed?.message);
+    } catch {
+      return fallback;
+    }
+  }
+
+  return message;
+}
+
 function SignupContent() {
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -59,7 +84,7 @@ function SignupContent() {
       });
       const signupBody = await signupRes.json().catch(() => ({}));
       if (!signupRes.ok) {
-        setError(signupBody?.error?.message ?? "Account could not be created.");
+        setError(readableAuthError(signupBody?.error?.message));
         return;
       }
 
@@ -68,7 +93,7 @@ function SignupContent() {
       setVerificationSent(true);
       setError(null);
     } catch {
-      setError("An unexpected error occurred.");
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -86,7 +111,7 @@ function SignupContent() {
     });
     const completeBody = await completeRes.json().catch(() => ({}));
     if (!completeRes.ok) {
-      throw new Error(completeBody?.error?.message ?? "Could not finish account setup.");
+      throw new Error(readableAuthError(completeBody?.error?.message ?? "Could not finish account setup."));
     }
   }
 
@@ -107,13 +132,13 @@ function SignupContent() {
         type: "signup",
       });
       if (verifyError) {
-        setError(verifyError.message);
+        setError(readableAuthError(verifyError.message));
         return;
       }
       await completeVerifiedSignup(data.session?.access_token);
       router.replace(redirectTo);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Verification failed.");
+      setError(readableAuthError(e instanceof Error ? e.message : "Verification failed."));
     } finally {
       setVerifying(false);
     }
@@ -128,7 +153,7 @@ function SignupContent() {
         emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
       },
     });
-    setError(resendError ? resendError.message : "We sent a new verification code.");
+    setError(resendError ? readableAuthError(resendError.message) : "We sent a new verification code.");
   }
 
   async function handleOAuth(provider: "google") {
@@ -193,7 +218,11 @@ function SignupContent() {
                 </div>
               </div>
 
-              {error && <p className={`text-xs ${error.toLowerCase().includes("sent") ? "text-[#8fdfff]" : "text-red-400"}`}>{error}</p>}
+              {error && (
+                <p className={`rounded-xl border px-3 py-2 text-xs leading-5 ${error.toLowerCase().includes("sent") ? "border-[#03A9F4]/20 bg-[#03A9F4]/10 text-[#8fdfff]" : "border-red-400/20 bg-red-400/10 text-red-100"}`}>
+                  {error}
+                </p>
+              )}
 
               <button type="submit" disabled={verifying || verificationCode.length < 6}
                 className="mt-2 w-full rounded-xl bg-[#03A9F4] py-3.5 text-sm font-bold uppercase tracking-wider text-white transition-all hover:bg-[#20bfff] hover:shadow-[0_0_25px_rgba(3,169,244,0.35)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">
@@ -257,7 +286,11 @@ function SignupContent() {
               </div>
             </div>
 
-            {error && <p className="text-red-400 text-xs">{error}</p>}
+            {error && (
+              <p className="rounded-xl border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs leading-5 text-red-100">
+                {error}
+              </p>
+            )}
 
             <button type="submit" disabled={loading}
               className="mt-2 w-full rounded-xl bg-[#03A9F4] py-3.5 text-sm font-bold uppercase tracking-wider text-white transition-all hover:bg-[#20bfff] hover:shadow-[0_0_25px_rgba(3,169,244,0.35)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">

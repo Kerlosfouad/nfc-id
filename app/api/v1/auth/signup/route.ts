@@ -10,6 +10,19 @@ function badRequest(message: string, status = 400) {
   );
 }
 
+function friendlyEmailError(message: string) {
+  const normalized = message.toLowerCase();
+  if (
+    normalized.includes('testing emails') ||
+    normalized.includes('verify a domain') ||
+    normalized.includes('resend.com/domains')
+  ) {
+    return 'Confirmation email could not be sent because the email service is still in test mode. Please use the configured test email or verify your sending domain.';
+  }
+
+  return 'Confirmation email could not be sent. Please try again shortly.';
+}
+
 async function findAuthUserByEmail(supabase: SupabaseClient, email: string) {
   let page = 1;
   const perPage = 1000;
@@ -83,7 +96,7 @@ async function sendConfirmationEmail(input: { email: string; token: string }) {
 
   if (!response.ok) {
     const message = await response.text().catch(() => '');
-    throw new Error(message || 'Confirmation email could not be sent.');
+    throw new Error(friendlyEmailError(message));
   }
 }
 

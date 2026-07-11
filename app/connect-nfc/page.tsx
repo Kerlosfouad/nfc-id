@@ -75,9 +75,16 @@ export default function ConnectNfcPage() {
   const [status, setStatus] = useState<NfcStatus>("checking-auth");
   const [error, setError] = useState("");
   const [token, setToken] = useState<string | null>(null);
-  const [prefilledUid, setPrefilledUid] = useState("");
   const [prefilledPublicId, setPrefilledPublicId] = useState("");
-  const autoLinkStartedRef = useRef(false);
+  const writeStartedRef = useRef(false);
+  const writeActiveRef = useRef(true);
+
+  useEffect(() => {
+    writeActiveRef.current = true;
+    return () => {
+      writeActiveRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,42 +92,13 @@ export default function ConnectNfcPage() {
     async function prepareNfcFlow() {
       const { data } = await supabase.auth.getSession();
       const searchParams = new URLSearchParams(window.location.search);
-      const mode = searchParams.get("mode") === "read" ? "read" : "write";
-      const uidFromRedirect = searchParams
-        .get("uid")
-        ?.trim()
-        .toUpperCase()
-        .replace(/[^A-Z0-9:_-]/g, "") ?? "";
       const publicIdFromRedirect = searchParams
         .get("publicId")
         ?.trim()
         .replace(/[^a-zA-Z0-9_-]/g, "") ?? "";
 
       if (cancelled) return;
-      setPrefilledUid(uidFromRedirect);
       setPrefilledPublicId(publicIdFromRedirect);
-
-      if (mode === "read" && uidFromRedirect) {
-        try {
-          const response = await fetch(`/api/v1/nfc/resolve?uid=${encodeURIComponent(uidFromRedirect)}`);
-          const body = await response.json();
-          const destination = body?.data;
-
-          if (cancelled) return;
-
-          if ((destination?.kind === "profile" || destination?.kind === "suspended") && destination.href) {
-            router.replace(destination.href);
-            return;
-          }
-
-          if (!data.session && destination?.kind === "register" && destination.href) {
-            router.replace(destination.href);
-            return;
-          }
-        } catch {
-          if (cancelled) return;
-        }
-      }
 
       if (!data.session) {
         const redirect = `/connect-nfc${window.location.search || ""}`;
@@ -139,6 +117,11 @@ export default function ConnectNfcPage() {
     };
   }, [router, supabase]);
 
+  const isTransientWriteError = useCallback((error: unknown) => {
+    if (!(error instanceof DOMException)) return true;
+    return !["NotAllowedError", "SecurityError", "NotSupportedError"].includes(error.name);
+  }, []);
+
   const writeProfileLink = useCallback(async (href: string) => {
     if (!window.NDEFReader) {
       throw new Error("NFC writing is not available here. Use Chrome on an Android phone with NFC enabled.");
@@ -146,14 +129,41 @@ export default function ConnectNfcPage() {
 
     setStatus("writing");
     const writer = new window.NDEFReader();
-    await writer.write({
+    const message = {
       records: [{ recordType: "url", data: `${window.location.origin}${href}` }],
-    });
-  }, []);
+    };
 
-  const linkCard = useCallback(async ({ uid, publicId }: { uid?: string; publicId?: string }) => {
+    while (writeActiveRef.current) {
+      try {
+        await writer.write(message);
+        return;
+      } catch (writeError) {
+        if (!writeActiveRef.current) return;
+        if (!isTransientWriteError(writeError)) throw writeError;
+        await new Promise((resolve) => window.setTimeout(resolve, 900));
+      }
+    }
+  }, [isTransientWriteError]);
+
+  const prepareProfileWrite = useCallback(async () => {
+    if (!token) return null;
+    const response = await fetch("/api/v1/nfc/prepare-write", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const body = await response.json();
+
+    if (!response.ok) {
+      throw new Error(body?.error?.message ?? "Could not prepare your profile link.");
+    }
+
+    return `/profile/${body.data.profile.publicId}`;
+  }, [token]);
+
+  const linkCard = useCallback(async ({ publicId }: { publicId?: string }) => {
     if (!token) return;
-    const normalizedUid = uid?.trim();
     const normalizedPublicId = publicId?.trim();
     setStatus("connecting");
     setError("");
@@ -165,7 +175,6 @@ export default function ConnectNfcPage() {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        ...(normalizedUid ? { uid: normalizedUid } : {}),
         ...(normalizedPublicId ? { publicId: normalizedPublicId } : {}),
       }),
     });
@@ -191,15 +200,34 @@ export default function ConnectNfcPage() {
     window.setTimeout(() => router.push("/dashboard"), 1800);
   }, [router, token, writeProfileLink]);
 
-  useEffect(() => {
-    if (!token || status !== "ready" || autoLinkStartedRef.current) return;
-    autoLinkStartedRef.current = true;
+  const startWriting = useCallback(async () => {
+    if (!token) return;
+    setError("");
 
-    void linkCard({
-      ...(prefilledUid ? { uid: prefilledUid } : {}),
-      ...(prefilledPublicId ? { publicId: prefilledPublicId } : {}),
-    });
-  }, [linkCard, prefilledPublicId, prefilledUid, status, token]);
+    if (prefilledPublicId) {
+      await linkCard({ publicId: prefilledPublicId });
+      return;
+    }
+
+    try {
+      const href = await prepareProfileWrite();
+      if (!href) return;
+      await writeProfileLink(href);
+    } catch (writeError) {
+      setStatus("error");
+      setError(writeError instanceof Error ? writeError.message : "The profile link could not be written to this card.");
+      return;
+    }
+
+    setStatus("success");
+    window.setTimeout(() => router.push("/dashboard"), 1800);
+  }, [linkCard, prefilledPublicId, prepareProfileWrite, router, token, writeProfileLink]);
+
+  useEffect(() => {
+    if (!token || status !== "ready" || writeStartedRef.current) return;
+    writeStartedRef.current = true;
+    void startWriting();
+  }, [startWriting, status, token]);
 
   const copy = statusCopy[status];
   const isBusy = ["checking-auth", "connecting", "writing"].includes(status);
@@ -207,11 +235,8 @@ export default function ConnectNfcPage() {
   const canRetry = status === "error";
   const handlePrimaryAction = canRetry
     ? () => {
-        autoLinkStartedRef.current = false;
-        void linkCard({
-          ...(prefilledUid ? { uid: prefilledUid } : {}),
-          ...(prefilledPublicId ? { publicId: prefilledPublicId } : {}),
-        });
+        writeStartedRef.current = false;
+        void startWriting();
       }
     : undefined;
   const statusTitle =
@@ -227,12 +252,12 @@ export default function ConnectNfcPage() {
               ? copy.title
               : "Ready to Link";
   const statusBody =
-    status === "ready" && prefilledUid
-      ? "We found the card UID from your first scan. Hold the card near your phone."
-      : status === "ready" && prefilledPublicId
+    status === "ready" && prefilledPublicId
         ? "We found the card link from your first scan. Hold the card near your phone."
       : status === "ready"
       ? "Hold the card near your phone. Writing starts automatically."
+      : status === "writing"
+        ? "Waiting for the card. Keep this page open and hold the card near your phone."
       : status === "unsupported"
         ? "This step needs NFC writing. Use Chrome on an Android phone with NFC enabled."
         : copy.body;
