@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { requireAuth } from '@/lib/middleware/auth';
 import {
   InvalidNfcUidError,
-  linkAccountWriteOnlyNfcTag,
   linkPublicTag,
   linkNfcTag,
   MultipleAvailableNfcTagsError,
@@ -55,11 +54,16 @@ export async function POST(request: NextRequest) {
     const publicId = parsed.data.publicId ?? sessionData?.publicId;
     const uid = parsed.data.uid ?? sessionData?.uid;
 
+    if (!publicId && !uid) {
+      return NextResponse.json(
+        { data: null, error: { code: 'BAD_REQUEST', message: 'Open this page from a valid LinkUp medal scan.' } },
+        { status: 400 },
+      );
+    }
+
     const result = publicId
       ? await linkPublicTag(auth.userId, publicId, uid)
-      : uid
-        ? await linkNfcTag(auth.userId, uid)
-        : await linkAccountWriteOnlyNfcTag(auth.userId);
+      : await linkNfcTag(auth.userId, uid!);
     return NextResponse.json({ data: result, error: null }, { status: 200 });
   } catch (error) {
     if (error instanceof InvalidNfcUidError) {

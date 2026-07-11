@@ -34,7 +34,7 @@ const statusCopy: Record<NfcStatus, { title: string; body: string; icon: string 
   },
   ready: {
     title: "Link your NFC card",
-    body: "Hold the medal near your phone. We will write this account profile link automatically.",
+    body: "Hold the card near your phone. We will write your profile link automatically.",
     icon: "ri-nfc-line",
   },
   unsupported: {
@@ -228,7 +228,8 @@ export default function ConnectNfcPage() {
       return;
     }
 
-    await linkCard({});
+    setStatus("error");
+    setError("Open this page from an unlinked LinkUp medal scan link. This protects already-linked medals from being overwritten.");
   }, [linkCard, nfcSession, prefilledPublicId, prefilledUid, token]);
 
   useEffect(() => {
@@ -267,7 +268,7 @@ export default function ConnectNfcPage() {
       : status === "ready" && nfcSession
         ? "We found the medal session from your first scan. Hold the card near your phone."
       : status === "ready"
-      ? "Hold the medal near your phone. We will write this account profile link automatically."
+      ? "Open this page from an unlinked LinkUp medal scan link before writing."
       : status === "writing"
         ? "Waiting for the card. Keep this page open and hold the card near your phone."
       : status === "unsupported"
