@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
 import { db } from '@/lib/db';
 import * as cacheService from '@/lib/services/cacheService';
 import type { TagState } from '@/lib/domain/types';
@@ -23,36 +22,10 @@ const RESERVED_PUBLIC_PATHS = new Set([
   'terms',
 ]);
 
-async function getAuthenticatedUserId(request: NextRequest) {
-  const response = NextResponse.next({ request });
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !anonKey) return null;
-
-  const supabase = createServerClient(supabaseUrl, anonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          request.cookies.set(name, value);
-          response.cookies.set(name, value, options);
-        });
-      },
-    },
-  });
-
-  const { data, error } = await supabase.auth.getUser();
-  return error ? null : data.user?.id ?? null;
-}
-
-async function resolveDestination(state: TagState, publicId: string, isAuthenticated: boolean): Promise<string> {
+async function resolveDestination(state: TagState, publicId: string): Promise<string> {
   if (state === 'MANUFACTURED' || state === 'SOLD') {
     const sessionId = await createNfcLinkSession({ publicId });
-    return isAuthenticated
-      ? `/connect-nfc?nfcSession=${encodeURIComponent(sessionId)}`
-      : `/signup?nfcSession=${encodeURIComponent(sessionId)}`;
+    return `/signup?nfcSession=${encodeURIComponent(sessionId)}`;
   }
   if (state === 'CLAIMED' || state === 'ACTIVE') return `/profile/${publicId}`;
   return '/suspended';
@@ -89,7 +62,6 @@ export async function GET(
   { params }: { params: Promise<{ publicId: string }> },
 ) {
   const { publicId } = await params;
-  const isAuthenticated = Boolean(await getAuthenticatedUserId(request));
 
   if (RESERVED_PUBLIC_PATHS.has(publicId.toLowerCase())) {
     return NextResponse.json(
@@ -118,7 +90,7 @@ export async function GET(
       }
     }
 
-    const href = await resolveDestination(cachedState, publicId, isAuthenticated);
+    const href = await resolveDestination(cachedState, publicId);
     return redirectWithNfcSession(new URL(href, request.url), getNfcSessionFromHref(href));
   }
 
@@ -152,6 +124,6 @@ export async function GET(
     }
   }
 
-  const href = await resolveDestination(tag.state as TagState, publicId, isAuthenticated);
+  const href = await resolveDestination(tag.state as TagState, publicId);
   return redirectWithNfcSession(new URL(href, request.url), getNfcSessionFromHref(href));
 }
