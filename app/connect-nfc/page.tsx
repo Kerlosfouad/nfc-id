@@ -114,7 +114,7 @@ export default function ConnectNfcPage() {
         const savedRedirect = window.localStorage.getItem("linkup_auth_redirect");
         if (savedRedirect?.startsWith("/connect-nfc?")) {
           window.localStorage.removeItem("linkup_auth_redirect");
-          window.location.replace(savedRedirect);
+          router.replace(savedRedirect);
           return;
         }
 
@@ -123,7 +123,7 @@ export default function ConnectNfcPage() {
           .catch(() => null);
         const serverRedirect = rememberedRedirect?.data?.redirect;
         if (typeof serverRedirect === "string" && serverRedirect.startsWith("/connect-nfc?")) {
-          window.location.replace(serverRedirect);
+          router.replace(serverRedirect);
           return;
         }
       }
