@@ -10,7 +10,7 @@ import {
   NfcTagLinkedToAnotherUserError,
   UserAlreadyHasNfcTagError,
 } from '@/lib/use-cases/linkNfcTag';
-import { resolveLatestNfcLinkSession, resolveNfcLinkSession } from '@/lib/use-cases/nfcLinkSession';
+import { resolveNfcLinkSession } from '@/lib/use-cases/nfcLinkSession';
 
 const LinkNfcSchema = z.object({
   uid: z.string().min(1).max(128).optional(),
@@ -53,11 +53,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const latestSessionData = !parsed.data.publicId && !parsed.data.uid && !sessionData
-      ? await resolveLatestNfcLinkSession()
-      : null;
-    const publicId = parsed.data.publicId ?? sessionData?.publicId ?? latestSessionData?.publicId;
-    const uid = parsed.data.uid ?? sessionData?.uid ?? latestSessionData?.uid;
+    const publicId = parsed.data.publicId ?? sessionData?.publicId;
+    const uid = parsed.data.uid ?? sessionData?.uid;
 
     if (!publicId && !uid) {
       return NextResponse.json(
