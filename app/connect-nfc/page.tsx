@@ -14,6 +14,7 @@ type NfcStatus =
   | "writing"
   | "success"
   | "already-linked"
+  | "scan-again"
   | "error";
 
 type NDEFReaderConstructor = new () => {
@@ -61,6 +62,11 @@ const statusCopy: Record<NfcStatus, { title: string; body: string; icon: string 
     title: "Already connected",
     body: "This NFC card is already linked to your account. Future scans will open your profile.",
     icon: "ri-checkbox-multiple-line",
+  },
+  "scan-again": {
+    title: "Scan the medal again",
+    body: "Your Google sign-in is complete. Hold the medal near your phone once more to finish linking it.",
+    icon: "ri-nfc-line",
   },
   error: {
     title: "Could not connect",
@@ -256,8 +262,8 @@ export default function ConnectNfcPage() {
       return;
     }
 
-    await linkCard({});
-    return;
+    setStatus("scan-again");
+    setError("");
   }, [getRememberedNfcSession, linkCard, nfcSession, prefilledPublicId, prefilledUid, token]);
 
   useEffect(() => {
@@ -283,6 +289,8 @@ export default function ConnectNfcPage() {
         ? "Connected"
         : status === "already-linked"
           ? "Already Linked"
+          : status === "scan-again"
+            ? "Scan Again"
           : status === "error"
             ? "Try Again"
             : isBusy
@@ -299,6 +307,8 @@ export default function ConnectNfcPage() {
       ? "Checking the medal session from your first scan. Keep this page open."
       : status === "writing"
         ? "Waiting for the card. Keep this page open and hold the card near your phone."
+      : status === "scan-again"
+        ? "Your account is signed in. Scan the same unlinked medal again to continue."
       : status === "unsupported"
         ? "This step needs NFC writing. Use Chrome on an Android phone with NFC enabled."
         : copy.body;
