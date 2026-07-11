@@ -49,6 +49,24 @@ export async function resolveNfcLinkSession(id: string) {
   };
 }
 
+export async function resolveLatestNfcLinkSession() {
+  const session = await db.nfcLinkSession.findFirst({
+    where: {
+      expiresAt: { gt: new Date() },
+      OR: [{ uid: { not: null } }, { publicId: { not: null } }],
+    },
+    orderBy: { createdAt: 'desc' },
+    select: { uid: true, publicId: true },
+  });
+
+  if (!session) return null;
+
+  return {
+    uid: session.uid ?? undefined,
+    publicId: session.publicId ?? undefined,
+  };
+}
+
 export async function createNfcOAuthFlow(input: { providerState: string; nfcSessionId: string }) {
   const providerState = input.providerState.trim();
   const nfcSessionId = input.nfcSessionId.trim().replace(/[^a-zA-Z0-9_-]/g, '');
