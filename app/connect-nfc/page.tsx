@@ -92,7 +92,7 @@ export default function ConnectNfcPage() {
     let cancelled = false;
 
     async function prepareNfcFlow() {
-      const { data } = await supabase.auth.getSession();
+      // 1. Read URL params FIRST before any async call
       const searchParams = new URLSearchParams(window.location.search);
       const uidFromRedirect = searchParams
         .get("uid")
@@ -108,18 +108,21 @@ export default function ConnectNfcPage() {
         ?.trim()
         .replace(/[^a-zA-Z0-9_-]/g, "") ?? "";
 
-      if (cancelled) return;
-
+      // 2. If no params in URL, check localStorage BEFORE getSession()
+      //    (important: on mobile, OAuth can lose context so we restore via localStorage)
       if (!uidFromRedirect && !publicIdFromRedirect && !sessionFromRedirect) {
         const savedRedirect = window.localStorage.getItem("linkup_auth_redirect");
         if (savedRedirect?.startsWith("/connect-nfc?")) {
           window.localStorage.removeItem("linkup_auth_redirect");
-          // Use window.location.replace so the page fully reloads and picks up
-          // the NFC params from the URL (router.replace doesn't re-trigger the effect).
+          // Full reload so the new URL params are read correctly on next mount
           window.location.replace(savedRedirect);
           return;
         }
       }
+
+      // 3. Now get session (async)
+      const { data } = await supabase.auth.getSession();
+      if (cancelled) return;
 
       setPrefilledUid(uidFromRedirect);
       setPrefilledPublicId(publicIdFromRedirect);

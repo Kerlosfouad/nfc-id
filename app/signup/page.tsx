@@ -163,7 +163,14 @@ function SignupContent() {
 
   async function handleOAuth(provider: "google") {
     setError(null);
+    // Save redirect in both localStorage (client) and server-side cookie (via API)
+    // so it survives mobile OAuth browser context switches.
     window.localStorage.setItem("linkup_auth_redirect", redirectTo);
+    await fetch("/auth/remember-redirect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ redirect: redirectTo }),
+    }).catch(() => { /* non-blocking */ });
     window.location.assign(`/auth/oauth/start?provider=${provider}&redirect=${encodeURIComponent(redirectTo)}`);
   }
 
