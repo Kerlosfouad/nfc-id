@@ -114,7 +114,9 @@ export default function ConnectNfcPage() {
         const savedRedirect = window.localStorage.getItem("linkup_auth_redirect");
         if (savedRedirect?.startsWith("/connect-nfc?")) {
           window.localStorage.removeItem("linkup_auth_redirect");
-          router.replace(savedRedirect);
+          // Use window.location.replace so the page fully reloads and picks up
+          // the NFC params from the URL (router.replace doesn't re-trigger the effect).
+          window.location.replace(savedRedirect);
           return;
         }
       }
