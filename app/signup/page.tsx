@@ -1,6 +1,6 @@
 "use client";
 import { Suspense } from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -57,24 +57,6 @@ function SignupContent() {
       ? `/login?nfcSession=${encodeURIComponent(nfcSession)}`
     : "/login";
   const supabase = createClient();
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function redirectSignedInNfcUser() {
-      if (!nfcSession) return;
-      const { data } = await supabase.auth.getSession();
-      if (!cancelled && data.session) {
-        router.replace(`/connect-nfc?nfcSession=${encodeURIComponent(nfcSession)}`);
-      }
-    }
-
-    void redirectSignedInNfcUser();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [nfcSession, router, supabase]);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
