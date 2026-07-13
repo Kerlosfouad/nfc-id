@@ -1082,11 +1082,11 @@ function MiniBarChart({ data }: { data: { date: string; views: number; clicks: n
   const [ready, setReady] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
   const maxVal = Math.max(...data.map(d => Math.max(d.views, d.clicks)), 1);
-  const chartW = 320;
-  const chartH = 170;
-  const padX = 14;
-  const padTop = 18;
-  const padBottom = 34;
+  const chartW = 760;
+  const chartH = 260;
+  const padX = 24;
+  const padTop = 26;
+  const padBottom = 40;
   const innerW = chartW - padX * 2;
   const innerH = chartH - padTop - padBottom;
   const xFor = (i: number) => padX + (data.length <= 1 ? innerW : (i / (data.length - 1)) * innerW);
@@ -1124,10 +1124,10 @@ function MiniBarChart({ data }: { data: { date: string; views: number; clicks: n
   }, [data]);
 
   return (
-    <div ref={chartRef} className="relative h-full w-full overflow-visible px-1 pt-14">
+    <div ref={chartRef} className="relative h-full w-full overflow-visible px-0 pt-16 sm:pt-14">
       {active && (
         <div
-          className="absolute top-1 z-10 w-[138px] -translate-x-1/2 rounded-2xl border border-[#03A9F4]/30 bg-[#071520]/95 px-3 py-2 text-xs shadow-xl shadow-[#03A9F4]/10 backdrop-blur"
+          className="absolute top-1 z-10 w-[138px] -translate-x-1/2 rounded-2xl border border-[#03A9F4]/30 bg-[#071520]/95 px-3 py-2 text-xs shadow-xl shadow-[#03A9F4]/10 backdrop-blur sm:w-[154px]"
           style={{ left: `${tooltipLeft}%` }}
         >
           <p className="mb-1 font-semibold text-white">{active.date}</p>
@@ -1154,22 +1154,22 @@ function MiniBarChart({ data }: { data: { date: string; views: number; clicks: n
         {activePoint && (
           <line x1={activePoint.x} x2={activePoint.x} y1={padTop - 6} y2={padTop + innerH + 8} stroke="rgba(255,255,255,0.22)" strokeDasharray="4 5" strokeWidth="1" />
         )}
-        <path d={pathFor(viewsPoints)} fill="none" stroke="#03A9F4" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round"
+        <path d={pathFor(viewsPoints)} fill="none" stroke="#03A9F4" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"
           pathLength={1} className="transition-all duration-700 ease-out" style={{ strokeDasharray: 1, strokeDashoffset: ready ? 0 : 1 }} />
-        <path d={pathFor(clicksPoints)} fill="none" stroke="#8fdfff" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round"
+        <path d={pathFor(clicksPoints)} fill="none" stroke="#8fdfff" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"
           pathLength={1} className="transition-all duration-700 ease-out delay-100" style={{ strokeDasharray: 1, strokeDashoffset: ready ? 0 : 1 }} />
-        {activeViewsPoint && <circle cx={activeViewsPoint.x} cy={activeViewsPoint.y} r="6" fill="#03A9F4" stroke="#dff6ff" strokeWidth="2" />}
-        {activePoint && <circle cx={activePoint.x} cy={activePoint.y} r="6" fill="#8fdfff" stroke="#062033" strokeWidth="2" />}
+        {activeViewsPoint && <circle cx={activeViewsPoint.x} cy={activeViewsPoint.y} r="8" fill="#03A9F4" stroke="#dff6ff" strokeWidth="3" />}
+        {activePoint && <circle cx={activePoint.x} cy={activePoint.y} r="8" fill="#8fdfff" stroke="#062033" strokeWidth="3" />}
         {data.map((d, i) => {
           const x = xFor(i);
           const selected = i === activeIndex;
           return (
             <g key={i}>
-              <rect x={x - 8} y={padTop - 8} width="16" height={innerH + 16} fill="transparent" className="cursor-pointer" onMouseEnter={() => setActiveIndex(i)} onClick={() => setActiveIndex(i)} />
-              <circle cx={x} cy={yFor(d.views)} r={selected ? 0 : 2.2} fill="#03A9F4" opacity={ready ? 0.7 : 0} className="transition-all" />
-              <circle cx={x} cy={yFor(d.clicks)} r={selected ? 0 : 2.2} fill="#8fdfff" opacity={ready ? 0.65 : 0} className="transition-all" />
+              <rect x={x - 14} y={padTop - 10} width="28" height={innerH + 20} fill="transparent" className="cursor-pointer" onMouseEnter={() => setActiveIndex(i)} onClick={() => setActiveIndex(i)} />
+              <circle cx={x} cy={yFor(d.views)} r={selected ? 0 : 3} fill="#03A9F4" opacity={ready ? 0.7 : 0} className="transition-all" />
+              <circle cx={x} cy={yFor(d.clicks)} r={selected ? 0 : 3} fill="#8fdfff" opacity={ready ? 0.65 : 0} className="transition-all" />
               {(i % labelEvery === 0 || i === data.length - 1) && (
-                <text x={x} y={chartH - 8} textAnchor="middle" className="fill-white/30 text-[10px]">{d.date}</text>
+                <text x={x} y={chartH - 8} textAnchor="middle" className="fill-white/34 text-[13px]">{d.date}</text>
               )}
             </g>
           );
@@ -1381,7 +1381,7 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
         ))}
       </div>
 
-      <div className="rounded-[30px] border border-white/10 bg-[#111] p-5 shadow-2xl shadow-black/20">
+      <div className="rounded-[30px] border border-white/10 bg-[#111] p-5 shadow-2xl shadow-black/20 sm:p-6">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="text-xl font-bold">Activity rhythm</h3>
@@ -1393,10 +1393,10 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
           </div>
         </div>
         {loading
-          ? <div className="flex h-56 items-center justify-center"><i className="ri-loader-4-line animate-spin text-3xl text-white/20" /></div>
+          ? <div className="flex h-[340px] items-center justify-center lg:h-[430px]"><i className="ri-loader-4-line animate-spin text-3xl text-white/20" /></div>
           : !data || data.activityTimeline.every(d => d.views === 0 && d.clicks === 0)
-            ? <div className="flex h-56 items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02] text-sm text-white/35">No activity yet</div>
-            : <div className="h-64"><MiniBarChart data={data.activityTimeline} /></div>
+            ? <div className="flex h-[340px] items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02] text-sm text-white/35 lg:h-[430px]">No activity yet</div>
+            : <div className="h-[340px] lg:h-[430px]"><MiniBarChart data={data.activityTimeline} /></div>
         }
       </div>
 
