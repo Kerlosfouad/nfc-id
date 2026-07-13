@@ -5,6 +5,7 @@ import {
   InvalidNfcUidError,
   linkPublicTag,
   linkNfcTag,
+  linkOnlyAvailableNfcTag,
   MultipleAvailableNfcTagsError,
   NoAvailableNfcTagError,
   NfcTagLinkedToAnotherUserError,
@@ -54,16 +55,11 @@ export async function POST(request: NextRequest) {
     const publicId = parsed.data.publicId ?? sessionData?.publicId;
     const uid = parsed.data.uid ?? sessionData?.uid;
 
-    if (!publicId && !uid) {
-      return NextResponse.json(
-        { data: null, error: { code: 'BAD_REQUEST', message: 'Open this page from a valid LinkUp medal scan.' } },
-        { status: 400 },
-      );
-    }
-
     const result = publicId
       ? await linkPublicTag(auth.userId, publicId, uid)
-      : await linkNfcTag(auth.userId, uid!);
+      : uid
+        ? await linkNfcTag(auth.userId, uid)
+        : await linkOnlyAvailableNfcTag(auth.userId);
     return NextResponse.json({ data: result, error: null }, { status: 200 });
   } catch (error) {
     if (error instanceof InvalidNfcUidError) {

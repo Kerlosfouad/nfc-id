@@ -233,8 +233,7 @@ export default function ConnectNfcPage() {
       return;
     }
 
-    setStatus("error");
-    setError("Open this page from an unlinked LinkUp medal scan link. This protects already-linked medals from being overwritten.");
+    await linkCard({});
   }, [linkCard, nfcSession, prefilledPublicId, prefilledUid, token]);
 
   useEffect(() => {
@@ -273,7 +272,7 @@ export default function ConnectNfcPage() {
       : status === "ready" && nfcSession
         ? "We found the medal session from your first scan. Hold the card near your phone."
       : status === "ready"
-      ? "Open this page from an unlinked LinkUp medal scan link before writing."
+      ? "Hold the card near your phone. We will write your profile link without reading the old medal link."
       : status === "writing"
         ? "Waiting for the card. Keep this page open and hold the card near your phone."
       : status === "unsupported"
