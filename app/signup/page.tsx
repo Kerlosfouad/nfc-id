@@ -16,7 +16,7 @@ function readableAuthError(message: unknown) {
     normalized.includes("verify a domain") ||
     normalized.includes("resend.com/domains")
   ) {
-    return "Confirmation email could not be sent because the email service is still in test mode. Please use the configured test email or verify the sending domain.";
+    return "Account could not be created because the email service is not configured.";
   }
 
   if (message.trim().startsWith("{")) {
@@ -40,9 +40,6 @@ function SignupContent() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [verificationSent, setVerificationSent] = useState(false);
-  const [verificationCode, setVerificationCode] = useState("");
-  const [verifying, setVerifying] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -84,7 +81,6 @@ function SignupContent() {
           email: cleanEmail,
           password: cleanPassword,
           fullName: fullName.trim(),
-          emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
         }),
       });
       const signupBody = await signupRes.json().catch(() => ({}));
@@ -94,71 +90,20 @@ function SignupContent() {
       }
 
       setEmail(cleanEmail);
-      setVerificationCode("");
-      setVerificationSent(true);
-      setError(null);
-    } catch {
-      setError("An unexpected error occurred. Please try again.");
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: cleanPassword,
+      });
+      if (signInError) {
+        setError(readableAuthError(signInError.message));
+        return;
+      }
+      router.replace(redirectTo);
+    } catch (e) {
+      setError(readableAuthError(e instanceof Error ? e.message : "An unexpected error occurred. Please try again."));
     } finally {
       setLoading(false);
     }
-  }
-
-  async function completeVerifiedSignup(accessToken?: string | null) {
-    const token = accessToken ?? (await supabase.auth.getSession()).data.session?.access_token;
-    const completeRes = await fetch("/api/v1/auth/complete", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token ?? ""}`,
-      },
-      body: JSON.stringify({ email: email.trim().toLowerCase() }),
-    });
-    const completeBody = await completeRes.json().catch(() => ({}));
-    if (!completeRes.ok) {
-      throw new Error(readableAuthError(completeBody?.error?.message ?? "Could not finish account setup."));
-    }
-  }
-
-  async function handleVerifyCode(e: React.FormEvent) {
-    e.preventDefault();
-    const token = verificationCode.replace(/\D/g, "");
-    if (token.length < 6 || token.length > 8) {
-      setError("Enter the verification code sent to your email.");
-      return;
-    }
-
-    setError(null);
-    setVerifying(true);
-    try {
-      const { data, error: verifyError } = await supabase.auth.verifyOtp({
-        email: email.trim().toLowerCase(),
-        token,
-        type: "signup",
-      });
-      if (verifyError) {
-        setError(readableAuthError(verifyError.message));
-        return;
-      }
-      await completeVerifiedSignup(data.session?.access_token);
-      router.replace(redirectTo);
-    } catch (e) {
-      setError(readableAuthError(e instanceof Error ? e.message : "Verification failed."));
-    } finally {
-      setVerifying(false);
-    }
-  }
-
-  async function resendVerificationCode() {
-    setError(null);
-    const { error: resendError } = await supabase.auth.resend({
-      type: "signup",
-      email: email.trim().toLowerCase(),
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
-      },
-    });
-    setError(resendError ? readableAuthError(resendError.message) : "We sent a new verification code.");
   }
 
   async function handleOAuth(provider: "google") {
@@ -193,62 +138,6 @@ function SignupContent() {
             </p>
           </div>
 
-          {verificationSent ? (
-            <form onSubmit={handleVerifyCode} className="space-y-5">
-              <div className="rounded-xl border border-[#03A9F4]/20 bg-[#071722] p-4">
-                <div className="mb-3 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#03A9F4]/12 text-[#48c7ff]">
-                    <i className="ri-mail-check-line text-xl" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-white">Check your email</p>
-                    <p className="truncate text-xs text-white/50">{email.trim().toLowerCase()}</p>
-                  </div>
-                </div>
-                <p className="text-sm leading-6 text-white/60">
-                  Enter the code we sent so we can confirm the email before linking your NFC card.
-                </p>
-              </div>
-
-              <div className="group">
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/55">Verification Code</label>
-                <div className="relative">
-                  <i className="ri-shield-keyhole-line absolute left-4 top-1/2 -translate-y-1/2 text-lg text-white/45 transition-colors group-focus-within:text-[#03A9F4]" />
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    maxLength={8}
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))}
-                    required
-                    className="w-full rounded-xl border border-[#8fdfff]/12 bg-[#071722] py-3.5 pl-11 pr-4 text-center font-mono text-lg tracking-[0.34em] text-white outline-none transition-all placeholder:text-white/25 focus:border-[#03A9F4]/70 focus:bg-[#061522]"
-                    placeholder="000000"
-                  />
-                </div>
-              </div>
-
-              {error && (
-                <p className={`rounded-xl border px-3 py-2 text-xs leading-5 ${error.toLowerCase().includes("sent") ? "border-[#03A9F4]/20 bg-[#03A9F4]/10 text-[#8fdfff]" : "border-red-400/20 bg-red-400/10 text-red-100"}`}>
-                  {error}
-                </p>
-              )}
-
-              <button type="submit" disabled={verifying || verificationCode.length < 6}
-                className="mt-2 w-full rounded-xl bg-[#03A9F4] py-3.5 text-sm font-bold uppercase tracking-wider text-white transition-all hover:bg-[#20bfff] hover:shadow-[0_0_25px_rgba(3,169,244,0.35)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">
-                {verifying ? "Verifying..." : "Verify Email"}
-              </button>
-
-              <div className="flex items-center justify-between gap-3 text-xs">
-                <button type="button" onClick={() => setVerificationSent(false)} className="font-semibold text-white/45 transition hover:text-white">
-                  Change email
-                </button>
-                <button type="button" onClick={resendVerificationCode} className="font-semibold text-[#48c7ff] transition hover:text-white">
-                  Resend code
-                </button>
-              </div>
-            </form>
-          ) : (
           <form onSubmit={handleSignup} className="space-y-5">
             <div className="group">
               <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/55">Email</label>
@@ -307,25 +196,20 @@ function SignupContent() {
               {loading ? "Creating account…" : "Create Account"}
             </button>
           </form>
-          )}
 
-          {!verificationSent && (
-            <>
-              <div className="flex items-center gap-3 my-6">
-                <div className="h-px flex-1 bg-[#8fdfff]/12" />
-                <span className="text-xs text-white/45">OR</span>
-                <div className="h-px flex-1 bg-[#8fdfff]/12" />
-              </div>
+          <div className="flex items-center gap-3 my-6">
+            <div className="h-px flex-1 bg-[#8fdfff]/12" />
+            <span className="text-xs text-white/45">OR</span>
+            <div className="h-px flex-1 bg-[#8fdfff]/12" />
+          </div>
 
-              <div className="space-y-3">
-                <button type="button" onClick={() => handleOAuth("google")}
-                  className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#8fdfff]/12 bg-[#071722] py-3.5 text-sm font-semibold text-white transition-all hover:border-[#03A9F4]/50 hover:bg-[#061522]">
-                  <i className="ri-google-fill text-lg text-[#EA4335]" />
-                  Continue with Google
-                </button>
-              </div>
-            </>
-          )}
+          <div className="space-y-3">
+            <button type="button" onClick={() => handleOAuth("google")}
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#8fdfff]/12 bg-[#071722] py-3.5 text-sm font-semibold text-white transition-all hover:border-[#03A9F4]/50 hover:bg-[#061522]">
+              <i className="ri-google-fill text-lg text-[#EA4335]" />
+              Continue with Google
+            </button>
+          </div>
 
           <p className="mt-6 text-center text-sm text-white/60">
             Already have an account?{" "}
