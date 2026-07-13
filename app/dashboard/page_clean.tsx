@@ -1867,6 +1867,17 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
     window.open(`https://wa.me/${COMPANY_WHATSAPP}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   }
 
+  function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
+    return (
+      <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
+        <div className="border-b border-white/10 px-4 py-3 sm:px-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">{title}</p>
+        </div>
+        {children}
+      </section>
+    );
+  }
+
   function SettingsRow({
     icon,
     label,
@@ -1886,10 +1897,10 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
       <button
         type="button"
         onClick={onClick}
-        className={`flex min-h-[52px] w-full items-center gap-3 border-t border-white/10 px-4 text-left transition-colors first:border-t-0 ${active ? "bg-white/[0.045]" : "hover:bg-white/[0.035]"} ${danger ? "text-red-400" : "text-white"}`}
+        className={`flex min-h-[58px] w-full items-center gap-3 border-t border-white/10 px-4 text-left transition-colors first:border-t-0 sm:px-5 ${active ? "bg-white/[0.045]" : "hover:bg-white/[0.035]"} ${danger ? "text-red-400" : "text-white"}`}
       >
         <i className={`${icon} w-7 shrink-0 text-xl ${danger ? "text-red-400" : "text-white/50"}`} />
-        <span className="min-w-0 flex-1 text-sm font-medium">{label}</span>
+        <span className="min-w-0 flex-1 text-sm font-medium sm:text-[15px]">{label}</span>
         {value ? (
           <span className="max-w-[130px] truncate text-xs text-white/45">{value}</span>
         ) : danger ? null : (
@@ -1901,7 +1912,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
 
   function DetailRow({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
     return (
-      <div className="flex items-center justify-between gap-3 border-t border-white/10 px-4 py-3 first:border-t-0">
+      <div className="flex items-center justify-between gap-3 border-t border-white/10 px-4 py-3 first:border-t-0 sm:px-5">
         <span className="text-xs text-white/40">{label}</span>
         <span className={`min-w-0 truncate text-right text-sm font-semibold text-white ${mono ? "font-mono text-[#03A9F4]" : ""}`}>{value}</span>
       </div>
@@ -1910,7 +1921,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
 
   function BackHeader({ title, subtitle }: { title: string; subtitle: string }) {
     return (
-      <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
+      <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4 sm:px-5">
         <button type="button" onClick={() => setPanel("main")} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-white/60 hover:text-white">
           <i className="ri-arrow-left-line text-lg" />
         </button>
@@ -1930,7 +1941,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
 
   if (panel === "products") {
     return (
-      <div className="mx-auto w-full max-w-md pb-4">
+      <div className="mx-auto w-full max-w-5xl pb-4">
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
           <BackHeader title="Products & Profiles" subtitle="Product, customer, and NFC profile details" />
           <div className="p-4">
@@ -1987,7 +1998,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
       { id: "verification" as GoldServiceId, name: "Verified Badge", service: GOLD_SERVICES.find(item => item.id === "verification")!, active: verifiedActive, days: verifiedDays, icon: "ri-verified-badge-line", features: ["Verified mark", "Manual review", "Trusted profile signal"] },
     ];
     return (
-      <div className="mx-auto w-full max-w-md pb-4">
+      <div className="mx-auto w-full max-w-5xl pb-4">
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
           <BackHeader title="Subscription" subtitle="Current access and available Prime services" />
           <div className="p-4">
@@ -2005,7 +2016,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
           <div className="px-4 pb-2">
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Available Services</p>
           </div>
-          <div className="space-y-3 p-4 pt-0">
+          <div className="grid gap-3 p-4 pt-0 lg:grid-cols-2">
             {plans.map(plan => (
               <div key={plan.id} className={`rounded-2xl border p-4 ${plan.active ? "border-[#03A9F4]/35 bg-[#03A9F4]/10" : "border-white/10 bg-white/[0.03]"}`}>
                 <div className="flex items-start gap-3">
@@ -2047,11 +2058,11 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
 
   if (panel === "security") {
     return (
-      <div className="mx-auto w-full max-w-md pb-4">
+      <div className="mx-auto w-full max-w-5xl pb-4">
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
           <BackHeader title="Profile & Security" subtitle="Personal account and password settings" />
 
-          <div className="p-4">
+          <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:items-start">
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -2087,62 +2098,57 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
                 </button>
               </div>
             </div>
-          </div>
-
-          <div className="px-4 pb-4">
-            <div className="rounded-2xl border border-[#03A9F4]/20 bg-[#03A9F4]/10 p-4">
-              <div className="flex items-start gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#03A9F4]/15 text-[#03A9F4]">
-                  <i className="ri-verified-badge-line text-xl" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-white">Verification</p>
-                  <p className="mt-1 text-xs leading-relaxed text-white/45">{verifiedActive ? "Your profile has the verified badge enabled." : "Request manual review to show the verified badge on your public profile."}</p>
-                  {!verifiedActive && (
-                    <button type="button" onClick={() => onRequestGold({ service: "verification" })} className="mt-3 rounded-xl border border-[#03A9F4]/30 bg-[#03A9F4]/10 px-3 py-2 text-xs font-bold text-[#03A9F4]">
-                      Request Verification
-                    </button>
-                  )}
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-[#03A9F4]/20 bg-[#03A9F4]/10 p-4">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#03A9F4]/15 text-[#03A9F4]">
+                    <i className="ri-verified-badge-line text-xl" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-white">Verification</p>
+                    <p className="mt-1 text-xs leading-relaxed text-white/45">{verifiedActive ? "Your profile has the verified badge enabled." : "Request manual review to show the verified badge on your public profile."}</p>
+                    {!verifiedActive && (
+                      <button type="button" onClick={() => onRequestGold({ service: "verification" })} className="mt-3 rounded-xl border border-[#03A9F4]/30 bg-[#03A9F4]/10 px-3 py-2 text-xs font-bold text-[#03A9F4]">
+                        Request Verification
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="px-4 pb-4">
-            <div className="rounded-2xl border border-red-500/40 bg-red-500/[0.06] p-4">
-              <div className="flex items-start gap-3">
-                <i className="ri-delete-bin-line mt-0.5 text-2xl text-red-400" />
-                <div>
-                  <p className="text-base font-bold text-red-400">Delete Account</p>
-                  <p className="mt-2 text-sm leading-relaxed text-white/45">Permanently delete your login, database account, profiles, links, messages, analytics, notifications, and related order records. You can register again with the same email after deletion.</p>
-                  <button type="button" onClick={deleteProfile} disabled={deleting} className="mt-4 flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-red-600 px-4 text-sm font-bold text-white disabled:opacity-60">
-                    <i className={deleting ? "ri-loader-4-line animate-spin" : "ri-delete-bin-line"} />
-                    {deleting ? "Deleting..." : "Delete My Profile"}
+              <div className="rounded-2xl border border-red-500/40 bg-red-500/[0.06] p-4">
+                <div className="flex items-start gap-3">
+                  <i className="ri-delete-bin-line mt-0.5 text-2xl text-red-400" />
+                  <div>
+                    <p className="text-base font-bold text-red-400">Delete Account</p>
+                    <p className="mt-2 text-sm leading-relaxed text-white/45">Permanently delete your login, database account, profiles, links, messages, analytics, notifications, and related order records. You can register again with the same email after deletion.</p>
+                    <button type="button" onClick={deleteProfile} disabled={deleting} className="mt-4 flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-red-600 px-4 text-sm font-bold text-white disabled:opacity-60">
+                      <i className={deleting ? "ri-loader-4-line animate-spin" : "ri-delete-bin-line"} />
+                      {deleting ? "Deleting..." : "Delete My Profile"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-base font-bold text-white">Security</p>
+                    <p className="mt-1 text-xs leading-relaxed text-white/45">Send a secure password reset link to your account email.</p>
+                  </div>
+                  <i className="ri-shield-check-line text-2xl text-white/75" />
+                </div>
+
+                <div className="mt-5 space-y-4">
+                  <div>
+                    <FieldLabel>Account Email</FieldLabel>
+                    <input value={email} readOnly className={`${fieldClass} text-white/55`} />
+                  </div>
+                  <button type="button" onClick={changePassword} disabled={changingPassword} className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-black disabled:opacity-60">
+                    <i className={changingPassword ? "ri-loader-4-line animate-spin" : "ri-mail-send-line"} />
+                    {changingPassword ? "Sending..." : "Send Password Reset Email"}
                   </button>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 pt-0">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-base font-bold text-white">Security</p>
-                  <p className="mt-1 text-xs leading-relaxed text-white/45">Send a secure password reset link to your account email.</p>
-                </div>
-                <i className="ri-shield-check-line text-2xl text-white/75" />
-              </div>
-
-              <div className="mt-5 space-y-4">
-                <div>
-                  <FieldLabel>Account Email</FieldLabel>
-                  <input value={email} readOnly className={`${fieldClass} text-white/55`} />
-                </div>
-                <button type="button" onClick={changePassword} disabled={changingPassword} className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-black disabled:opacity-60">
-                  <i className={changingPassword ? "ri-loader-4-line animate-spin" : "ri-mail-send-line"} />
-                  {changingPassword ? "Sending..." : "Send Password Reset Email"}
-                </button>
               </div>
             </div>
           </div>
@@ -2159,11 +2165,11 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
     ];
 
     return (
-      <div className="mx-auto w-full max-w-md pb-4">
+      <div className="mx-auto w-full max-w-5xl pb-4">
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
           <BackHeader title="Contact & Support" subtitle="Talk to LinkUp support" />
 
-          <div className="p-4">
+          <div className="grid gap-4 p-4 lg:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)] lg:items-start">
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <p className="text-base font-bold text-white">Contact Information</p>
               <p className="mt-1 text-xs text-white/45">We are here to answer your questions.</p>
@@ -2181,9 +2187,6 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
                 ))}
               </div>
             </div>
-          </div>
-
-          <div className="px-4 pb-4">
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <p className="text-base font-bold text-white">Business Hours</p>
               <div className="mt-4 space-y-3 text-sm">
@@ -2197,9 +2200,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="p-4 pt-0">
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <p className="text-base font-bold text-white">Send Us a Message</p>
               <p className="mt-1 text-xs leading-relaxed text-white/45">Fill out the form below and we will get back to you as soon as possible.</p>
@@ -2234,43 +2235,50 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
   }
 
   return (
-    <div className="mx-auto w-full max-w-md pb-4">
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
-        <div className="flex items-center gap-3 px-4 py-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/[0.07]">
-            {profile.avatarUrl ? (
-              <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <i className="ri-user-line text-2xl text-white/50" />
-            )}
+    <div className="mx-auto w-full max-w-5xl pb-4">
+      <div className="grid gap-4 lg:grid-cols-[minmax(320px,0.85fr)_minmax(0,1.15fr)] lg:items-start">
+        <section className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
+          <div className="flex items-center gap-3 px-4 py-4 sm:px-5 sm:py-5">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/[0.07]">
+              {profile.avatarUrl ? (
+                <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <i className="ri-user-line text-2xl text-white/50" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold text-white sm:text-base">{profile.displayName}</p>
+              <p className="mt-0.5 truncate text-xs text-white/40">{profile.bio || email}</p>
+              <p className="mt-1 truncate font-mono text-[11px] text-[#03A9F4]">/{profile.publicId}</p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-white">{profile.displayName}</p>
-            <p className="mt-0.5 truncate text-xs text-white/40">{profile.bio || email}</p>
-            <p className="mt-1 truncate font-mono text-[11px] text-[#03A9F4]">/{profile.publicId}</p>
+          <div className="border-t border-white/10 px-4 py-4 sm:px-5">
+            <button type="button" onClick={copyProfileLink} className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#03A9F4]/25 bg-[#03A9F4]/10 px-4 py-3 text-sm font-bold text-[#03A9F4] transition hover:border-[#03A9F4]/45 hover:bg-[#03A9F4]/15">
+              <i className="ri-file-copy-line" />
+              Copy profile link
+            </button>
           </div>
-        </div>
+        </section>
 
-        <div className="px-4 pb-2 pt-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Account</p>
-        </div>
-        <SettingsRow icon="ri-qr-code-line" label="Products & Profiles" value={`${profile.links.length} links`} onClick={() => setPanel("products")} />
-        <SettingsRow icon="ri-bank-card-line" label="Subscription" value={designActive || verifiedActive ? "Prime" : "Free"} onClick={() => setPanel("subscription")} />
-        <SettingsRow icon="ri-user-line" label="Profile & Security" value={isFutureDate(profile.verifiedUntil) ? "Verified" : "Security"} active onClick={() => setPanel("security")} />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
+          <SettingsSection title="Account">
+            <SettingsRow icon="ri-qr-code-line" label="Products & Profiles" value={`${profile.links.length} links`} onClick={() => setPanel("products")} />
+            <SettingsRow icon="ri-bank-card-line" label="Subscription" value={designActive || verifiedActive ? "Prime" : "Free"} onClick={() => setPanel("subscription")} />
+            <SettingsRow icon="ri-user-line" label="Profile & Security" value={isFutureDate(profile.verifiedUntil) ? "Verified" : "Security"} active onClick={() => setPanel("security")} />
+          </SettingsSection>
 
-        <div className="px-4 pb-2 pt-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">App Settings</p>
-        </div>
-        <SettingsRow icon="ri-moon-line" label="Appearance" value="Dark" />
-        <SettingsRow icon="ri-global-line" label="Language" value="English" />
+          <SettingsSection title="App Settings">
+            <SettingsRow icon="ri-moon-line" label="Appearance" value="Dark" />
+            <SettingsRow icon="ri-global-line" label="Language" value="English" />
+          </SettingsSection>
 
-        <div className="px-4 pb-2 pt-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Help & Support</p>
+          <SettingsSection title="Help & Support">
+            <SettingsRow icon="ri-shield-check-line" label="Privacy Policy & Terms" onClick={() => router.push("/terms")} />
+            <SettingsRow icon="ri-phone-line" label="Contact & Support" onClick={() => setPanel("support")} />
+            <SettingsRow icon="ri-logout-box-r-line" label="Sign Out" danger onClick={signOut} />
+            <SettingsRow icon={deleting ? "ri-loader-4-line animate-spin" : "ri-delete-bin-line"} label={deleting ? "Deleting..." : "Delete Account"} danger onClick={deleteProfile} />
+          </SettingsSection>
         </div>
-        <SettingsRow icon="ri-shield-check-line" label="Privacy Policy & Terms" onClick={() => router.push("/terms")} />
-        <SettingsRow icon="ri-phone-line" label="Contact & Support" onClick={() => setPanel("support")} />
-        <SettingsRow icon="ri-logout-box-r-line" label="Sign Out" danger onClick={signOut} />
-        <SettingsRow icon={deleting ? "ri-loader-4-line animate-spin" : "ri-delete-bin-line"} label={deleting ? "Deleting..." : "Delete Account"} danger onClick={deleteProfile} />
       </div>
     </div>
   );
@@ -3389,7 +3397,7 @@ export default function DashboardPage() {
           ) : (
             <div className={"h-full " + (tab === "design" ? "overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 pb-24 md:pb-6" : "overflow-y-auto")}>
               {tab !== "design" && (
-                <div className="mx-auto max-w-5xl px-3 py-3 pb-24 sm:px-6 sm:py-6 md:pb-6">
+                <div className="mx-auto w-full max-w-[1480px] px-3 py-3 pb-24 sm:px-6 sm:py-6 md:pb-6">
                   <div className="hidden items-center justify-between bg-[#03A9F4]/10 border border-[#03A9F4]/20 rounded-xl px-3 sm:px-4 py-2.5 mb-3 sm:mb-5 md:flex">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
