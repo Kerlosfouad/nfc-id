@@ -5,7 +5,7 @@ import {
   InvalidNfcUidError,
   linkPublicTag,
   linkNfcTag,
-  linkOnlyAvailableNfcTag,
+  prepareNfcWriteProfile,
   MultipleAvailableNfcTagsError,
   NoAvailableNfcTagError,
   NfcTagLinkedToAnotherUserError,
@@ -45,12 +45,6 @@ export async function POST(request: NextRequest) {
     const sessionData = parsed.data.nfcSession
       ? await resolveNfcLinkSession(parsed.data.nfcSession)
       : null;
-    if (parsed.data.nfcSession && !sessionData) {
-      return NextResponse.json(
-        { data: null, error: { code: 'LINK_SESSION_EXPIRED', message: 'This NFC linking session expired. Scan the medal again.' } },
-        { status: 410 },
-      );
-    }
 
     const publicId = parsed.data.publicId ?? sessionData?.publicId;
     const uid = parsed.data.uid ?? sessionData?.uid;
@@ -59,7 +53,7 @@ export async function POST(request: NextRequest) {
       ? await linkPublicTag(auth.userId, publicId, uid)
       : uid
         ? await linkNfcTag(auth.userId, uid)
-        : await linkOnlyAvailableNfcTag(auth.userId);
+        : await prepareNfcWriteProfile(auth.userId);
     return NextResponse.json({ data: result, error: null }, { status: 200 });
   } catch (error) {
     if (error instanceof InvalidNfcUidError) {

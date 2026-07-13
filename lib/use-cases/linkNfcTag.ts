@@ -60,6 +60,15 @@ export interface LinkNfcTagResult {
   };
 }
 
+export interface PrepareNfcWriteResult {
+  status: 'write-ready';
+  profile: {
+    id: string;
+    publicId: string;
+    displayName: string;
+  };
+}
+
 function normalizeUid(uid: string) {
   return uid.trim().toUpperCase().replace(/[^A-Z0-9:_-]/g, '');
 }
@@ -199,6 +208,25 @@ export async function linkOnlyAvailableNfcTag(userId: string): Promise<LinkNfcTa
   }
 
   return linkNfcTag(userId, availableTags[0].uid);
+}
+
+export async function prepareNfcWriteProfile(userId: string): Promise<PrepareNfcWriteResult> {
+  const user = await db.user.findUnique({ where: { id: userId }, select: { email: true } });
+  const profile =
+    (await db.profile.findFirst({
+      where: { ownerId: userId },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, publicId: true, displayName: true },
+    })) ??
+    (await db.profile.create({
+      data: defaultProfile(userId, user?.email?.split('@')[0] || 'My Profile'),
+      select: { id: true, publicId: true, displayName: true },
+    }));
+
+  return {
+    status: 'write-ready',
+    profile,
+  };
 }
 
 export async function linkPublicTag(
