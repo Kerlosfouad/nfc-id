@@ -861,13 +861,13 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
   useEffect(() => { setOptimisticHidden({}); }, [profile.links]);
 
   return (<>
-    <div className="flex flex-col lg:flex-row gap-3 lg:gap-5">
-      <div className="flex-1 min-w-0 space-y-3 lg:space-y-4">
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#1a1a1a] text-white">
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="min-w-0">
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#1a1a1a] text-white lg:border-0 lg:bg-transparent">
           {/* Cover + Avatar wrapper */}
           <div className="relative">
             <div
-              className="relative h-36 sm:h-52 flex items-center justify-center cursor-pointer group overflow-hidden"
+              className="relative h-36 sm:h-52 lg:h-[360px] flex items-center justify-center cursor-pointer group overflow-hidden lg:rounded-[28px]"
               style={{ background: profile.theme?.coverUrl ? undefined : "linear-gradient(to bottom right, rgba(3,169,244,0.2), rgba(138,43,226,0.1), #111)" }}
               onClick={() => setCoverModal(true)}
             >
@@ -893,11 +893,11 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
               </button>
             </div>
             {/* Avatar — outside overflow-hidden cover so it shows properly */}
-            <div className="absolute bottom-0 left-4 sm:left-5 translate-y-1/2 z-10" onClick={e => { e.stopPropagation(); setAvatarModal(true); }}>
+            <div className="absolute bottom-0 left-4 sm:left-5 translate-y-1/2 z-10 lg:left-0 lg:translate-x-0" onClick={e => { e.stopPropagation(); setAvatarModal(true); }}>
               <div className="relative group/av cursor-pointer">
                 {profile.avatarUrl
-                  ? <img src={profile.avatarUrl} alt="" className="h-20 w-20 rounded-full border-4 border-[#1a1a1a] object-cover sm:h-24 sm:w-24" />
-                  : <div className="h-20 w-20 rounded-full border-4 border-[#1a1a1a] bg-gradient-to-br from-[#03A9F4]/40 to-[#8A2BE2]/40 flex items-center justify-center text-2xl font-bold sm:h-24 sm:w-24">{profile.displayName.charAt(0).toUpperCase()}</div>
+                  ? <img src={profile.avatarUrl} alt="" className="h-20 w-20 rounded-full border-4 border-[#1a1a1a] object-cover sm:h-24 sm:w-24 lg:h-32 lg:w-32" />
+                  : <div className="h-20 w-20 rounded-full border-4 border-[#1a1a1a] bg-gradient-to-br from-[#03A9F4]/40 to-[#8A2BE2]/40 flex items-center justify-center text-2xl font-bold sm:h-24 sm:w-24 lg:h-32 lg:w-32 lg:text-4xl">{profile.displayName.charAt(0).toUpperCase()}</div>
                 }
                 <button
                   type="button"
@@ -912,10 +912,10 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
               </div>
             </div>
           </div>
-          <div className="px-4 pb-4 pt-12 sm:px-6 sm:pb-6 sm:pt-14">
+          <div className="px-4 pb-4 pt-12 sm:px-6 sm:pb-6 sm:pt-14 lg:px-0 lg:pt-16">
             <div className="flex items-end justify-between gap-3">
               <div className="min-w-0">
-                <h2 className="truncate text-base font-bold leading-tight text-white sm:text-xl">{profile.displayName}</h2>
+                <h2 className="truncate text-base font-bold leading-tight text-white sm:text-xl lg:text-3xl">{profile.displayName}</h2>
                 {profile.bio && <p className="mt-0.5 text-xs text-white/40 sm:text-sm">{profile.bio}</p>}
                 <a href={`/profile/${profile.publicId}`} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex max-w-full items-center gap-1.5 text-xs font-mono text-[#03A9F4]">
                   <span className="truncate">/profile/{profile.publicId}</span>
@@ -946,10 +946,29 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
           </div>
         </div>
         {editOpen && <EditProfilePanel profile={profile} saving={saving} onSave={(p) => { onPatch(p); setEditOpen(false); }} onClose={() => setEditOpen(false)} onAddLink={onAddLinkSubmit} />}
-        <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-4 text-white sm:p-6">
-          <div className="mb-4 flex items-center justify-between sm:mb-5">
-            <h3 className="text-base font-semibold">Your Links</h3>
-            <button onClick={onAddLink} className="flex items-center gap-1.5 rounded-xl bg-[#03A9F4] px-3 py-2 text-sm font-semibold text-white hover:bg-[#03A9F4]/80 sm:px-4"><i className="ri-add-line text-base" />Add Link</button>
+      </div>
+      <div className="hidden w-full lg:block">
+        <div className="grid gap-4">
+          <button type="button" onClick={onPreview} className="flex items-center gap-5 rounded-[28px] border border-white/10 bg-[#141414] p-5 text-left transition hover:bg-white/[0.045] hover:border-white/20">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-white/[0.06]"><i className="ri-eye-line text-4xl text-white/75" /></div>
+            <div><p className="text-2xl font-bold">Preview</p><p className="mt-1 text-lg text-white/45">View Profile</p></div>
+          </button>
+          <button onClick={() => setEditOpen(!editOpen)} className="flex items-center gap-5 rounded-[28px] border border-white/10 bg-[#141414] p-5 text-left transition hover:bg-white/[0.045] hover:border-white/20">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-white/[0.06]"><i className="ri-pencil-line text-4xl text-white/75" /></div>
+            <div><p className="text-2xl font-bold">Edit Profile</p><p className="mt-1 text-lg text-white/45">Profile & vCard</p></div>
+          </button>
+          <div className={"flex items-center gap-5 rounded-[28px] border p-5 " + (profile.isActive && !profile.isSuspended ? "border-green-500/20 bg-[#141414]" : "border-white/10 bg-[#141414]")}>
+            <div className={"flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl " + (profile.isActive && !profile.isSuspended ? "bg-white/[0.06]" : "bg-white/[0.06]")}><i className={"ri-shield-check-line text-4xl " + (profile.isActive && !profile.isSuspended ? "text-white/85" : "text-white/45")} /></div>
+            <div><p className="text-2xl font-bold">{profile.isSuspended ? "Suspended" : profile.isActive ? "Active" : "Inactive"}</p><p className="mt-1 text-lg text-white/45">Tag status</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div className="lg:col-span-2">
+        <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-4 text-white sm:p-6 lg:rounded-[28px] lg:p-6">
+          <div className="mb-5 flex items-center justify-between sm:mb-6">
+            <h3 className="text-base font-semibold lg:text-2xl">Your Links</h3>
+            <button onClick={onAddLink} className="flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-black transition hover:bg-white/90 sm:px-6"><i className="ri-add-line text-lg" />Add</button>
           </div>
           {editLink && (
             <EditLinkForm
@@ -984,7 +1003,7 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
                       onMoveTo(from, i);
                     }}
                     onClick={e => { if (!(e.target as HTMLElement).closest("button")) onEditLink(link); }}
-                    className={`flex items-center gap-3 rounded-xl border px-3 py-3 transition-all cursor-pointer sm:gap-4 sm:px-4 sm:py-3.5 ${isHidden ? "border-white/5 bg-white/2 opacity-60" : "border-white/10 bg-white/5 hover:border-white/20"} ${isPending ? "pointer-events-none" : ""}`}
+                    className={`flex items-center gap-3 rounded-xl border px-3 py-3 transition-all cursor-pointer sm:gap-4 sm:px-4 sm:py-3.5 lg:rounded-[26px] lg:px-6 lg:py-6 ${isHidden ? "border-white/5 bg-white/2 opacity-60" : "border-white/10 bg-white/5 hover:border-white/20"} ${isPending ? "pointer-events-none" : ""}`}
                   >
                     {/* Drag handle */}
                     <i className="ri-draggable text-base text-white/20 transition-colors cursor-grab active:cursor-grabbing flex-shrink-0 group-hover:text-white/50" />
@@ -996,8 +1015,8 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="truncate text-sm font-medium text-white">{link.title}</p>
-                      <p className="truncate text-xs text-white/30">{link.url}</p>
+                      <p className="truncate text-sm font-medium text-white lg:text-2xl">{link.title}</p>
+                      <p className="truncate text-xs text-white/30 lg:mt-1 lg:text-base">{link.url}</p>
                     </div>
 
                     {/* Toggle — optimistic: update UI instantly, API in background */}
@@ -1011,32 +1030,16 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
                         onUpdateLink(link.id, { activeTo: newHidden ? CLOSED_LINK_TIMESTAMP : null });
                       }}
                       disabled={isPending}
-                      className={`relative h-5 w-9 rounded-full transition-all flex-shrink-0 ${isHidden ? "bg-white/10" : "bg-[#03A9F4]"}`}
+                      className={`relative h-5 w-9 rounded-full transition-all flex-shrink-0 lg:h-8 lg:w-14 ${isHidden ? "bg-white/10" : "bg-[#03A9F4]"}`}
                       title={isHidden ? "Enable link" : "Disable link"}
                     >
-                      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all duration-200 ${isHidden ? "left-0.5" : "left-[18px]"}`} />
+                      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all duration-200 lg:h-7 lg:w-7 ${isHidden ? "left-0.5" : "left-[18px] lg:left-[26px]"}`} />
                     </button>
                   </div>
                 );
               })}
             </div>
           }
-        </div>
-      </div>
-      <div className="hidden lg:block w-full lg:w-52 flex-shrink-0">
-        <div className="grid grid-cols-3 lg:grid-cols-1 gap-2 lg:gap-3">
-          <button type="button" onClick={onPreview} className="flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3 bg-[#1a1a1a] border border-white/10 rounded-xl px-3 lg:px-4 py-3 lg:py-3.5 hover:bg-white/5 hover:border-white/20 group">
-            <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10"><i className="ri-eye-line text-white/60 group-hover:text-white text-sm lg:text-base" /></div>
-            <div className="text-center lg:text-left"><p className="text-xs lg:text-sm font-semibold">Preview</p><p className="text-[10px] lg:text-xs text-white/40 hidden lg:block">View Profile</p></div>
-          </button>
-          <button onClick={() => setEditOpen(!editOpen)} className="w-full flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3 bg-[#1a1a1a] border border-white/10 rounded-xl px-3 lg:px-4 py-3 lg:py-3.5 hover:bg-white/5 hover:border-white/20 group">
-            <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10"><i className="ri-pencil-line text-white/60 group-hover:text-white text-sm lg:text-base" /></div>
-            <div className="text-center lg:text-left"><p className="text-xs lg:text-sm font-semibold">Edit</p><p className="text-[10px] lg:text-xs text-white/40 hidden lg:block">Name, bio, avatar</p></div>
-          </button>
-          <div className={"flex flex-col lg:flex-row items-center gap-1.5 lg:gap-3 bg-[#1a1a1a] border rounded-xl px-3 lg:px-4 py-3 lg:py-3.5 " + (profile.isActive && !profile.isSuspended ? "border-green-500/20 bg-green-500/5" : "border-white/10")}>
-            <div className={"w-8 h-8 lg:w-9 lg:h-9 rounded-xl flex items-center justify-center " + (profile.isActive && !profile.isSuspended ? "bg-green-500/10" : "bg-white/5")}><i className={"ri-shield-check-line text-sm lg:text-base " + (profile.isActive && !profile.isSuspended ? "text-green-400" : "text-white/40")} /></div>
-            <div className="text-center lg:text-left"><p className="text-xs lg:text-sm font-semibold">{profile.isSuspended ? "Suspended" : profile.isActive ? "Active" : "Inactive"}</p><p className="text-[10px] lg:text-xs text-white/40 hidden lg:block">Tag status</p></div>
-          </div>
         </div>
       </div>
     </div>
@@ -2754,9 +2757,9 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
           </div>
           {/* saving overlay */}
           {saving && (
-            <div className="absolute inset-[7px] rounded-[2.4rem] bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-30">
-              <i className="ri-loader-4-line text-white text-3xl animate-spin mb-2" />
-              <p className="text-white text-xs font-semibold">Saving...</p>
+            <div className="absolute right-5 top-5 z-30 flex items-center gap-2 rounded-full border border-white/10 bg-black/55 px-3 py-2 text-xs font-semibold text-white/70 backdrop-blur">
+              <i className="ri-loader-4-line animate-spin" />
+              Saving
             </div>
           )}
           {/* home indicator */}
@@ -2841,6 +2844,7 @@ export default function DashboardPage() {
   const notificationTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>[]>>({});
   const notificationBaselinesRef = useRef<Record<string, boolean>>({});
   const patchSeqRef = useRef(0);
+  const themeSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const profile = profiles.find(p => p.id === selId) ?? profiles[0] ?? null;
   const activeInbox = profile ? (inboxes[profile.id] ?? inboxMemoryCache.get(profile.id) ?? { messages: [], unreadCount: 0 }) : { messages: [], unreadCount: 0 };
 
@@ -3211,6 +3215,32 @@ export default function DashboardPage() {
       if (patchSeq === patchSeqRef.current) setSaving(false);
     }
   }
+
+  function patchThemeSmooth(theme: ProfileTheme, optimisticMessage?: string) {
+    if (!profile) return;
+    const profileId = profile.id;
+    const previousProfile = profile;
+    const patchSeq = ++patchSeqRef.current;
+    setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, theme } : p));
+    if (optimisticMessage) showToast(optimisticMessage);
+    if (themeSaveTimerRef.current) clearTimeout(themeSaveTimerRef.current);
+    setSaving(true);
+    themeSaveTimerRef.current = setTimeout(async () => {
+      try {
+        const r = await fetch("/api/v1/profiles/" + profileId, { method: "PATCH", headers: hdrs(), body: JSON.stringify({ theme }) });
+        const j = await readApiJson(r);
+        if (!r.ok) throw new Error(j.error?.message ?? "Failed");
+        if (patchSeq !== patchSeqRef.current) return;
+        setProfiles(prev => prev.map(p => p.id === profileId ? { ...j.data, links: j.data.links ?? p.links ?? [] } : p));
+      } catch (e: unknown) {
+        if (patchSeq !== patchSeqRef.current) return;
+        setProfiles(prev => prev.map(p => p.id === profileId ? previousProfile : p));
+        showToast(e instanceof Error ? e.message : "Error", false);
+      } finally {
+        if (patchSeq === patchSeqRef.current) setSaving(false);
+      }
+    }, 350);
+  }
   async function addLink(data: LinkDraft) {
     if (!profile) return;
     const profileId = profile.id;
@@ -3422,7 +3452,7 @@ export default function DashboardPage() {
                   )}
                 </div>
               )}
-              {tab === "design" && <DesignTab profile={profile} saving={saving} onSave={(t, message) => patchProfile({ theme: t }, message)} onRequestGold={(request = { service: "design" }) => setGoldRequest(request)} />}
+              {tab === "design" && <DesignTab profile={profile} saving={saving} onSave={patchThemeSmooth} onRequestGold={(request = { service: "design" }) => setGoldRequest(request)} />}
             </div>
           )}
         </div>
