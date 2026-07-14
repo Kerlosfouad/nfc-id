@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { getAdminSessionHeaders } from "@/lib/adminSessionClient";
 import { AdminChrome } from "../_components/AdminChrome";
 import { AdminInlineLoading, EmptyState, Panel } from "../_components/AdminUi";
 
@@ -104,15 +104,14 @@ export default function AdminProductsPage() {
   }
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    getAdminSessionHeaders().then(async (session) => {
       if (!session) {
         router.push("/login");
         return;
       }
-      setAuthToken(session.access_token);
-      setUserId(session.user.id);
-      await loadData(session.access_token, session.user.id);
+      setAuthToken(session.accessToken);
+      setUserId(session.userId);
+      await loadData(session.accessToken, session.userId);
       setChecking(false);
     });
   }, [loadData, router]);

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { clearAdminSessionHeaders } from "@/lib/adminSessionClient";
 import { AppNotificationToast, type AppNotification } from "@/components/AppNotificationToast";
 import { getPushSupportError, subscribeDeviceToPush, unsubscribeDeviceFromPush } from "@/lib/pushClient";
 
@@ -29,6 +30,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
 
   async function signOutAdmin() {
     await createClient().auth.signOut();
+    clearAdminSessionHeaders();
     router.push("/login");
   }
 

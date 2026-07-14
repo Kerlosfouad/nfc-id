@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { getAdminSessionHeaders } from "@/lib/adminSessionClient";
 import { AdminChrome } from "./_components/AdminChrome";
 import { AdminInlineLoading, AnimatedNumber, MetricCard, Panel } from "./_components/AdminUi";
 
@@ -50,21 +50,15 @@ export default function AdminPage() {
 
   useEffect(() => {
     let alive = true;
-    const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    getAdminSessionHeaders().then(async (session) => {
       if (!session) {
         router.push("/login");
         return;
       }
 
-      const headers = {
-        Authorization: `Bearer ${session.access_token}`,
-        "x-user-id": session.user.id,
-      };
-
       if (alive) setChecking(false);
 
-      const statsRes = await fetch("/api/v1/admin/stats", { headers });
+      const statsRes = await fetch("/api/v1/admin/stats", { headers: session.headers });
       if (statsRes.status === 403) {
         router.push("/dashboard");
         return;

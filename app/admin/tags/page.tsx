@@ -3,8 +3,8 @@
 export const dynamic = "force-dynamic";
 
 import { useCallback, useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { getAdminSessionHeaders } from "@/lib/adminSessionClient";
 import { AdminChrome } from "../_components/AdminChrome";
 import { AdminInlineLoading, EmptyState, Panel } from "../_components/AdminUi";
 
@@ -72,17 +72,16 @@ export default function AdminTagsPage() {
   }, [authToken, userId, filterPublicId, filterState, filterOwnerId]);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    getAdminSessionHeaders().then(async (session) => {
       if (!session) {
         router.push("/login");
         return;
       }
-      setAuthToken(session.access_token);
-      setUserId(session.user.id);
+      setAuthToken(session.accessToken);
+      setUserId(session.userId);
 
       const res = await fetch("/api/v1/admin/tags", {
-        headers: { Authorization: `Bearer ${session.access_token}`, "x-user-id": session.user.id },
+        headers: session.headers,
       });
       if (res.status === 403) {
         router.push("/dashboard");

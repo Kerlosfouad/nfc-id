@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { getAdminSessionHeaders } from "@/lib/adminSessionClient";
 import { AdminChrome } from "../_components/AdminChrome";
 import { AdminInlineLoading, EmptyState, Panel } from "../_components/AdminUi";
 
@@ -43,21 +43,20 @@ export default function AdminCustomersPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    getAdminSessionHeaders().then(async (session) => {
       if (!session) {
         router.push("/login");
         return;
       }
       const res = await fetch("/api/v1/admin/customers", {
-        headers: { Authorization: `Bearer ${session.access_token}`, "x-user-id": session.user.id },
+        headers: session.headers,
       });
       if (res.status === 403) {
         router.push("/dashboard");
         return;
       }
-      setAuthToken(session.access_token);
-      setUserId(session.user.id);
+      setAuthToken(session.accessToken);
+      setUserId(session.userId);
       if (res.ok) {
         const json = await res.json();
         setCustomers(json.data ?? []);

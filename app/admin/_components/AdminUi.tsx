@@ -117,5 +117,15 @@ export function AdminLoadingScreen() {
 }
 
 export function AdminInlineLoading() {
-  return null;
+  return (
+    <div className="space-y-4">
+      <div className="h-28 rounded-2xl border border-white/10 bg-white/[0.04] animate-pulse" />
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="h-32 rounded-2xl border border-white/10 bg-white/[0.04] animate-pulse" />
+        ))}
+      </div>
+      <div className="h-72 rounded-2xl border border-white/10 bg-white/[0.04] animate-pulse" />
+    </div>
+  );
 }

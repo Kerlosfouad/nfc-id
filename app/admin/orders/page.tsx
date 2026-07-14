@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { createClient } from "@/lib/supabase/client";
+import { getAdminSessionHeaders } from "@/lib/adminSessionClient";
 import { AdminChrome } from "../_components/AdminChrome";
 import { AdminInlineLoading, EmptyState, MetricCard, Panel } from "../_components/AdminUi";
 
@@ -100,15 +100,14 @@ export default function AdminOrdersPage() {
   const [revenueRange, setRevenueRange] = useState<RevenueRange>("30d");
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    getAdminSessionHeaders().then(async (session) => {
       if (!session) {
         router.push("/login");
         return;
       }
-      setToken(session.access_token);
-      setUserId(session.user.id);
-      const headers = { Authorization: `Bearer ${session.access_token}`, "x-user-id": session.user.id };
+      setToken(session.accessToken);
+      setUserId(session.userId);
+      const headers = session.headers;
       const [res, revenueRes] = await Promise.all([
         fetch("/api/v1/admin/orders", { headers }),
         fetch("/api/v1/admin/orders?status=all", { headers }),

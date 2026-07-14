@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getAdminSessionHeaders } from "@/lib/adminSessionClient";
 import { AdminChrome } from "../_components/AdminChrome";
 import { AdminInlineLoading } from "../_components/AdminUi";
 
@@ -61,18 +61,14 @@ export default function AdminModerationPage() {
   // ── Auth check ──────────────────────────────────────────────────────────
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    getAdminSessionHeaders().then(async (session) => {
       if (!session) { router.push("/login"); return; }
       const res = await fetch("/api/v1/admin/tags?state=MANUFACTURED", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          "x-user-id": session.user.id,
-        },
+        headers: session.headers,
       });
       if (res.status === 403) { router.push("/dashboard"); return; }
-      setAuthToken(session.access_token);
-      setUserId(session.user.id);
+      setAuthToken(session.accessToken);
+      setUserId(session.userId);
       setChecking(false);
     });
   }, [router]);

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { getAdminSessionHeaders } from "@/lib/adminSessionClient";
 import { AdminChrome } from "../_components/AdminChrome";
 import { AdminInlineLoading, EmptyState, Panel } from "../_components/AdminUi";
 
@@ -140,14 +140,13 @@ export default function AdminGeoPage() {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    getAdminSessionHeaders().then(async (session) => {
       if (!session) {
         router.push("/login");
         return;
       }
       const res = await fetch("/api/v1/admin/geo", {
-        headers: { Authorization: `Bearer ${session.access_token}`, "x-user-id": session.user.id },
+        headers: session.headers,
       });
       if (res.status === 403) {
         router.push("/dashboard");
