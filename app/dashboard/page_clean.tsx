@@ -948,27 +948,27 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
         {editOpen && <EditProfilePanel profile={profile} saving={saving} onSave={(p) => { onPatch(p); setEditOpen(false); }} onClose={() => setEditOpen(false)} onAddLink={onAddLinkSubmit} />}
       </div>
       <div className="hidden w-full lg:block">
-        <div className="grid gap-4">
-          <button type="button" onClick={onPreview} className="flex items-center gap-4 rounded-[22px] border border-white/10 bg-[#141414] p-4 text-left transition hover:bg-white/[0.045] hover:border-white/20">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/[0.06]"><i className="ri-eye-line text-2xl text-white/75" /></div>
-            <div><p className="text-lg font-bold">Preview</p><p className="mt-0.5 text-sm text-white/45">View Profile</p></div>
+        <div className="grid gap-3">
+          <button type="button" onClick={onPreview} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#141414] px-3.5 py-3 text-left transition hover:bg-white/[0.045] hover:border-white/20">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.06]"><i className="ri-eye-line text-xl text-white/75" /></div>
+            <div><p className="text-base font-bold leading-tight">Preview</p><p className="mt-0.5 text-xs text-white/45">View Profile</p></div>
           </button>
-          <button onClick={() => setEditOpen(!editOpen)} className="flex items-center gap-4 rounded-[22px] border border-white/10 bg-[#141414] p-4 text-left transition hover:bg-white/[0.045] hover:border-white/20">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/[0.06]"><i className="ri-pencil-line text-2xl text-white/75" /></div>
-            <div><p className="text-lg font-bold">Edit Profile</p><p className="mt-0.5 text-sm text-white/45">Profile & vCard</p></div>
+          <button onClick={() => setEditOpen(!editOpen)} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#141414] px-3.5 py-3 text-left transition hover:bg-white/[0.045] hover:border-white/20">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.06]"><i className="ri-pencil-line text-xl text-white/75" /></div>
+            <div><p className="text-base font-bold leading-tight">Edit Profile</p><p className="mt-0.5 text-xs text-white/45">Profile & vCard</p></div>
           </button>
-          <div className={"flex items-center gap-4 rounded-[22px] border p-4 " + (profile.isActive && !profile.isSuspended ? "border-green-500/20 bg-[#141414]" : "border-white/10 bg-[#141414]")}>
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/[0.06]"><i className={"ri-shield-check-line text-2xl " + (profile.isActive && !profile.isSuspended ? "text-white/85" : "text-white/45")} /></div>
-            <div><p className="text-lg font-bold">{profile.isSuspended ? "Suspended" : profile.isActive ? "Active" : "Inactive"}</p><p className="mt-0.5 text-sm text-white/45">Tag status</p></div>
+          <div className={"flex items-center gap-3 rounded-2xl border px-3.5 py-3 " + (profile.isActive && !profile.isSuspended ? "border-green-500/20 bg-[#141414]" : "border-white/10 bg-[#141414]")}>
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.06]"><i className={"ri-shield-check-line text-xl " + (profile.isActive && !profile.isSuspended ? "text-white/85" : "text-white/45")} /></div>
+            <div><p className="text-base font-bold leading-tight">{profile.isSuspended ? "Suspended" : profile.isActive ? "Active" : "Inactive"}</p><p className="mt-0.5 text-xs text-white/45">Tag status</p></div>
           </div>
         </div>
       </div>
 
       <div className="lg:col-span-2">
-        <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-4 text-white sm:p-6 lg:rounded-[24px] lg:p-5">
-          <div className="mb-5 flex items-center justify-between sm:mb-6">
-            <h3 className="text-base font-semibold lg:text-xl">Your Links</h3>
-            <button onClick={onAddLink} className="flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-black transition hover:bg-white/90 sm:px-5"><i className="ri-add-line text-lg" />Add</button>
+        <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-4 text-white sm:p-5 lg:rounded-[22px] lg:p-4">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-base font-semibold lg:text-lg">Your Links</h3>
+            <button onClick={onAddLink} className="flex h-10 items-center gap-1.5 rounded-full bg-white px-3.5 text-sm font-bold text-black transition hover:bg-white/90"><i className="ri-add-line text-lg" />Add</button>
           </div>
           {editLink && (
             <EditLinkForm
@@ -981,7 +981,7 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
           )}
           {regularLinks.length === 0 && !addOpen
             ? <div className="text-center py-8 border border-dashed border-white/10 rounded-xl"><i className="ri-links-line text-3xl text-white/20 mb-2 block" /><p className="text-white/30 text-sm">No links yet</p></div>
-            : <div className="space-y-3">
+            : <div className="space-y-2.5">
               {regularLinks.map((link) => {
                 const i = profile.links.findIndex(l => l.id === link.id);
                 const m = getLinkMeta(link);
@@ -1003,20 +1003,20 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
                       onMoveTo(from, i);
                     }}
                     onClick={e => { if (!(e.target as HTMLElement).closest("button")) onEditLink(link); }}
-                    className={`flex items-center gap-3 rounded-xl border px-3 py-3 transition-all cursor-pointer sm:gap-4 sm:px-4 sm:py-3.5 lg:rounded-[20px] lg:px-5 lg:py-4 ${isHidden ? "border-white/5 bg-white/2 opacity-60" : "border-white/10 bg-white/5 hover:border-white/20"} ${isPending ? "pointer-events-none" : ""}`}
+                    className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-all cursor-pointer sm:px-3.5 sm:py-2.5 lg:rounded-2xl lg:px-4 lg:py-3 ${isHidden ? "border-white/5 bg-white/2 opacity-60" : "border-white/10 bg-white/5 hover:border-white/20"} ${isPending ? "pointer-events-none" : ""}`}
                   >
                     {/* Drag handle */}
                     <i className="ri-draggable text-base text-white/20 transition-colors cursor-grab active:cursor-grabbing flex-shrink-0 group-hover:text-white/50" />
 
                     {/* Icon */}
-                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10" style={{ backgroundColor: m.color + "20" }}>
+                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: m.color + "20" }}>
                       <i className={m.icon + " text-base"} style={{ color: m.color }} />
                     </div>
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="truncate text-sm font-medium text-white lg:text-lg">{link.title}</p>
-                      <p className="truncate text-xs text-white/30 lg:mt-0.5 lg:text-sm">{link.url}</p>
+                      <p className="truncate text-sm font-semibold leading-tight text-white lg:text-base">{link.title}</p>
+                      <p className="mt-0.5 truncate text-xs leading-tight text-white/30">{link.url}</p>
                     </div>
 
                     {/* Toggle — optimistic: update UI instantly, API in background */}
@@ -1030,10 +1030,10 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
                         onUpdateLink(link.id, { activeTo: newHidden ? CLOSED_LINK_TIMESTAMP : null });
                       }}
                       disabled={isPending}
-                      className={`relative h-5 w-9 rounded-full transition-all flex-shrink-0 lg:h-6 lg:w-11 ${isHidden ? "bg-white/10" : "bg-[#03A9F4]"}`}
+                      className={`relative h-5 w-9 rounded-full transition-all flex-shrink-0 ${isHidden ? "bg-white/10" : "bg-[#03A9F4]"}`}
                       title={isHidden ? "Enable link" : "Disable link"}
                     >
-                      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all duration-200 lg:h-5 lg:w-5 ${isHidden ? "left-0.5" : "left-[18px] lg:left-[22px]"}`} />
+                      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all duration-200 ${isHidden ? "left-0.5" : "left-[18px]"}`} />
                     </button>
                   </div>
                 );
