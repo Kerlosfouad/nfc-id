@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 type ShowcaseSlide = {
   id: string;
@@ -44,10 +45,19 @@ const showcaseSlides: ShowcaseSlide[] = [
 ];
 
 export default function ProductSection() {
+  const { isArabic } = useLanguage();
   const sliderRef = useRef<HTMLDivElement | null>(null);
   const dragState = useRef({ active: false, moved: false, startX: 0, scrollLeft: 0 });
   const [isInteracting, setIsInteracting] = useState(false);
-  const sliderSlides = [...showcaseSlides, ...showcaseSlides];
+  const localizedSlides = isArabic
+    ? [
+        { ...showcaseSlides[0], title: "لمسة تفتح ملفك فورًا", caption: "افتح ملفك الحي من الهاتف إلى NFC بحركة واحدة.", label: "جاهز للمس" },
+        { ...showcaseSlides[1], title: "بطاقة NFC مطفية", caption: "بطاقة سوداء فاخرة للاجتماعات والفعاليات والاستخدام اليومي.", label: "الإصدار الأسود" },
+        { ...showcaseSlides[2], title: "ميدالية مفاتيح ذكية", caption: "احتفظ بملف LinkUp مع مفاتيحك أينما ذهبت.", label: "ميدالية مفاتيح" },
+        { ...showcaseSlides[3], title: "ميدالية LinkUp", caption: "قطعة NFC قابلة للارتداء بنفس سرعة فتح الملف.", label: "ميدالية" },
+      ]
+    : showcaseSlides;
+  const sliderSlides = [...localizedSlides, ...localizedSlides];
 
   useEffect(() => {
     const slider = sliderRef.current;
@@ -101,7 +111,7 @@ export default function ProductSection() {
   }
 
   return (
-    <section id="PRODUCT" className="relative overflow-hidden px-4 py-20 sm:py-28">
+    <section id="PRODUCT" className={`relative overflow-hidden px-4 py-20 sm:py-28 ${isArabic ? "font-[Cairo]" : ""}`}>
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#03A9F4]/35 to-transparent" />
       <div className="pointer-events-none absolute inset-0 hero-grid opacity-25" />
       <div className="pointer-events-none absolute -left-32 top-24 h-[420px] w-[420px] rounded-full bg-[#03A9F4]/10 blur-[110px]" />
@@ -111,15 +121,15 @@ export default function ProductSection() {
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-[#03A9F4] sm:text-xs">
             <span className="h-1.5 w-1.5 rounded-full bg-[#20E7FF] shadow-[0_0_12px_rgba(32,231,255,0.8)]" />
-            LinkUp Shop
+            {isArabic ? "متجر LinkUp" : "LinkUp Shop"}
           </div>
 
           <h2 className="text-balance text-[clamp(2.6rem,7vw,5.8rem)] font-black leading-[0.92] tracking-normal text-white">
-            Gear made for one-tap identity
+            {isArabic ? "منتجات صنعت لهوية تفتح بلمسة واحدة" : "Gear made for one-tap identity"}
           </h2>
 
           <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-white/58 sm:text-lg">
-            Cards, medals, and tags that open your live profile.
+            {isArabic ? "بطاقات وميداليات وقطع ذكية تفتح ملفك الحي فورًا." : "Cards, medals, and tags that open your live profile."}
           </p>
         </div>
 
@@ -171,7 +181,7 @@ export default function ProductSection() {
                     <h3 className="max-w-[15rem] text-2xl font-black uppercase leading-tight text-white">{slide.title}</h3>
                     <p className="mt-3 max-w-[17rem] text-sm leading-6 text-white/58">{slide.caption}</p>
                     <div className="mt-5 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-white/78 transition-colors duration-300 group-hover:text-[#20E7FF]">
-                      Enter the shop
+                      {isArabic ? "ادخل المتجر" : "Enter the shop"}
                       <i className="ri-arrow-right-line text-base transition-transform duration-300 group-hover:translate-x-1" />
                     </div>
                   </div>
@@ -183,7 +193,7 @@ export default function ProductSection() {
 
         <div className="mt-9 flex justify-center">
           <Link href="/shop" className="group inline-flex h-[58px] min-w-[260px] items-center justify-center gap-3 rounded-full bg-[#03A9F4] px-8 text-sm font-black uppercase tracking-[0.18em] text-white transition-all duration-300 hover:bg-white hover:text-black hover:shadow-[0_0_34px_rgba(32,231,255,0.35)] active:scale-[0.98]">
-            Enter the Shop
+            {isArabic ? "ادخل المتجر" : "Enter the Shop"}
             <i className="ri-arrow-right-line text-lg transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
         </div>

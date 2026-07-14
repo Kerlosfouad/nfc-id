@@ -3,8 +3,10 @@ import { useState, useEffect, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/components/LanguageProvider";
 
 export default function Navbar() {
+  const { isArabic, toggleLanguage } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -30,12 +32,14 @@ export default function Navbar() {
   }, []);
 
   const links = [
-    { href: "/#about", label: "ABOUT" },
-    { href: "/#PRODUCT", label: "PRODUCT" },
-    { href: "/shop", label: "SHOP" },
-    { href: "/#USE", label: "HOW TO USE" },
-    { href: "/#download", label: "APP" },
+    { href: "/#about", label: isArabic ? "من نحن" : "ABOUT" },
+    { href: "/#PRODUCT", label: isArabic ? "المنتج" : "PRODUCT" },
+    { href: "/shop", label: isArabic ? "المتجر" : "SHOP" },
+    { href: "/#USE", label: isArabic ? "طريقة الاستخدام" : "HOW TO USE" },
+    { href: "/#download", label: isArabic ? "التطبيق" : "APP" },
   ];
+  const dashboardLabel = isArabic ? "لوحة التحكم" : "Dashboard";
+  const ctaLabel = isArabic ? "ابدأ الآن" : "Get Started";
 
   return (
     <header className="flex justify-center items-center w-full px-4 sm:px-5 py-3 sm:py-5 fixed top-0 z-50">
@@ -58,7 +62,7 @@ export default function Navbar() {
               <li key={l.href}>
                 <Link
                   href={l.href}
-                  className="text-[#aaa] uppercase text-sm tracking-widest font-medium hover:text-white transition-all duration-200 relative group"
+                  className={`text-[#aaa] text-sm font-medium hover:text-white transition-all duration-200 relative group ${isArabic ? "font-[Cairo] tracking-normal" : "uppercase tracking-widest"}`}
                 >
                   {l.label}
                   <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-[#03A9F4] group-hover:w-full transition-all duration-300 rounded-full" />
@@ -69,17 +73,27 @@ export default function Navbar() {
 
           {/* Right */}
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={toggleLanguage}
+              className={`hidden h-9 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 text-xs font-bold text-white/75 transition hover:border-[#03A9F4]/35 hover:text-white md:inline-flex ${isArabic ? "font-[Cairo]" : "uppercase tracking-wider"}`}
+              aria-label={isArabic ? "Translate website to English" : "ترجمة الموقع إلى العربية"}
+              title={isArabic ? "English" : "العربية"}
+            >
+              <i className="ri-translate-2" />
+              {isArabic ? "EN" : "عربي"}
+            </button>
             {isLoggedIn ? (
               <Link href="/dashboard" className="hidden md:block">
-                <button className="relative px-5 h-9 text-sm font-semibold rounded-full bg-[#03A9F4] text-white border border-[#03A9F4]/50 hover:bg-[#03A9F4]/80 hover:shadow-[0_0_20px_rgba(3,169,244,0.4)] transition-all duration-300 uppercase tracking-wider flex items-center gap-2">
+                <button className={`relative px-5 h-9 text-sm font-semibold rounded-full bg-[#03A9F4] text-white border border-[#03A9F4]/50 hover:bg-[#03A9F4]/80 hover:shadow-[0_0_20px_rgba(3,169,244,0.4)] transition-all duration-300 flex items-center gap-2 ${isArabic ? "font-[Cairo]" : "uppercase tracking-wider"}`}>
                   <i className="ri-dashboard-line" />
-                  Dashboard
+                  {dashboardLabel}
                 </button>
               </Link>
             ) : (
               <Link href="/signup" className="hidden md:block">
-                <button className="relative px-5 h-9 text-sm font-semibold rounded-full bg-[#03A9F4] text-white border border-[#03A9F4]/50 hover:bg-[#03A9F4]/80 hover:shadow-[0_0_20px_rgba(3,169,244,0.4)] transition-all duration-300 uppercase tracking-wider">
-                  Get Started
+                <button className={`relative px-5 h-9 text-sm font-semibold rounded-full bg-[#03A9F4] text-white border border-[#03A9F4]/50 hover:bg-[#03A9F4]/80 hover:shadow-[0_0_20px_rgba(3,169,244,0.4)] transition-all duration-300 ${isArabic ? "font-[Cairo]" : "uppercase tracking-wider"}`}>
+                  {ctaLabel}
                 </button>
               </Link>
             )}
@@ -102,7 +116,7 @@ export default function Navbar() {
       {/* Mobile Menu */}
       <div id="mobile-navigation" className={`mobile-menu ${menuOpen ? "show" : ""}`} aria-hidden={!menuOpen}>
         <button
-          className="absolute top-6 right-6 text-white text-4xl bg-transparent border-none cursor-pointer w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+          className={`absolute top-6 text-white text-4xl bg-transparent border-none cursor-pointer w-12 h-12 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors ${isArabic ? "left-6" : "right-6"}`}
           onClick={() => setMenuOpen(false)}
           aria-label="Close menu"
         >
@@ -122,7 +136,7 @@ export default function Navbar() {
             >
               <Link
                 href={l.href}
-                className="mobile-menu-link block text-white text-xl sm:text-3xl uppercase tracking-widest py-5 hover:text-[#03A9F4] hover:bg-[#03A9F4]/5"
+                className={`mobile-menu-link block text-white text-xl sm:text-3xl py-5 hover:text-[#03A9F4] hover:bg-[#03A9F4]/5 ${isArabic ? "font-[Cairo]" : "uppercase tracking-widest"}`}
                 onClick={() => setMenuOpen(false)}
               >
                 {l.label}
@@ -138,11 +152,20 @@ export default function Navbar() {
               } as CSSProperties
             }
           >
+            <button
+              type="button"
+              onClick={toggleLanguage}
+              className={`mb-4 inline-flex h-11 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-5 text-sm font-bold text-white/75 ${isArabic ? "font-[Cairo]" : "uppercase tracking-wider"}`}
+            >
+              <i className="ri-translate-2" />
+              {isArabic ? "English" : "العربية"}
+            </button>
+            <br />
             <Link href={isLoggedIn ? "/dashboard" : "/signup"} onClick={() => setMenuOpen(false)}>
               <button
-                className="mobile-menu-cta px-7 py-3 bg-[#03A9F4] text-white rounded-full text-sm font-semibold uppercase tracking-wider hover:shadow-[0_0_20px_rgba(3,169,244,0.5)]"
+                className={`mobile-menu-cta px-7 py-3 bg-[#03A9F4] text-white rounded-full text-sm font-semibold hover:shadow-[0_0_20px_rgba(3,169,244,0.5)] ${isArabic ? "font-[Cairo]" : "uppercase tracking-wider"}`}
               >
-                {isLoggedIn ? "Dashboard" : "Get Started"}
+                {isLoggedIn ? dashboardLabel : ctaLabel}
               </button>
             </Link>
           </li>

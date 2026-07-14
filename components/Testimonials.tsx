@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useLanguage } from "@/components/LanguageProvider";
 
 const storeLinks = [
   {
@@ -19,8 +20,16 @@ const storeLinks = [
 ];
 
 export default function Testimonials() {
+  const { isArabic } = useLanguage();
+  const localizedStoreLinks = isArabic
+    ? [
+        { ...storeLinks[0], eyebrow: "قريبًا على", label: "App Store" },
+        { ...storeLinks[1], eyebrow: "قريبًا على", label: "Google Play" },
+      ]
+    : storeLinks;
+
   return (
-    <section id="download" className="relative overflow-hidden py-24 sm:py-32 lg:py-40">
+    <section id="download" className={`relative overflow-hidden py-24 sm:py-32 lg:py-40 ${isArabic ? "font-[Cairo]" : ""}`}>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(3,169,244,0.26),transparent_32%),radial-gradient(circle_at_18%_78%,rgba(0,229,255,0.15),transparent_30%),radial-gradient(circle_at_88%_58%,rgba(37,99,235,0.16),transparent_26%),linear-gradient(180deg,#07131b_0%,#071017_42%,#050607_100%)]" />
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#03A9F4]/55 to-transparent" />
       <div className="absolute left-1/2 top-10 h-72 w-72 -translate-x-1/2 rounded-full bg-[#03A9F4]/18 blur-[90px]" />
@@ -30,13 +39,13 @@ export default function Testimonials() {
         <div className="mx-auto max-w-4xl text-center">
             <div className="mx-auto mb-5 inline-flex items-center gap-2 rounded-full border border-[#03A9F4]/25 bg-[#03A9F4]/10 px-4 py-2 text-xs font-semibold text-[#9ee9ff] shadow-[0_0_28px_rgba(3,169,244,0.14),inset_0_1px_0_rgba(255,255,255,0.08)]">
             <i className="ri-download-cloud-2-line text-[#03A9F4]" />
-            Available Soon
+            {isArabic ? "متاح قريبًا" : "Available Soon"}
           </div>
           <h2 className="text-balance text-[clamp(2.5rem,6vw,5rem)] font-black leading-[0.95] tracking-normal text-white">
-            Download the LinkUp app
+            {isArabic ? "حمّل تطبيق LinkUp" : "Download the LinkUp app"}
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-white/55 sm:text-lg">
-            Manage links, scans, and identity in one app.
+            {isArabic ? "أدر روابطك وعمليات المسح وهويتك من تطبيق واحد." : "Manage links, scans, and identity in one app."}
           </p>
         </div>
 
@@ -63,7 +72,7 @@ export default function Testimonials() {
           </div>
 
           <div data-gsap-stack className="mx-auto w-full max-w-[520px] space-y-5 lg:mx-0">
-            {storeLinks.map((item) => (
+            {localizedStoreLinks.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
@@ -85,7 +94,7 @@ export default function Testimonials() {
 
             <div data-gsap-stack-card className="flex items-center gap-4 py-3">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-white/5" />
-              <span className="text-xs font-semibold text-white/50">For members and creators</span>
+              <span className="text-xs font-semibold text-white/50">{isArabic ? "للأعضاء وصناع المحتوى" : "For members and creators"}</span>
               <div className="h-px flex-1 bg-gradient-to-l from-transparent via-white/15 to-white/5" />
             </div>
 
@@ -95,7 +104,7 @@ export default function Testimonials() {
               className="group flex min-h-[74px] items-center justify-center gap-3 rounded-[1.25rem] border border-[#03A9F4]/35 bg-[#03A9F4]/16 px-6 text-sm font-black uppercase tracking-[0.18em] text-white shadow-[0_20px_70px_rgba(3,169,244,0.12)] transition-all duration-500 hover:border-[#03A9F4]/70 hover:bg-[#03A9F4]/24"
             >
               <i className="ri-dashboard-3-line text-lg text-[#03A9F4]" />
-              Access your dashboard
+              {isArabic ? "ادخل لوحة التحكم" : "Access your dashboard"}
               <i className="ri-arrow-right-line text-lg transition-transform duration-500 group-hover:translate-x-1" />
             </Link>
           </div>

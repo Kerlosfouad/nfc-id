@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 interface ShopProduct {
   id: string;
@@ -38,7 +39,7 @@ function priceLabel(value: string) {
   return money(Number(match[0]));
 }
 
-function ProductCard({ product, onAdd, onBuyNow }: { product: ShopProduct; onAdd: () => void; onBuyNow: () => void }) {
+function ProductCard({ product, onAdd, onBuyNow, isArabic }: { product: ShopProduct; onAdd: () => void; onBuyNow: () => void; isArabic: boolean }) {
   return (
     <article className="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#101010] transition-all duration-300 hover:border-[#03A9F4]/40">
       <div className="absolute inset-0 bg-gradient-to-b from-[#03A9F4]/8 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -61,7 +62,7 @@ function ProductCard({ product, onAdd, onBuyNow }: { product: ShopProduct; onAdd
 
         <div className="mt-5 flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-widest text-white/25">Starting at</p>
+            <p className={`text-[10px] text-white/25 ${isArabic ? "" : "uppercase tracking-widest"}`}>{isArabic ? "يبدأ من" : "Starting at"}</p>
             <div className="mt-1 flex flex-wrap items-baseline gap-2">
               {product.salePriceLabel ? (
                 <>
@@ -82,12 +83,12 @@ function ProductCard({ product, onAdd, onBuyNow }: { product: ShopProduct; onAdd
               onClick={onBuyNow}
               className="inline-flex h-10 items-center rounded-full bg-white px-3.5 text-[11px] font-bold uppercase tracking-wider text-black transition-all duration-300 hover:bg-[#03A9F4] hover:text-white"
             >
-              Buy Now
+              {isArabic ? "اشتر الآن" : "Buy Now"}
             </button>
             <button
               type="button"
               onClick={onAdd}
-              aria-label={`Add ${product.name} to cart`}
+              aria-label={isArabic ? `أضف ${product.name} إلى السلة` : `Add ${product.name} to cart`}
               className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white transition-all hover:border-[#03A9F4]/50 hover:text-[#03A9F4]"
             >
               <i className="ri-shopping-cart-2-line text-lg" />
@@ -100,6 +101,7 @@ function ProductCard({ product, onAdd, onBuyNow }: { product: ShopProduct; onAdd
 }
 
 export default function ShopSection() {
+  const { isArabic } = useLanguage();
   const router = useRouter();
   const [products, setProducts] = useState<ShopProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -174,7 +176,7 @@ export default function ShopSection() {
   }
 
   return (
-    <section id="SHOP" className="relative overflow-hidden px-4 py-20 scroll-mt-24 sm:py-24">
+    <section id="SHOP" className={`relative overflow-hidden px-4 py-20 scroll-mt-24 sm:py-24 ${isArabic ? "font-[Cairo]" : ""}`}>
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#03A9F4]/30 to-transparent" />
       <div className="pointer-events-none absolute left-1/2 top-24 h-[260px] w-[520px] -translate-x-1/2 rounded-full bg-[#03A9F4]/8 blur-3xl" />
 
@@ -182,7 +184,7 @@ export default function ShopSection() {
         type="button"
         onClick={() => setCartOpen(true)}
         className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-[#03A9F4]/30 bg-[#03A9F4] text-white shadow-2xl shadow-[#03A9F4]/20 transition-transform hover:scale-105"
-        aria-label="Open shopping cart"
+        aria-label={isArabic ? "افتح سلة التسوق" : "Open shopping cart"}
       >
         <i className="ri-shopping-cart-2-line text-2xl" />
         {itemCount > 0 && (
@@ -195,11 +197,11 @@ export default function ShopSection() {
       <div className="container relative z-10 mx-auto">
         <div className="mb-10 text-center sm:mb-12">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#03A9F4]">
-            LinkUp Shop
+            {isArabic ? "متجر LinkUp" : "LinkUp Shop"}
           </div>
-          <h2 className="mb-4 text-3xl font-bold uppercase text-white sm:text-4xl md:text-5xl">Choose Your Smart Product</h2>
+          <h2 className="mb-4 text-3xl font-bold uppercase text-white sm:text-4xl md:text-5xl">{isArabic ? "اختر منتجك الذكي" : "Choose Your Smart Product"}</h2>
           <p className="mx-auto max-w-xl text-sm leading-relaxed text-white/40 md:text-base">
-            Pick the NFC product that fits how your customers, clients, or followers meet you.
+            {isArabic ? "اختر منتج NFC المناسب لطريقة لقاء عملائك أو متابعيك بك." : "Pick the NFC product that fits how your customers, clients, or followers meet you."}
           </p>
         </div>
 
@@ -212,14 +214,14 @@ export default function ShopSection() {
         ) : error ? (
           <div className="mx-auto max-w-xl rounded-3xl border border-red-400/20 bg-red-500/[0.06] p-8 text-center">
             <i className="ri-error-warning-line text-4xl text-red-300" />
-            <h3 className="mt-4 text-xl font-bold uppercase text-white">Products could not load</h3>
+            <h3 className="mt-4 text-xl font-bold uppercase text-white">{isArabic ? "تعذر تحميل المنتجات" : "Products could not load"}</h3>
             <p className="mt-2 text-sm text-red-100/70">{error}</p>
           </div>
         ) : products.length === 0 ? (
           <div className="mx-auto max-w-xl rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-center">
             <i className="ri-shopping-bag-3-line text-4xl text-[#03A9F4]" />
-            <h3 className="mt-4 text-xl font-bold uppercase text-white">No products available</h3>
-            <p className="mt-2 text-sm text-white/40">Visible products added from the owner dashboard will appear here.</p>
+            <h3 className="mt-4 text-xl font-bold uppercase text-white">{isArabic ? "لا توجد منتجات متاحة" : "No products available"}</h3>
+            <p className="mt-2 text-sm text-white/40">{isArabic ? "المنتجات التي يضيفها المالك ستظهر هنا." : "Visible products added from the owner dashboard will appear here."}</p>
           </div>
         ) : (
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 md:grid-cols-3">
@@ -227,6 +229,7 @@ export default function ShopSection() {
               <ProductCard
                 key={product.id}
                 product={product}
+                isArabic={isArabic}
                 onAdd={() => addToCart(product)}
                 onBuyNow={() => {
                   addToCart(product);
@@ -253,9 +256,9 @@ export default function ShopSection() {
             <header className="flex items-center justify-between border-b border-white/10 px-5 py-4">
               <div className="flex items-center gap-3">
                 <i className="ri-shopping-cart-2-line text-2xl text-[#03A9F4]" />
-                <h3 className="text-xl font-bold">Shopping Cart</h3>
+                <h3 className="text-xl font-bold">{isArabic ? "سلة التسوق" : "Shopping Cart"}</h3>
               </div>
-              <button type="button" onClick={() => setCartOpen(false)} className="text-2xl text-white/60 hover:text-white" aria-label="Close cart">
+              <button type="button" onClick={() => setCartOpen(false)} className="text-2xl text-white/60 hover:text-white" aria-label={isArabic ? "إغلاق السلة" : "Close cart"}>
                 <i className="ri-close-line" />
               </button>
             </header>
@@ -264,8 +267,8 @@ export default function ShopSection() {
               {cart.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center">
                   <i className="ri-shopping-bag-line text-5xl text-white/20" />
-                  <p className="mt-3 font-bold">Your cart is empty</p>
-                  <p className="mt-1 text-sm text-white/40">Add a product to start checkout.</p>
+                  <p className="mt-3 font-bold">{isArabic ? "السلة فارغة" : "Your cart is empty"}</p>
+                  <p className="mt-1 text-sm text-white/40">{isArabic ? "أضف منتجًا لبدء الطلب." : "Add a product to start checkout."}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -283,7 +286,7 @@ export default function ShopSection() {
                           <button type="button" onClick={() => updateQuantity(item.product.id, item.quantity + 1)} className="h-8 w-8 rounded-full border border-white/10 text-lg">
                             +
                           </button>
-                          <button type="button" onClick={() => updateQuantity(item.product.id, 0)} className="ml-auto text-white/40 hover:text-red-300" aria-label="Remove item">
+                          <button type="button" onClick={() => updateQuantity(item.product.id, 0)} className="ml-auto text-white/40 hover:text-red-300" aria-label={isArabic ? "إزالة المنتج" : "Remove item"}>
                             <i className="ri-delete-bin-line text-lg" />
                           </button>
                         </div>
@@ -296,7 +299,7 @@ export default function ShopSection() {
 
             <footer className="border-t border-white/10 p-5">
               <div className="mb-4 flex items-center justify-between text-sm">
-                <span className="text-white/45">Subtotal</span>
+                <span className="text-white/45">{isArabic ? "الإجمالي الفرعي" : "Subtotal"}</span>
                 <span className="text-lg font-bold">{money(subtotal)}</span>
               </div>
               <button
@@ -305,7 +308,7 @@ export default function ShopSection() {
                 onClick={goToCheckout}
                 className="h-12 w-full rounded-full bg-white text-sm font-bold uppercase tracking-wider text-black transition-all hover:bg-[#03A9F4] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Checkout
+                {isArabic ? "إتمام الطلب" : "Checkout"}
               </button>
             </footer>
           </aside>

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/components/LanguageProvider";
 
 const steps = [
   {
@@ -31,19 +32,27 @@ const steps = [
 ] as const;
 
 export default function HowItWorks() {
+  const { isArabic } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
-  const activeStep = steps[activeIndex];
+  const localizedSteps = isArabic
+    ? [
+        { title: "المس", eyebrow: "01", desc: "قرّب LinkUp من هاتف يدعم NFC.", icon: "ri-wifi-line", stat: "0.3ث", statLabel: "وقت القراءة" },
+        { title: "افتح", eyebrow: "02", desc: "تفتح الوجهة فورًا بدون خطوات إضافية.", icon: "ri-smartphone-line", stat: "بدون تطبيق", statLabel: "مطلوب" },
+        { title: "حدّث", eyebrow: "03", desc: "غيّر الوجهة في أي وقت من لوحة التحكم.", icon: "ri-refresh-line", stat: "مباشر", statLabel: "قابل للتعديل" },
+      ]
+    : steps;
+  const activeStep = localizedSteps[activeIndex];
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      setActiveIndex((current) => (current + 1) % steps.length);
+      setActiveIndex((current) => (current + 1) % localizedSteps.length);
     }, 2800);
 
     return () => window.clearInterval(timer);
-  }, []);
+  }, [localizedSteps.length]);
 
   return (
-    <section id="USE" className="relative overflow-hidden px-4 py-20 sm:py-28">
+    <section id="USE" className={`relative overflow-hidden px-4 py-20 sm:py-28 ${isArabic ? "font-[Cairo]" : ""}`}>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(3,169,244,0.18),transparent_24rem),linear-gradient(180deg,transparent,rgba(3,169,244,0.04),transparent)]" />
       <div className="pointer-events-none absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#03A9F4]/8 blur-[130px]" />
 
@@ -51,13 +60,13 @@ export default function HowItWorks() {
         <div className="mx-auto mb-10 max-w-3xl text-center sm:mb-14">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#03A9F4]/20 bg-[#03A9F4]/5 px-4 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-[#03A9F4] sm:text-xs">
             <span className="h-1.5 w-1.5 rounded-full bg-[#20E7FF] shadow-[0_0_12px_rgba(32,231,255,0.8)]" />
-            How to use
+            {isArabic ? "طريقة الاستخدام" : "How to use"}
           </div>
           <h2 className="text-balance text-[clamp(2.4rem,6vw,5.4rem)] font-black leading-[0.94] tracking-normal text-white">
-            Tap once. Your identity is live.
+            {isArabic ? "لمسة واحدة. هويتك أصبحت مباشرة." : "Tap once. Your identity is live."}
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-white/58 sm:text-lg">
-            A physical object that opens the right digital destination.
+            {isArabic ? "قطعة مادية تفتح الوجهة الرقمية الصحيحة فورًا." : "A physical object that opens the right digital destination."}
           </p>
         </div>
 
@@ -73,7 +82,7 @@ export default function HowItWorks() {
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,8,13,0.18),rgba(3,8,13,0.18)_42%,rgba(3,8,13,0.88)),radial-gradient(circle_at_48%_44%,transparent,rgba(0,0,0,0.42)_72%)]" />
 
             <div className="absolute left-5 right-5 top-5 flex items-center justify-between rounded-2xl border border-white/10 bg-black/38 px-4 py-3 backdrop-blur-xl">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/58">Live trigger</span>
+              <span className={`text-[10px] font-bold text-white/58 ${isArabic ? "" : "uppercase tracking-[0.2em]"}`}>{isArabic ? "تشغيل مباشر" : "Live trigger"}</span>
               <span className="inline-flex items-center gap-2 rounded-full bg-[#03A9F4]/14 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-[#20E7FF]">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#20E7FF]" />
                 {activeStep.stat}
@@ -97,7 +106,7 @@ export default function HowItWorks() {
           </div>
 
           <div className="grid gap-3">
-            {steps.map((step, index) => {
+            {localizedSteps.map((step, index) => {
               const isActive = activeIndex === index;
 
               return (
@@ -107,7 +116,7 @@ export default function HowItWorks() {
                   onMouseEnter={() => setActiveIndex(index)}
                   onFocus={() => setActiveIndex(index)}
                   onClick={() => setActiveIndex(index)}
-                  className={`group relative grid min-h-[128px] grid-cols-[auto_1fr] gap-4 rounded-[1.35rem] border p-4 text-left transition duration-500 sm:min-h-[150px] sm:gap-5 sm:p-6 ${
+                  className={`group relative grid min-h-[128px] grid-cols-[auto_1fr] gap-4 rounded-[1.35rem] border p-4 text-left transition duration-500 sm:min-h-[150px] sm:gap-5 sm:p-6 ${isArabic ? "text-right" : ""} ${
                     isActive
                       ? "border-[#03A9F4]/45 bg-[#041522] shadow-[0_0_42px_rgba(3,169,244,0.16)]"
                       : "border-white/10 bg-white/[0.025] hover:border-[#03A9F4]/25 hover:bg-white/[0.045]"

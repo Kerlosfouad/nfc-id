@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useLanguage } from "@/components/LanguageProvider";
 
 const navLinks = [
   { href: "/#about", label: "About" },
@@ -15,8 +18,25 @@ const productLinks = [
 ];
 
 export default function Footer() {
+  const { isArabic } = useLanguage();
+  const localizedNavLinks = isArabic
+    ? [
+        { href: "/#about", label: "من نحن" },
+        { href: "/#PRODUCT", label: "المنتج" },
+        { href: "/#USE", label: "طريقة الاستخدام" },
+        { href: "/#download", label: "التطبيق" },
+      ]
+    : navLinks;
+  const localizedProductLinks = isArabic
+    ? [
+        { href: "/signup", label: "ابدأ مجانًا" },
+        { href: "/login", label: "تسجيل الدخول" },
+        { href: "/dashboard", label: "لوحة التحكم" },
+      ]
+    : productLinks;
+
   return (
-    <footer className="relative bg-[#0b0a0a] border-t border-[#111] pt-16 pb-8 overflow-hidden">
+    <footer className={`relative bg-[#0b0a0a] border-t border-[#111] pt-16 pb-8 overflow-hidden ${isArabic ? "font-[Cairo]" : ""}`}>
       {/* Top glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-px bg-gradient-to-r from-transparent via-[#03A9F4]/30 to-transparent" />
 
@@ -31,15 +51,15 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-white/65 text-sm leading-relaxed max-w-xs">
-              Smart NFC identity in one tap.
+              {isArabic ? "هوية NFC ذكية من لمسة واحدة." : "Smart NFC identity in one tap."}
             </p>
           </div>
 
           {/* Links */}
           <div>
-            <h6 className="text-white text-xs font-semibold uppercase tracking-widest mb-4">Navigation</h6>
+            <h6 className={`text-white text-xs font-semibold mb-4 ${isArabic ? "" : "uppercase tracking-widest"}`}>{isArabic ? "التنقل" : "Navigation"}</h6>
             <ul className="space-y-2 list-none p-0 m-0">
-              {navLinks.map((l) => (
+              {localizedNavLinks.map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className="text-white/65 hover:text-[#03A9F4] text-sm transition-colors">
                     {l.label}
@@ -51,9 +71,9 @@ export default function Footer() {
 
           {/* Product */}
           <div>
-            <h6 className="text-white text-xs font-semibold uppercase tracking-widest mb-4">Platform</h6>
+            <h6 className={`text-white text-xs font-semibold mb-4 ${isArabic ? "" : "uppercase tracking-widest"}`}>{isArabic ? "المنصة" : "Platform"}</h6>
             <ul className="space-y-2 list-none p-0 m-0">
-              {productLinks.map((l) => (
+              {localizedProductLinks.map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className="text-white/65 hover:text-[#03A9F4] text-sm transition-colors">
                     {l.label}
@@ -65,7 +85,7 @@ export default function Footer() {
 
           {/* Social */}
           <div>
-            <h6 className="text-white text-xs font-semibold uppercase tracking-widest mb-4">Follow Us</h6>
+            <h6 className={`text-white text-xs font-semibold mb-4 ${isArabic ? "" : "uppercase tracking-widest"}`}>{isArabic ? "تابعنا" : "Follow Us"}</h6>
             <div className="flex gap-3">
               {[
                 { href: "https://www.facebook.com/kerlos.foudi", icon: "ri-facebook-fill", label: "Facebook" },
@@ -85,9 +105,9 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-[#111] pt-6 flex flex-col md:flex-row justify-between items-center gap-2 text-white/55 text-xs">
-          <span>© 2026 LinkUp · All rights reserved.</span>
+          <span>{isArabic ? "© 2026 LinkUp · جميع الحقوق محفوظة." : "© 2026 LinkUp · All rights reserved."}</span>
           <span>
-            Made with <span className="text-[#03A9F4]">♥</span> by{" "}
+            {isArabic ? "صنع بحب " : "Made with "}<span className="text-[#03A9F4]">♥</span>{isArabic ? " بواسطة " : " by "}
             <a href="https://www.facebook.com/kerlos.foudi" className="text-white/70 hover:text-white transition-colors font-medium">
               KERLOS FOUAD
             </a>

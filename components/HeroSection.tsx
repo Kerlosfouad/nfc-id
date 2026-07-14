@@ -3,16 +3,26 @@
 import Link from "next/link";
 import AnimatedCounter from "./AnimatedCounter";
 import ParticleBackground from "./ParticleBackground";
+import { useLanguage } from "@/components/LanguageProvider";
 
-const stats = [
+const defaultStats = [
   { value: 12, suffix: "K+", label: "Active Profiles" },
   { value: 180, suffix: "K+", label: "Monthly Scans" },
   { value: 98, suffix: "%", label: "Uptime" },
 ];
 
 export default function HeroSection() {
+  const { isArabic } = useLanguage();
+  const stats = isArabic
+    ? [
+        { value: 12, suffix: "K+", label: "ملف نشط" },
+        { value: 180, suffix: "K+", label: "مسح شهري" },
+        { value: 98, suffix: "%", label: "استقرار الخدمة" },
+      ]
+    : defaultStats;
+
   return (
-    <section className="relative flex justify-center items-center overflow-hidden" style={{ minHeight: "100svh" }}>
+    <section className={`relative flex justify-center items-center overflow-hidden ${isArabic ? "font-[Cairo]" : ""}`} style={{ minHeight: "100svh" }}>
       <ParticleBackground />
       <div className="absolute inset-0 z-[1] hero-grid opacity-80 pointer-events-none" />
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[620px] h-[620px] rounded-full bg-[#03A9F4]/5 blur-[120px] pointer-events-none z-[1] animate-pulse-slow" />
@@ -23,7 +33,7 @@ export default function HeroSection() {
         <div className="text-center max-w-4xl mx-auto">
           <div className="inline-flex max-w-full items-center justify-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-[#03A9F4]/30 bg-[#03A9F4]/10 text-[#03A9F4] text-[10px] sm:text-xs font-semibold uppercase tracking-[0.18em] sm:tracking-widest mb-5 sm:mb-6 text-center">
             <span className="w-1.5 h-1.5 rounded-full bg-[#03A9F4] animate-pulse" />
-            Smart NFC - Link in Bio Platform
+            {isArabic ? "منصة NFC ذكية لملفك وروابطك" : "Smart NFC - Link in Bio Platform"}
           </div>
 
           <h1 className="font-bold text-white uppercase leading-[0.92] mb-4 sm:mb-4 text-balance" style={{ fontSize: "clamp(54px, 15vw, 96px)" }}>
@@ -31,10 +41,10 @@ export default function HeroSection() {
           </h1>
 
           <p className="text-white/75 text-lg sm:text-xl md:text-xl mb-3 sm:mb-4 max-w-xl mx-auto leading-snug sm:leading-relaxed text-pretty">
-            One link for everything you create, share, and sell.
+            {isArabic ? "رابط واحد لكل ما تنشئه وتشاركه وتبيعه." : "One link for everything you create, share, and sell."}
           </p>
           <p className="text-white/60 text-sm sm:text-sm mb-8 sm:mb-10 max-w-[330px] sm:max-w-md mx-auto leading-relaxed text-pretty">
-            NFC tap. QR scan. One live profile.
+            {isArabic ? "لمسة NFC. مسح QR. ملف حي واحد." : "NFC tap. QR scan. One live profile."}
           </p>
 
           <div className="flex gap-2.5 sm:gap-4 justify-center flex-col sm:flex-row mb-10 sm:mb-14">
@@ -43,14 +53,14 @@ export default function HeroSection() {
               className="inline-flex h-12 sm:h-auto items-center justify-center gap-2 px-5 sm:px-8 py-0 sm:py-3.5 rounded-full bg-[#03A9F4] text-white text-sm sm:text-base font-semibold uppercase tracking-wide sm:tracking-wider hover:bg-[#03A9F4]/80 hover:shadow-[0_0_30px_rgba(3,169,244,0.5)] transition-all duration-300"
             >
               <i className="ri-rocket-line" />
-              Get Your Free Link
+              {isArabic ? "أنشئ رابطك مجانًا" : "Get Your Free Link"}
             </Link>
             <Link
               href="/shop"
               className="inline-flex h-12 sm:h-auto items-center justify-center gap-2 px-5 sm:px-8 py-0 sm:py-3.5 rounded-full border border-white/20 text-white text-sm sm:text-base font-semibold uppercase tracking-wide sm:tracking-wider hover:border-white/50 hover:bg-white/5 transition-all duration-300"
             >
               <i className="ri-shopping-bag-line" />
-              Shop NFC Cards
+              {isArabic ? "تسوق بطاقات NFC" : "Shop NFC Cards"}
             </Link>
           </div>
 
@@ -67,7 +77,7 @@ export default function HeroSection() {
 
           <div className="mt-10 sm:mt-14 flex flex-col items-center gap-2 text-white/55 text-[10px] sm:text-xs uppercase tracking-widest motion-safe:animate-bounce">
             <i className="ri-arrow-down-line text-lg" />
-            Scroll
+            {isArabic ? "مرر للأسفل" : "Scroll"}
           </div>
         </div>
       </div>
