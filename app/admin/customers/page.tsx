@@ -37,7 +37,7 @@ export default function AdminCustomersPage() {
   const [customers, setCustomers] = useState<CustomerRow[]>([]);
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [busyProfileId, setBusyProfileId] = useState<string | null>(null);
+  const [busyProfileAction, setBusyProfileAction] = useState<string | null>(null);
   const [busyCustomerId, setBusyCustomerId] = useState<string | null>(null);
   const [durations, setDurations] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -87,9 +87,10 @@ export default function AdminCustomersPage() {
     return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
   }
 
-  async function updateProfileAccess(profileId: string, patch: { verifiedUntil?: string | null; primeDesignUntil?: string | null; verified?: boolean }) {
+  async function updateProfileAccess(profileId: string, action: "theme" | "verification", patch: { verifiedUntil?: string | null; primeDesignUntil?: string | null; verified?: boolean }) {
     if (!authToken) return;
-    setBusyProfileId(profileId);
+    const busyKey = `${profileId}:${action}`;
+    setBusyProfileAction(busyKey);
     try {
       const res = await fetch(`/api/v1/admin/profiles/${profileId}/verify`, {
         method: "POST",
@@ -109,16 +110,16 @@ export default function AdminCustomersPage() {
             profile.id === profileId
               ? {
                   ...profile,
-                  isVerified: json.data?.isVerified ?? profile.isVerified,
-                  verifiedUntil: json.data?.verifiedUntil ?? profile.verifiedUntil,
-                  primeDesignUntil: json.data?.primeDesignUntil ?? profile.primeDesignUntil,
+                  isVerified: Object.prototype.hasOwnProperty.call(json.data ?? {}, "isVerified") ? json.data.isVerified : profile.isVerified,
+                  verifiedUntil: Object.prototype.hasOwnProperty.call(json.data ?? {}, "verifiedUntil") ? json.data.verifiedUntil : profile.verifiedUntil,
+                  primeDesignUntil: Object.prototype.hasOwnProperty.call(json.data ?? {}, "primeDesignUntil") ? json.data.primeDesignUntil : profile.primeDesignUntil,
                 }
               : profile
           ),
         }))
       );
     } finally {
-      setBusyProfileId(null);
+      setBusyProfileAction(null);
     }
   }
 
@@ -313,36 +314,40 @@ export default function AdminCustomersPage() {
                           <div className="grid gap-2 sm:grid-cols-2">
                             {isActiveUntil(profile.primeDesignUntil) ? (
                               <button
-                                onClick={() => updateProfileAccess(profile.id, { primeDesignUntil: null })}
-                                disabled={busyProfileId === profile.id}
+                                type="button"
+                                onClick={() => updateProfileAccess(profile.id, "theme", { primeDesignUntil: null })}
+                                disabled={busyProfileAction === `${profile.id}:theme`}
                                 className="rounded-lg border border-yellow-300/30 bg-yellow-400/15 px-3 py-2 text-xs font-bold text-yellow-200 disabled:opacity-50"
                               >
-                                {busyProfileId === profile.id ? "Saving..." : "Active Theme - cancel"}
+                                {busyProfileAction === `${profile.id}:theme` ? "Saving..." : "Active Theme - cancel"}
                               </button>
                             ) : (
                               <button
-                                onClick={() => updateProfileAccess(profile.id, { primeDesignUntil: untilFromDays(profile.id) })}
-                                disabled={busyProfileId === profile.id}
+                                type="button"
+                                onClick={() => updateProfileAccess(profile.id, "theme", { primeDesignUntil: untilFromDays(profile.id) })}
+                                disabled={busyProfileAction === `${profile.id}:theme`}
                                 className="rounded-lg bg-yellow-400 px-3 py-2 text-xs font-bold text-black disabled:opacity-50"
                               >
-                                {busyProfileId === profile.id ? "Saving..." : "Activate Theme Pro"}
+                                {busyProfileAction === `${profile.id}:theme` ? "Saving..." : "Activate Theme Pro"}
                               </button>
                             )}
                             {isActiveUntil(profile.verifiedUntil) ? (
                               <button
-                                onClick={() => updateProfileAccess(profile.id, { verifiedUntil: null, verified: false })}
-                                disabled={busyProfileId === profile.id}
+                                type="button"
+                                onClick={() => updateProfileAccess(profile.id, "verification", { verifiedUntil: null, verified: false })}
+                                disabled={busyProfileAction === `${profile.id}:verification`}
                                 className="rounded-lg border border-[#1877F2]/35 bg-[#1877F2]/15 px-3 py-2 text-xs font-bold text-[#9dccff] disabled:opacity-50"
                               >
-                                {busyProfileId === profile.id ? "Saving..." : "Active Verification - cancel"}
+                                {busyProfileAction === `${profile.id}:verification` ? "Saving..." : "Active Verification - cancel"}
                               </button>
                             ) : (
                               <button
-                                onClick={() => updateProfileAccess(profile.id, { verifiedUntil: untilFromDays(profile.id), verified: true })}
-                                disabled={busyProfileId === profile.id}
+                                type="button"
+                                onClick={() => updateProfileAccess(profile.id, "verification", { verifiedUntil: untilFromDays(profile.id), verified: true })}
+                                disabled={busyProfileAction === `${profile.id}:verification`}
                                 className="rounded-lg bg-[#1877F2] px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
                               >
-                                {busyProfileId === profile.id ? "Saving..." : "Activate Verification"}
+                                {busyProfileAction === `${profile.id}:verification` ? "Saving..." : "Activate Verification"}
                               </button>
                             )}
                           </div>

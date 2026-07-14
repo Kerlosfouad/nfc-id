@@ -228,12 +228,9 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
       <main className="relative z-10 flex min-h-screen min-w-0 flex-col lg:pl-[220px]">
         <header className="sticky top-0 z-20 border-b border-white/5 bg-[#0b0a0a]/90 px-4 py-4 backdrop-blur-xl sm:px-6">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex min-w-0 items-center gap-3">
-              <Link href="/" className="inline-flex shrink-0 items-end gap-2 group" aria-label="Back to website">
-                <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={28} height={28} className="h-7 w-7 object-contain transition-all group-hover:drop-shadow-[0_0_12px_rgba(3,169,244,0.7)]" />
-                <span className="pb-0.5 text-lg font-black uppercase leading-none tracking-wide text-white">LINK <span className="text-[#03A9F4]">UP</span></span>
-              </Link>
-              <span className="sr-only">{title}: {subtitle}</span>
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-black uppercase leading-tight tracking-wide text-white sm:text-xl">{title}</h1>
+              <p className="sr-only">{subtitle}</p>
             </div>
             <div className="flex items-center gap-2">
               <button
