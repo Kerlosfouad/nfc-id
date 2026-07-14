@@ -37,6 +37,7 @@ type GoldRequest = { service: GoldServiceId; cycle?: GoldBillingCycle };
 type ToastItem = { id: number; msg: string; ok: boolean; visible: boolean };
 type ProfileInboxMessage = { id: string; senderName: string; message: string; readAt: string | null; createdAt: string };
 type ProfileInbox = { messages: ProfileInboxMessage[]; unreadCount: number };
+type QRCodeStylingModule = typeof import("qr-code-styling")["default"];
 
 const CLOSED_LINK_TIMESTAMP = "2000-01-01T00:00:00.000Z";
 const COMPANY_WHATSAPP = "201211632456";
@@ -65,6 +66,12 @@ const GOLD_SERVICES: { id: GoldServiceId; name: string; icon: string; descriptio
 
 const analyticsMemoryCache = new Map<string, AnalyticsSummary>();
 const inboxMemoryCache = new Map<string, ProfileInbox>();
+let qrCodeStylingPromise: Promise<QRCodeStylingModule> | null = null;
+
+function preloadQrCodeStyling() {
+  qrCodeStylingPromise ??= import("qr-code-styling").then(({ default: QRCodeStyling }) => QRCodeStyling);
+  return qrCodeStylingPromise;
+}
 
 function isFutureDate(value: string | null | undefined): boolean {
   return !!value && new Date(value).getTime() > Date.now();
@@ -1512,7 +1519,7 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
   const url = typeof window !== "undefined" ? window.location.origin + "/profile/" + profile.publicId : "/profile/" + profile.publicId;
   const qrRef = useRef<HTMLDivElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
-  const qrInstance = useRef<InstanceType<typeof import("qr-code-styling")["default"]> | null>(null);
+  const qrInstance = useRef<InstanceType<QRCodeStylingModule> | null>(null);
 
   const isPrime = isFutureDate(profile.primeDesignUntil);
   const [qrColor, setQrColor] = useState("#dff3ff");
@@ -1522,6 +1529,7 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
   const [centerLogo, setCenterLogo] = useState("/img/logo.png");
   const [logoUploading, setLogoUploading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [qrReady, setQrReady] = useState(false);
 
   const imageOptions = useMemo(() => ({
     crossOrigin: "anonymous" as const,
@@ -1533,35 +1541,43 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
   // Init QR
   useEffect(() => {
     let cancelled = false;
-    import("qr-code-styling").then(({ default: QRCodeStyling }) => {
+    setQrReady(false);
+    preloadQrCodeStyling().then((QRCodeStyling) => {
       if (cancelled || !qrRef.current) return;
       qrRef.current.innerHTML = "";
       const qr = new QRCodeStyling({
         width: 300, height: 300,
         data: url,
-        dotsOptions: { color: qrColor, type: dotStyle },
-        backgroundOptions: { color: bgColor },
-        cornersSquareOptions: { type: cornerStyle as "square" | "dot" | "extra-rounded" },
-        image: centerLogo,
-        imageOptions,
+        dotsOptions: { color: "#dff3ff", type: "square" },
+        backgroundOptions: { color: "#0b2134" },
+        cornersSquareOptions: { type: "square" },
+        image: "/img/logo.png",
+        imageOptions: {
+          crossOrigin: "anonymous",
+          hideBackgroundDots: true,
+          imageSize: 0.18,
+          margin: 6,
+        },
         qrOptions: { errorCorrectionLevel: "H" },
       });
       qr.append(qrRef.current);
       qrInstance.current = qr;
+      setQrReady(true);
     });
     return () => { cancelled = true; };
-  }, [bgColor, centerLogo, cornerStyle, dotStyle, imageOptions, qrColor, url]);
+  }, [url]);
 
   // Update on options change
   useEffect(() => {
     qrInstance.current?.update({
+      data: url,
       dotsOptions: { color: qrColor, type: dotStyle },
       backgroundOptions: { color: bgColor },
       cornersSquareOptions: { type: cornerStyle as "square" | "dot" | "extra-rounded" },
       image: centerLogo,
       imageOptions,
     });
-  }, [qrColor, bgColor, dotStyle, cornerStyle, centerLogo, imageOptions]);
+  }, [qrColor, bgColor, dotStyle, cornerStyle, centerLogo, imageOptions, url]);
 
   function download() {
     qrInstance.current?.download({ name: "nfcid-qr-" + profile.publicId, extension: "png" });
@@ -1636,6 +1652,11 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
             <div className="relative w-full max-w-[360px] rounded-[22px] border border-white/10 bg-[#071722] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:p-3">
               <div className="aspect-square w-full rounded-2xl border border-[#03A9F4]/15 p-2 sm:p-3" style={{ background: bgColor }}>
                 <div ref={qrRef} className="flex h-full w-full items-center justify-center [&>*]:h-full [&>*]:max-h-full [&>*]:max-w-full [&>*]:shrink-0 [&>*]:object-contain" />
+                {!qrReady && (
+                  <div className="absolute inset-4 flex items-center justify-center rounded-2xl bg-[#071722]/80 text-[#8fdfff] sm:inset-6">
+                    <i className="ri-loader-4-line animate-spin text-2xl" />
+                  </div>
+                )}
               </div>
               <div className="pointer-events-none absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl border border-white/15 bg-white p-2 shadow-lg sm:h-16 sm:w-16">
                 <img src={centerLogo} alt="QR center logo" className="h-full w-full object-contain" />
@@ -2848,6 +2869,10 @@ export default function DashboardPage() {
   const profile = profiles.find(p => p.id === selId) ?? profiles[0] ?? null;
   const activeInbox = profile ? (inboxes[profile.id] ?? inboxMemoryCache.get(profile.id) ?? { messages: [], unreadCount: 0 }) : { messages: [], unreadCount: 0 };
 
+  useEffect(() => {
+    void preloadQrCodeStyling();
+  }, []);
+
   function showToast(msg: string, ok = true) {
     const id = ++toastIdRef.current;
     const dismissDelay = 2400;
@@ -3367,7 +3392,14 @@ export default function DashboardPage() {
         </div>
         <nav className="flex-1 px-2 py-3 space-y-0.5">
           {NAV.map(n => (
-            <button key={n.id} type="button" onClick={() => { setTab(n.id); setSidebarOpen(false); }} className={"w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all " + (tab === n.id ? "bg-white/10 text-white font-medium" : "text-white/60 hover:text-white hover:bg-white/5")}>
+            <button
+              key={n.id}
+              type="button"
+              onMouseEnter={() => { if (n.id === "share") void preloadQrCodeStyling(); }}
+              onFocus={() => { if (n.id === "share") void preloadQrCodeStyling(); }}
+              onClick={() => { if (n.id === "share") void preloadQrCodeStyling(); setTab(n.id); setSidebarOpen(false); }}
+              className={"w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all " + (tab === n.id ? "bg-white/10 text-white font-medium" : "text-white/60 hover:text-white hover:bg-white/5")}
+            >
               <i className={n.icon + " text-base"} />{n.label}
             </button>
           ))}
@@ -3511,7 +3543,7 @@ export default function DashboardPage() {
         {/* Mobile bottom nav */}
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex border-t border-white/5 bg-[#0f0f0f]/95 text-white backdrop-blur-xl">
           {NAV.map(n => (
-            <button key={n.id} type="button" onClick={() => setTab(n.id)} className={"flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] transition-all " + (tab === n.id ? "text-[#03A9F4]" : "text-white/55 hover:text-white/75")}>
+            <button key={n.id} type="button" onClick={() => { if (n.id === "share") void preloadQrCodeStyling(); setTab(n.id); }} className={"flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] transition-all " + (tab === n.id ? "text-[#03A9F4]" : "text-white/55 hover:text-white/75")}>
               <i className={n.icon + " text-lg"} />
               <span>{n.label}</span>
             </button>
