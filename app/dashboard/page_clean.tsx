@@ -860,6 +860,7 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
   editOpen: boolean; setEditOpen: (v: boolean) => void; addOpen: boolean; setAddOpen: (v: boolean) => void; editLink: LinkItem | null; setEditLink: (l: LinkItem | null) => void;
   onUpdateLink: (id: string, p: Record<string, unknown>) => void; onAddLinkSubmit: (d: LinkDraft) => void;
 }) {
+  const { isArabic } = useLanguage();
   const [avatarModal, setAvatarModal] = useState(false);
   const [coverModal, setCoverModal] = useState(false);
   const regularLinks = profile.links.filter(link => !isCvLink(link));
@@ -935,7 +936,7 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
                 onClick={() => setEditOpen(!editOpen)}
                 className="flex h-9 shrink-0 items-center justify-center rounded-full bg-[#03A9F4] px-3 text-xs font-bold text-white shadow-lg lg:hidden"
               >
-                Edit Profile
+                {isArabic ? "تعديل الملف" : "Edit Profile"}
               </button>
               <button
                 type="button"
@@ -943,7 +944,7 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
                 className="relative hidden h-9 shrink-0 items-center justify-center rounded-full border border-[#03A9F4]/35 bg-[#03A9F4]/10 px-3 text-xs font-bold text-[#03A9F4] transition hover:bg-[#03A9F4]/15 sm:flex"
               >
                 <i className="ri-message-3-line mr-1.5 text-base" />
-                Messages
+                {isArabic ? "الرسائل" : "Messages"}
                 {unreadMessages > 0 && (
                   <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#03A9F4] px-1.5 text-[10px] font-black text-white shadow-lg">
                     {unreadMessages > 9 ? "9+" : unreadMessages}
@@ -959,15 +960,15 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
         <div className="grid gap-3">
           <button type="button" onClick={onPreview} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#141414] px-3.5 py-3 text-left transition hover:bg-white/[0.045] hover:border-white/20">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.06]"><i className="ri-eye-line text-xl text-white/75" /></div>
-            <div><p className="text-base font-bold leading-tight">Preview</p><p className="mt-0.5 text-xs text-white/45">View Profile</p></div>
+            <div><p className="text-base font-bold leading-tight">{isArabic ? "معاينة" : "Preview"}</p><p className="mt-0.5 text-xs text-white/45">{isArabic ? "عرض الملف" : "View Profile"}</p></div>
           </button>
           <button onClick={() => setEditOpen(!editOpen)} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#141414] px-3.5 py-3 text-left transition hover:bg-white/[0.045] hover:border-white/20">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.06]"><i className="ri-pencil-line text-xl text-white/75" /></div>
-            <div><p className="text-base font-bold leading-tight">Edit Profile</p><p className="mt-0.5 text-xs text-white/45">Profile & vCard</p></div>
+            <div><p className="text-base font-bold leading-tight">{isArabic ? "تعديل الملف" : "Edit Profile"}</p><p className="mt-0.5 text-xs text-white/45">{isArabic ? "الملف وجهة الاتصال" : "Profile & vCard"}</p></div>
           </button>
           <div className={"flex items-center gap-3 rounded-2xl border px-3.5 py-3 " + (profile.isActive && !profile.isSuspended ? "border-green-500/20 bg-[#141414]" : "border-white/10 bg-[#141414]")}>
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.06]"><i className={"ri-shield-check-line text-xl " + (profile.isActive && !profile.isSuspended ? "text-white/85" : "text-white/45")} /></div>
-            <div><p className="text-base font-bold leading-tight">{profile.isSuspended ? "Suspended" : profile.isActive ? "Active" : "Inactive"}</p><p className="mt-0.5 text-xs text-white/45">Tag status</p></div>
+            <div><p className="text-base font-bold leading-tight">{profile.isSuspended ? (isArabic ? "موقوف" : "Suspended") : profile.isActive ? (isArabic ? "نشط" : "Active") : (isArabic ? "غير نشط" : "Inactive")}</p><p className="mt-0.5 text-xs text-white/45">{isArabic ? "حالة البطاقة" : "Tag status"}</p></div>
           </div>
         </div>
       </div>
@@ -975,8 +976,8 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
       <div className="lg:col-span-2">
         <div className="rounded-2xl border border-white/10 bg-[#1a1a1a] p-4 text-white sm:p-5 lg:rounded-[22px] lg:p-4">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-base font-semibold lg:text-lg">Your Links</h3>
-            <button onClick={onAddLink} className="flex h-10 items-center gap-1.5 rounded-full bg-white px-3.5 text-sm font-bold text-black transition hover:bg-white/90"><i className="ri-add-line text-lg" />Add</button>
+            <h3 className="text-base font-semibold lg:text-lg">{isArabic ? "روابطك" : "Your Links"}</h3>
+            <button onClick={onAddLink} className="flex h-10 items-center gap-1.5 rounded-full bg-white px-3.5 text-sm font-bold text-black transition hover:bg-white/90"><i className="ri-add-line text-lg" />{isArabic ? "إضافة" : "Add"}</button>
           </div>
           {editLink && (
             <EditLinkForm
@@ -988,7 +989,7 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
             />
           )}
           {regularLinks.length === 0 && !addOpen
-            ? <div className="text-center py-8 border border-dashed border-white/10 rounded-xl"><i className="ri-links-line text-3xl text-white/20 mb-2 block" /><p className="text-white/30 text-sm">No links yet</p></div>
+            ? <div className="text-center py-8 border border-dashed border-white/10 rounded-xl"><i className="ri-links-line text-3xl text-white/20 mb-2 block" /><p className="text-white/30 text-sm">{isArabic ? "لا توجد روابط بعد" : "No links yet"}</p></div>
             : <div className="space-y-2.5">
               {regularLinks.map((link) => {
                 const i = profile.links.findIndex(l => l.id === link.id);
@@ -1266,6 +1267,7 @@ function DonutChart({ data }: { data: { title: string; clicks: number; fill: str
 }
 
 function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: string; uid: string }) {
+  const { isArabic } = useLanguage();
   const [data, setData] = useState<AnalyticsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<7 | 14 | 30>(7);
@@ -1324,10 +1326,10 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(3,169,244,0.22),transparent_34%),radial-gradient(circle_at_92%_18%,rgba(53,193,154,0.14),transparent_28%)]" />
         <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.24em] text-[#03A9F4]">Audience pulse</p>
-            <h2 className="text-3xl font-semibold leading-none tracking-normal text-white sm:text-4xl">Understand who is tapping in.</h2>
+            <p className={`mb-2 text-xs font-semibold text-[#03A9F4] ${isArabic ? "" : "uppercase tracking-[0.24em]"}`}>{isArabic ? "نبض الجمهور" : "Audience pulse"}</p>
+            <h2 className="text-3xl font-semibold leading-none tracking-normal text-white sm:text-4xl">{isArabic ? "اعرف من يتفاعل مع ملفك." : "Understand who is tapping in."}</h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-white/55">
-              Live profile views, link intent, contact saves, and the moments your NFC profile turns attention into action.
+              {isArabic ? "تابع الزيارات والضغطات وحفظ جهات الاتصال لحظة بلحظة." : "Live profile views, link intent, contact saves, and the moments your NFC profile turns attention into action."}
             </p>
           </div>
 
@@ -1395,8 +1397,8 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
       <div className="rounded-[30px] border border-white/10 bg-[#111] p-5 shadow-2xl shadow-black/20 sm:p-6">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-xl font-bold">Activity rhythm</h3>
-            <p className="mt-1 text-sm text-white/40">{hasActivity ? "Views and clicks across the selected window." : "Share your profile to start building a signal."}</p>
+            <h3 className="text-xl font-bold">{isArabic ? "إيقاع النشاط" : "Activity rhythm"}</h3>
+            <p className="mt-1 text-sm text-white/40">{hasActivity ? (isArabic ? "الزيارات والضغطات خلال الفترة المحددة." : "Views and clicks across the selected window.") : (isArabic ? "شارك ملفك لتبدأ في جمع البيانات." : "Share your profile to start building a signal.")}</p>
           </div>
           <div className="flex items-center gap-3 text-xs text-white/45">
             <span className="flex items-center gap-1"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-[#03A9F4]" />Views</span>
@@ -1413,8 +1415,8 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
 
       <div className="rounded-[30px] border border-white/10 bg-[#111] p-5 shadow-2xl shadow-black/20">
         <div className="mb-5">
-          <h3 className="text-xl font-bold">Click distribution</h3>
-          <p className="mt-1 text-sm text-white/40">See which destinations pull the most intent.</p>
+          <h3 className="text-xl font-bold">{isArabic ? "توزيع الضغطات" : "Click distribution"}</h3>
+          <p className="mt-1 text-sm text-white/40">{isArabic ? "اعرف أي وجهات تجذب اهتمامًا أكثر." : "See which destinations pull the most intent."}</p>
         </div>
         {loading
           ? <div className="flex h-56 items-center justify-center"><i className="ri-loader-4-line animate-spin text-3xl text-white/20" /></div>
@@ -1517,6 +1519,7 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
 }
 
 function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copied: boolean }) {
+  const { isArabic } = useLanguage();
   const url = typeof window !== "undefined" ? window.location.origin + "/profile/" + profile.publicId : "/profile/" + profile.publicId;
   const qrRef = useRef<HTMLDivElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -1640,10 +1643,10 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
     <div className="w-full">
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="font-bold text-lg sm:text-xl">Share</h2>
-          <p className="mt-1 text-sm text-white/45">Download a branded QR or send your public profile link.</p>
+          <h2 className="font-bold text-lg sm:text-xl">{isArabic ? "المشاركة" : "Share"}</h2>
+          <p className="mt-1 text-sm text-white/45">{isArabic ? "حمّل QR خاص بك أو أرسل رابط ملفك العام." : "Download a branded QR or send your public profile link."}</p>
         </div>
-        {isPrime && <span className="w-fit rounded-full border border-[#03A9F4]/30 bg-[#03A9F4]/10 px-3 py-1 text-xs font-bold text-[#8fdfff]">Pro QR logo enabled</span>}
+        {isPrime && <span className="w-fit rounded-full border border-[#03A9F4]/30 bg-[#03A9F4]/10 px-3 py-1 text-xs font-bold text-[#8fdfff]">{isArabic ? "شعار QR Pro مفعّل" : "Pro QR logo enabled"}</span>}
       </div>
       <div className="grid min-w-0 gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
 
@@ -1667,16 +1670,16 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
             <div className="grid w-full max-w-md grid-cols-1 gap-2 min-[420px]:grid-cols-3">
               <button onClick={download}
                 className="flex min-h-12 items-center justify-center gap-1.5 rounded-xl bg-white px-3 py-3 text-sm font-bold text-[#06111a] transition-all hover:bg-white/90 active:scale-[0.98]">
-                <i className="ri-download-line" /> Download
+                <i className="ri-download-line" /> {isArabic ? "تحميل" : "Download"}
               </button>
               <button onClick={copyUrl}
                 className="flex min-h-12 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/6 px-3 py-3 text-sm font-semibold text-white transition-all hover:bg-white/10">
                 <i className={copied ? "ri-check-line text-green-400" : "ri-link"} />
-                {copied ? "Copied" : "Copy"}
+                {copied ? (isArabic ? "تم النسخ" : "Copied") : (isArabic ? "نسخ" : "Copy")}
               </button>
               <button onClick={shareUrl}
                 className="flex min-h-12 items-center justify-center gap-1.5 rounded-xl border border-[#03A9F4]/35 bg-[#03A9F4]/15 px-3 py-3 text-sm font-bold text-[#28bfff] transition-all hover:bg-[#03A9F4]/20">
-                <i className="ri-share-forward-line" /> Share
+                <i className="ri-share-forward-line" /> {isArabic ? "مشاركة" : "Share"}
               </button>
             </div>
 
@@ -1684,7 +1687,7 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
               <i className="ri-links-line flex-shrink-0 text-sm text-[#8fdfff]/60" />
               <span className="flex-1 truncate font-mono text-xs text-[#8fdfff]">{url}</span>
               <button onClick={copyUrl} className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-white/55 transition hover:bg-white/8 hover:text-white">
-                {copied ? "Copied" : "Copy"}
+                {copied ? (isArabic ? "تم النسخ" : "Copied") : (isArabic ? "نسخ" : "Copy")}
               </button>
             </div>
           </div>
@@ -1693,7 +1696,7 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
         {/* Customization panel */}
         <div className="rounded-2xl border border-white/10 bg-[#141719] p-5 space-y-5">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="font-semibold text-sm">Customization</h3>
+            <h3 className="font-semibold text-sm">{isArabic ? "التخصيص" : "Customization"}</h3>
             <i className="ri-qr-scan-2-line text-lg text-[#03A9F4]" />
           </div>
 
@@ -1785,6 +1788,7 @@ function ShareTab({ profile }: { profile: ProfileData; onCopy: () => void; copie
 }
 
 function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDeleted }: { profile: ProfileData; email: string; token: string; uid: string; onPatch: (patch: Record<string, unknown>) => Promise<void>; onRequestGold: (request?: GoldRequest) => void; onDeleted: (profileId: string) => void }) {
+  const { isArabic, toggleLanguage } = useLanguage();
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   const [panel, setPanel] = useState<"main" | "products" | "subscription" | "security" | "support">("main");
@@ -1968,7 +1972,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
     return (
       <div className="mx-auto w-full max-w-5xl pb-4">
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
-          <BackHeader title="Products & Profiles" subtitle="Product, customer, and NFC profile details" />
+          <BackHeader title={isArabic ? "المنتجات والملفات" : "Products & Profiles"} subtitle={isArabic ? "تفاصيل المنتج والعميل وملف NFC" : "Product, customer, and NFC profile details"} />
           <div className="p-4">
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <div className="flex items-center gap-3">
@@ -2025,7 +2029,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
     return (
       <div className="mx-auto w-full max-w-5xl pb-4">
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
-          <BackHeader title="Subscription" subtitle="Current access and available Prime services" />
+          <BackHeader title={isArabic ? "الاشتراك" : "Subscription"} subtitle={isArabic ? "الخدمات الحالية وخدمات Prime المتاحة" : "Current access and available Prime services"} />
           <div className="p-4">
             <div className="rounded-2xl border border-[#03A9F4]/25 bg-[#03A9F4]/10 p-4">
               <p className="text-sm font-bold text-white">Subscription Status</p>
@@ -2085,7 +2089,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
     return (
       <div className="mx-auto w-full max-w-5xl pb-4">
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
-          <BackHeader title="Profile & Security" subtitle="Personal account and password settings" />
+          <BackHeader title={isArabic ? "الملف والأمان" : "Profile & Security"} subtitle={isArabic ? "إعدادات الحساب وكلمة المرور" : "Personal account and password settings"} />
 
           <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:items-start">
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
@@ -2286,22 +2290,22 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
         </section>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
-          <SettingsSection title="Account">
-            <SettingsRow icon="ri-qr-code-line" label="Products & Profiles" value={`${profile.links.length} links`} onClick={() => setPanel("products")} />
-            <SettingsRow icon="ri-bank-card-line" label="Subscription" value={designActive || verifiedActive ? "Prime" : "Free"} onClick={() => setPanel("subscription")} />
-            <SettingsRow icon="ri-user-line" label="Profile & Security" value={isFutureDate(profile.verifiedUntil) ? "Verified" : "Security"} active onClick={() => setPanel("security")} />
+          <SettingsSection title={isArabic ? "الحساب" : "Account"}>
+            <SettingsRow icon="ri-qr-code-line" label={isArabic ? "المنتجات والملفات" : "Products & Profiles"} value={isArabic ? `${profile.links.length} روابط` : `${profile.links.length} links`} onClick={() => setPanel("products")} />
+            <SettingsRow icon="ri-bank-card-line" label={isArabic ? "الاشتراك" : "Subscription"} value={designActive || verifiedActive ? "Prime" : (isArabic ? "مجاني" : "Free")} onClick={() => setPanel("subscription")} />
+            <SettingsRow icon="ri-user-line" label={isArabic ? "الملف والأمان" : "Profile & Security"} value={isFutureDate(profile.verifiedUntil) ? (isArabic ? "موثق" : "Verified") : (isArabic ? "الأمان" : "Security")} active onClick={() => setPanel("security")} />
           </SettingsSection>
 
-          <SettingsSection title="App Settings">
-            <SettingsRow icon="ri-moon-line" label="Appearance" value="Dark" />
-            <SettingsRow icon="ri-global-line" label="Language" value="English" />
+          <SettingsSection title={isArabic ? "إعدادات التطبيق" : "App Settings"}>
+            <SettingsRow icon="ri-moon-line" label={isArabic ? "المظهر" : "Appearance"} value={isArabic ? "داكن" : "Dark"} />
+            <SettingsRow icon="ri-global-line" label={isArabic ? "اللغة" : "Language"} value={isArabic ? "العربية" : "English"} onClick={toggleLanguage} />
           </SettingsSection>
 
-          <SettingsSection title="Help & Support">
-            <SettingsRow icon="ri-shield-check-line" label="Privacy Policy & Terms" onClick={() => router.push("/terms")} />
-            <SettingsRow icon="ri-phone-line" label="Contact & Support" onClick={() => setPanel("support")} />
-            <SettingsRow icon="ri-logout-box-r-line" label="Sign Out" danger onClick={signOut} />
-            <SettingsRow icon={deleting ? "ri-loader-4-line animate-spin" : "ri-delete-bin-line"} label={deleting ? "Deleting..." : "Delete Account"} danger onClick={deleteProfile} />
+          <SettingsSection title={isArabic ? "المساعدة والدعم" : "Help & Support"}>
+            <SettingsRow icon="ri-shield-check-line" label={isArabic ? "الشروط وسياسة الخصوصية" : "Privacy Policy & Terms"} onClick={() => router.push("/terms")} />
+            <SettingsRow icon="ri-phone-line" label={isArabic ? "التواصل والدعم" : "Contact & Support"} onClick={() => setPanel("support")} />
+            <SettingsRow icon="ri-logout-box-r-line" label={isArabic ? "تسجيل الخروج" : "Sign Out"} danger onClick={signOut} />
+            <SettingsRow icon={deleting ? "ri-loader-4-line animate-spin" : "ri-delete-bin-line"} label={deleting ? (isArabic ? "جار الحذف..." : "Deleting...") : (isArabic ? "حذف الحساب" : "Delete Account")} danger onClick={deleteProfile} />
           </SettingsSection>
         </div>
       </div>
@@ -2600,6 +2604,7 @@ function MessageInboxSheet({
 }
 
 function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: ProfileData; saving: boolean; onSave: (t: ProfileTheme, message?: string) => void; onRequestGold: (request?: GoldRequest) => void }) {
+  const { isArabic } = useLanguage();
   const theme = profile.theme ?? { style: "dark", primaryColor: "#03A9F4", fontFamily: "Inter" };
   const [style, setStyle] = useState(theme.style || "dark");
   const [linksLayout, setLinksLayout] = useState<"list" | "grid">(theme.linksLayout || "list");
@@ -2643,26 +2648,26 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
 
       {/* ── Left: scrollable content ── */}
       <div className="flex-1 space-y-6 overflow-visible pb-32 lg:overflow-y-auto lg:pr-4 lg:pb-20">
-        <h2 className="font-bold text-lg sm:text-xl">Appearance</h2>
+        <h2 className="font-bold text-lg sm:text-xl">{isArabic ? "المظهر" : "Appearance"}</h2>
 
         {/* Pro banner */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-[#03A9F4]/15 to-[#03A9F4]/5 border border-[#03A9F4]/20 rounded-2xl px-5 py-3.5">
           <div className="flex items-center gap-3">
             <i className="ri-vip-crown-fill text-[#03A9F4] text-lg flex-shrink-0" />
-            <span className="text-[#03A9F4] font-semibold text-sm">{isPrime ? "Prime is active for this profile" : "Prime Design costs 150 EGP and unlocks all Prime themes and layouts"}</span>
+            <span className="text-[#03A9F4] font-semibold text-sm">{isPrime ? (isArabic ? "Prime مفعّل لهذا الملف" : "Prime is active for this profile") : (isArabic ? "Prime Design يفتح الثيمات والتخطيطات المميزة" : "Prime Design costs 150 EGP and unlocks all Prime themes and layouts")}</span>
           </div>
-          {!isPrime && <button onClick={() => onRequestGold({ service: "design" })} className="bg-[#03A9F4]/15 text-[#03A9F4] hover:bg-[#03A9F4]/25 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap">Upgrade Now</button>}
+          {!isPrime && <button onClick={() => onRequestGold({ service: "design" })} className="bg-[#03A9F4]/15 text-[#03A9F4] hover:bg-[#03A9F4]/25 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap">{isArabic ? "ترقية الآن" : "Upgrade Now"}</button>}
         </div>
 
         {/* Themes header + filter */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-sm">Themes</h3>
+            <h3 className="font-bold text-sm">{isArabic ? "الثيمات" : "Themes"}</h3>
             <div className="flex bg-[#1a1a1a] border border-white/8 rounded-xl p-1 gap-0.5">
               {(["all", "free", "premium"] as const).map(f => (
                 <button key={f} onClick={() => setFilter(f)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${filter === f ? "bg-white/10 text-white" : "text-white/30 hover:text-white/60"}`}>
-                  {f === "all" ? "All" : f === "free" ? "Free" : "Premium"}
+                  {f === "all" ? (isArabic ? "الكل" : "All") : f === "free" ? (isArabic ? "مجاني" : "Free") : (isArabic ? "مميز" : "Premium")}
                 </button>
               ))}
             </div>
@@ -2745,7 +2750,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
             {/* Profile layout */}
             <div className="bg-[#141414] border border-white/8 rounded-2xl p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold">Profile Layout</span>
+                <span className="text-sm font-semibold">{isArabic ? "تخطيط الملف" : "Profile Layout"}</span>
               </div>
               <div className="flex gap-2">
                 <button onClick={() => applyLayout(linksLayout, "classic")}
@@ -2764,7 +2769,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
 
       {/* ── Right: phone preview ── */}
       <div className="hidden lg:flex w-[280px] xl:w-[300px] flex-shrink-0 flex-col items-center pt-0 sticky top-0 self-start pl-4">
-        <p className="text-xs text-white/30 mb-3 font-medium">Live Preview</p>
+        <p className="text-xs text-white/30 mb-3 font-medium">{isArabic ? "معاينة مباشرة" : "Live Preview"}</p>
         {/* Phone frame */}
         <div className="relative w-[240px] h-[500px]">
           {/* outer shell */}
@@ -3123,8 +3128,12 @@ export default function DashboardPage() {
             const r = await fetch("/api/v1/profiles/" + p.id, { headers: { Authorization: "Bearer " + tok, "x-user-id": uid } });
             const j = await readApiJson(r);
             return j.data ? { ...j.data, links: j.data.links ?? [] } : { ...p, links: [] };
-          } catch { return p; }
+        } catch { return p; }
         }));
+        if (full.length === 0) {
+          router.replace("/connect-nfc");
+          return;
+        }
         setProfiles(full);
       } catch (e) {
         showToast(e instanceof Error ? e.message : "Failed to load profiles", false);

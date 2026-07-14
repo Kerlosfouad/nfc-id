@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/components/LanguageProvider";
 
 function readableAuthError(message: unknown) {
   const fallback = "Account could not be created. Please try again.";
@@ -32,6 +33,7 @@ function readableAuthError(message: unknown) {
 }
 
 function SignupContent() {
+  const { isArabic, toggleLanguage } = useLanguage();
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [email, setEmail] = useState("");
@@ -81,6 +83,8 @@ function SignupContent() {
           email: cleanEmail,
           password: cleanPassword,
           fullName: fullName.trim(),
+          redirectTo,
+          ...(nfcSession ? { nfcSession } : {}),
         }),
       });
       const signupBody = await signupRes.json().catch(() => ({}));
@@ -120,7 +124,7 @@ function SignupContent() {
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#07090c] px-4 py-8">
+    <main dir={isArabic ? "rtl" : "ltr"} className={`relative flex min-h-screen items-center justify-center overflow-hidden bg-[#07090c] px-4 py-8 ${isArabic ? "font-[Cairo]" : ""}`}>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(3,169,244,0.18),transparent_34rem),linear-gradient(180deg,rgba(3,169,244,0.05),transparent_42%)]" />
 
       <div className="relative z-10 w-full max-w-[460px]">
@@ -129,18 +133,24 @@ function SignupContent() {
             <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={62} height={62} className="h-16 w-16 object-contain transition-all group-hover:drop-shadow-[0_0_16px_rgba(3,169,244,0.75)]" priority />
           </Link>
         </div>
+        <button type="button" onClick={toggleLanguage} className="mx-auto mb-4 flex h-9 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 text-xs font-bold text-white/70 hover:border-[#03A9F4]/35">
+          <i className="ri-translate-2" />
+          {isArabic ? "English" : "العربية"}
+        </button>
 
         <div className="rounded-2xl border border-[#03A9F4]/18 bg-[#0d2539] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-8">
           <div className="mb-8">
-            <h2 className="mb-2 text-3xl font-bold leading-tight text-white sm:text-4xl">Create account</h2>
+            <h2 className="mb-2 text-3xl font-bold leading-tight text-white sm:text-4xl">{isArabic ? "إنشاء حساب" : "Create account"}</h2>
             <p className="text-sm text-white/60">
-              {redirectTo.startsWith("/connect-nfc") ? "Create your account before linking your NFC card" : "Join thousands of LinkUp users"}
+              {redirectTo.startsWith("/connect-nfc")
+                ? (isArabic ? "أنشئ حسابك قبل ربط بطاقة NFC" : "Create your account before linking your NFC card")
+                : (isArabic ? "انضم إلى مستخدمي LinkUp" : "Join thousands of LinkUp users")}
             </p>
           </div>
 
           <form onSubmit={handleSignup} className="space-y-5">
             <div className="group">
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/55">Email</label>
+              <label className={`mb-2 block text-xs font-semibold text-white/55 ${isArabic ? "" : "uppercase tracking-wider"}`}>{isArabic ? "البريد الإلكتروني" : "Email"}</label>
               <div className="relative">
                 <i className="ri-mail-line absolute left-4 top-1/2 -translate-y-1/2 text-lg text-white/45 transition-colors group-focus-within:text-[#03A9F4]" />
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
@@ -150,17 +160,17 @@ function SignupContent() {
             </div>
 
             <div className="group">
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/55">Full Name</label>
+              <label className={`mb-2 block text-xs font-semibold text-white/55 ${isArabic ? "" : "uppercase tracking-wider"}`}>{isArabic ? "الاسم الكامل" : "Full Name"}</label>
               <div className="relative">
                 <i className="ri-user-line absolute left-4 top-1/2 -translate-y-1/2 text-lg text-white/45 transition-colors group-focus-within:text-[#03A9F4]" />
                 <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required
                   className="w-full rounded-xl border border-[#8fdfff]/12 bg-[#071722] py-3.5 pl-11 pr-4 text-sm text-white outline-none transition-all placeholder:text-white/35 focus:border-[#03A9F4]/70 focus:bg-[#061522]"
-                  placeholder="Your full name" />
+                  placeholder={isArabic ? "اسمك الكامل" : "Your full name"} />
               </div>
             </div>
 
             <div className="group">
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/55">Password</label>
+              <label className={`mb-2 block text-xs font-semibold text-white/55 ${isArabic ? "" : "uppercase tracking-wider"}`}>{isArabic ? "كلمة المرور" : "Password"}</label>
               <div className="relative">
                 <i className="ri-lock-line absolute left-4 top-1/2 -translate-y-1/2 text-lg text-white/45 transition-colors group-focus-within:text-[#03A9F4]" />
                 <input type={showPass ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required
@@ -173,7 +183,7 @@ function SignupContent() {
             </div>
 
             <div className="group">
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-white/55">Confirm Password</label>
+              <label className={`mb-2 block text-xs font-semibold text-white/55 ${isArabic ? "" : "uppercase tracking-wider"}`}>{isArabic ? "تأكيد كلمة المرور" : "Confirm Password"}</label>
               <div className="relative">
                 <i className="ri-lock-password-line absolute left-4 top-1/2 -translate-y-1/2 text-lg text-white/45 transition-colors group-focus-within:text-[#03A9F4]" />
                 <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required
@@ -193,13 +203,13 @@ function SignupContent() {
 
             <button type="submit" disabled={loading}
               className="mt-2 w-full rounded-xl bg-[#03A9F4] py-3.5 text-sm font-bold uppercase tracking-wider text-white transition-all hover:bg-[#20bfff] hover:shadow-[0_0_25px_rgba(3,169,244,0.35)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50">
-              {loading ? "Creating account…" : "Create Account"}
+              {loading ? (isArabic ? "جار إنشاء الحساب..." : "Creating account...") : (isArabic ? "إنشاء الحساب" : "Create Account")}
             </button>
           </form>
 
           <div className="flex items-center gap-3 my-6">
             <div className="h-px flex-1 bg-[#8fdfff]/12" />
-            <span className="text-xs text-white/45">OR</span>
+            <span className="text-xs text-white/45">{isArabic ? "أو" : "OR"}</span>
             <div className="h-px flex-1 bg-[#8fdfff]/12" />
           </div>
 
@@ -207,13 +217,13 @@ function SignupContent() {
             <button type="button" onClick={() => handleOAuth("google")}
               className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#8fdfff]/12 bg-[#071722] py-3.5 text-sm font-semibold text-white transition-all hover:border-[#03A9F4]/50 hover:bg-[#061522]">
               <i className="ri-google-fill text-lg text-[#EA4335]" />
-              Continue with Google
+              {isArabic ? "المتابعة باستخدام Google" : "Continue with Google"}
             </button>
           </div>
 
           <p className="mt-6 text-center text-sm text-white/60">
-            Already have an account?{" "}
-            <Link href={loginHref} className="font-semibold text-[#48c7ff] transition-colors hover:text-white">Sign in</Link>
+            {isArabic ? "لديك حساب بالفعل؟ " : "Already have an account? "}
+            <Link href={loginHref} className="font-semibold text-[#48c7ff] transition-colors hover:text-white">{isArabic ? "تسجيل الدخول" : "Sign in"}</Link>
           </p>
         </div>
       </div>

@@ -2,12 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { db } from '@/lib/db';
+import { deleteUserAccount } from '@/lib/services/deleteUserAccount';
 
 function badRequest(message: string, status = 400) {
   return NextResponse.json(
     { data: null, error: { code: 'BAD_REQUEST', message } },
     { status },
   );
+}
+
+function hasMedalContext(value: string | undefined) {
+  if (!value?.startsWith('/connect-nfc')) return false;
+  try {
+    const url = new URL(value, 'https://linkup.local');
+    return Boolean(url.searchParams.get('nfcSession') || url.searchParams.get('publicId') || url.searchParams.get('uid'));
+  } catch {
+    return false;
+  }
 }
 
 async function findAuthUserByEmail(supabase: SupabaseClient, email: string) {
@@ -37,7 +48,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: { email?: string; password?: string; fullName?: string };
+  let body: { email?: string; password?: string; fullName?: string; redirectTo?: string; nfcSession?: string };
   try {
     body = await request.json();
   } catch {
@@ -47,9 +58,14 @@ export async function POST(request: NextRequest) {
   const email = body.email?.trim().toLowerCase();
   const password = body.password ?? '';
   const fullName = body.fullName?.trim() ?? '';
+  const redirectTo = body.redirectTo?.trim();
+  const nfcSession = body.nfcSession?.trim().replace(/[^a-zA-Z0-9_-]/g, '') ?? '';
 
   if (!email || !email.includes('@')) return badRequest('Enter a valid email.');
   if (password.length < 8) return badRequest('Password must be at least 8 characters.');
+  if (!nfcSession && !hasMedalContext(redirectTo)) {
+    return badRequest('Scan your NFC medal first, then create your account from the medal setup link.');
+  }
 
   const supabase = createClient(supabaseUrl, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -85,7 +101,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (existingAppUser && (existingAppUser.id !== existingAuthUser?.id || existingProfileCount === 0)) {
-    await db.user.deleteMany({ where: { email } });
+    await deleteUserAccount(existingAppUser.id);
   }
 
   const { data, error } = await supabase.auth.admin.createUser({

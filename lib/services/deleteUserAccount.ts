@@ -31,12 +31,21 @@ export async function deleteUserAccount(userId: string) {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
-  if (authDeleteError && !/not\s*found|does\s*not\s*exist/i.test(authDeleteError.message)) {
-    throw new Error(authDeleteError.message);
-  }
-
   await db.$transaction(async (tx) => {
+    try {
+      await tx.$executeRaw`DELETE FROM push_subscriptions WHERE user_id = ${userId}`;
+    } catch (error) {
+      if (!/does not exist|undefined_table/i.test(error instanceof Error ? error.message : String(error))) throw error;
+    }
+
+    if (email) {
+      try {
+        await tx.$executeRaw`DELETE FROM shop_orders WHERE lower(email) = ${email}`;
+      } catch (error) {
+        if (!/does not exist|undefined_table/i.test(error instanceof Error ? error.message : String(error))) throw error;
+      }
+    }
+
     await tx.nfcTag.deleteMany({
       where: {
         OR: [
@@ -55,18 +64,9 @@ export async function deleteUserAccount(userId: string) {
     await tx.user.deleteMany({ where: { id: userId } });
   });
 
-  try {
-    await db.$executeRaw`DELETE FROM push_subscriptions WHERE user_id = ${userId}`;
-  } catch (error) {
-    if (!/does not exist|undefined_table/i.test(error instanceof Error ? error.message : String(error))) throw error;
-  }
-
-  if (email) {
-    try {
-      await db.$executeRaw`DELETE FROM shop_orders WHERE lower(email) = ${email}`;
-    } catch (error) {
-      if (!/does not exist|undefined_table/i.test(error instanceof Error ? error.message : String(error))) throw error;
-    }
+  const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+  if (authDeleteError && !/not\s*found|does\s*not\s*exist/i.test(authDeleteError.message)) {
+    throw new Error(authDeleteError.message);
   }
 
   for (const publicId of cachePublicIds) {
