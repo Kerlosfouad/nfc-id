@@ -274,6 +274,7 @@ function isVideoUrl(url?: string | null): boolean {
 }
 
 function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { profile: ProfileData; saving: boolean; onSave: (p: Record<string, unknown>) => void; onClose: () => void; onAddLink?: (d: LinkDraft) => void }) {
+  const { isArabic } = useLanguage();
   const [name, setName] = useState(profile.displayName);
   const [bio, setBio] = useState(profile.bio ?? "");
   const [avatar, setAvatar] = useState(profile.avatarUrl ?? "");
@@ -302,7 +303,7 @@ function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { pro
       onClose();
     } catch (err) {
       console.error("CV upload error:", err);
-      alert("Upload failed: " + (err instanceof Error ? err.message : JSON.stringify(err)));
+      alert((isArabic ? "فشل الرفع: " : "Upload failed: ") + (err instanceof Error ? err.message : JSON.stringify(err)));
     } finally {
       setCvUploading(false);
     }
@@ -310,21 +311,21 @@ function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { pro
 
   return (
     <div className="bg-[#1a1a1a] border border-[#03A9F4]/30 rounded-2xl p-5 space-y-3">
-      <div className="flex items-center justify-between"><h3 className="font-semibold text-sm">Edit Profile</h3><button onClick={onClose} className="text-white/40 hover:text-white"><i className="ri-close-line" /></button></div>
-      <div><label className="text-xs text-white/40 block mb-1">Display Name</label><input value={name} onChange={e => setName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" /></div>
-      <div><label className="text-xs text-white/40 block mb-1">Bio</label><textarea value={bio} onChange={e => setBio(e.target.value)} rows={2} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none resize-none" /></div>
-      <div><label className="text-xs text-white/40 block mb-1">Avatar URL</label><input value={avatar} onChange={e => setAvatar(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" placeholder="https://..." /></div>
+      <div className="flex items-center justify-between"><h3 className="font-semibold text-sm">{isArabic ? "تعديل الملف" : "Edit Profile"}</h3><button onClick={onClose} className="text-white/40 hover:text-white"><i className="ri-close-line" /></button></div>
+      <div><label className="text-xs text-white/40 block mb-1">{isArabic ? "اسم العرض" : "Display Name"}</label><input value={name} onChange={e => setName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" /></div>
+      <div><label className="text-xs text-white/40 block mb-1">{isArabic ? "نبذة" : "Bio"}</label><textarea value={bio} onChange={e => setBio(e.target.value)} rows={2} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none resize-none" /></div>
+      <div><label className="text-xs text-white/40 block mb-1">{isArabic ? "رابط الصورة" : "Avatar URL"}</label><input value={avatar} onChange={e => setAvatar(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none" placeholder="https://..." /></div>
       <div className="flex items-center gap-2 pt-1">
-        <button onClick={() => onSave({ displayName: name, bio: bio || null, avatarUrl: avatar || null })} disabled={saving} className="bg-white text-black text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">{saving ? "Saving..." : "Save"}</button>
+        <button onClick={() => onSave({ displayName: name, bio: bio || null, avatarUrl: avatar || null })} disabled={saving} className="bg-white text-black text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">{saving ? (isArabic ? "جار الحفظ..." : "Saving...") : (isArabic ? "حفظ" : "Save")}</button>
         <button
           onClick={() => cvRef.current?.click()}
           disabled={cvUploading}
           className="flex items-center gap-1.5 text-sm text-white/50 hover:text-white border border-white/10 hover:border-white/30 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
-          title="Upload CV / Resume (PDF)"
+          title={isArabic ? "رفع السيرة الذاتية PDF" : "Upload CV / Resume (PDF)"}
         >
           {cvUploading
-            ? <><i className="ri-loader-4-line animate-spin text-base" /><span>Uploading...</span></>
-            : <><i className="ri-file-upload-line text-base" /><span>Upload CV</span></>
+            ? <><i className="ri-loader-4-line animate-spin text-base" /><span>{isArabic ? "جار الرفع..." : "Uploading..."}</span></>
+            : <><i className="ri-file-upload-line text-base" /><span>{isArabic ? "رفع CV" : "Upload CV"}</span></>
           }
         </button>
         <input ref={cvRef} type="file" accept=".pdf,application/pdf" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleCvUpload(f); }} />
@@ -334,6 +335,7 @@ function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { pro
 }
 
 function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit: (d: LinkDraft) => void; onCancel: () => void }) {
+  const { isArabic } = useLanguage();
   const categories = ["All", ...LINK_PICKER_SECTIONS.map(s => s.category)];
   const [activeCategory, setActiveCategory] = useState("All");
   const [query, setQuery] = useState("");
@@ -396,7 +398,7 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
                   activeCategory === category ? "bg-[#03A9F4] text-white" : "bg-white/[0.06] text-white/50 hover:bg-white/10"
                 }`}
               >
-                {category}
+                {isArabic ? ({ All: "الكل", Social: "اجتماعي", Professional: "مهني", Entertainment: "ترفيه", Payment: "الدفع", Contact: "التواصل", Portfolio: "الأعمال", Other: "أخرى" } as Record<string, string>)[category] ?? category : category}
               </button>
             ))}
           </div>
@@ -405,7 +407,7 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
               value={query}
               onChange={e => setQuery(e.target.value)}
               className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/30"
-              placeholder="Search or paste a link..."
+              placeholder={isArabic ? "ابحث أو الصق رابطًا..." : "Search or paste a link..."}
             />
           </div>
         </div>
@@ -414,13 +416,13 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
           {visibleSections.length === 0 ? (
             <div className="py-14 text-center">
               <i className="ri-search-line text-4xl text-white/15" />
-              <p className="mt-3 text-sm text-white/40">No link type found</p>
+              <p className="mt-3 text-sm text-white/40">{isArabic ? "لم يتم العثور على نوع رابط" : "No link type found"}</p>
             </div>
           ) : (
             <div className="space-y-8">
               {visibleSections.map(section => (
                 <section key={section.category}>
-                  <h3 className="mb-4 text-base font-bold text-white">{section.category}</h3>
+                  <h3 className="mb-4 text-base font-bold text-white">{isArabic ? ({ Social: "اجتماعي", Professional: "مهني", Entertainment: "ترفيه", Payment: "الدفع", Contact: "التواصل", Portfolio: "الأعمال", Other: "أخرى" } as Record<string, string>)[section.category] ?? section.category : section.category}</h3>
                   <div className="grid grid-cols-3 gap-x-5 gap-y-8">
                     {section.items.map(item => {
                       const isSelected = selected?.label === item.label;
@@ -474,7 +476,7 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
                 disabled={saving || submitted || !url.trim()}
                 className="rounded-xl bg-[#03A9F4] px-4 py-2 text-sm font-bold text-white disabled:opacity-35"
               >
-                {saving || submitted ? "Adding..." : "Add"}
+                {saving || submitted ? (isArabic ? "جار الإضافة..." : "Adding...") : (isArabic ? "إضافة" : "Add")}
               </button>
             </div>
           </div>
@@ -482,7 +484,7 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
 
         <div className="shrink-0 border-t border-white/10 bg-[#111] p-4">
           <button type="button" onClick={handleClose} className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.04] text-base font-semibold text-white/70 hover:bg-white/[0.07]">
-            Close
+            {isArabic ? "إغلاق" : "Close"}
           </button>
         </div>
       </div>
@@ -491,6 +493,7 @@ function AddLinkForm({ saving, onSubmit, onCancel }: { saving: boolean; onSubmit
 }
 
 function EditLinkForm({ link, saving, onSubmit, onCancel, onDelete }: { link: LinkItem; saving: boolean; onSubmit: (p: Record<string, unknown>) => void; onCancel: () => void; onDelete?: () => void }) {
+  const { isArabic } = useLanguage();
   const [title, setTitle] = useState(link.title);
   const [url, setUrl] = useState(link.url);
   const isHidden = isLinkHidden(link);
@@ -514,13 +517,13 @@ function EditLinkForm({ link, saving, onSubmit, onCancel, onDelete }: { link: Li
       <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-md mx-4 p-6 space-y-5 shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-base">Edit {typeName}</h2>
+          <h2 className="font-semibold text-base">{isArabic ? "تعديل الرابط" : `Edit ${typeName}`}</h2>
           <button onClick={onCancel} className="text-white/40 hover:text-white transition-colors"><i className="ri-close-line text-xl" /></button>
         </div>
 
         {/* Custom Name */}
         <div className="space-y-1.5">
-          <label className="text-xs text-white/40">Custom Name (Optional)</label>
+          <label className="text-xs text-white/40">{isArabic ? "اسم مخصص (اختياري)" : "Custom Name (Optional)"}</label>
           <input
             value={title}
             onChange={e => setTitle(e.target.value)}
@@ -532,7 +535,7 @@ function EditLinkForm({ link, saving, onSubmit, onCancel, onDelete }: { link: Li
 
         {/* Link */}
         <div className="space-y-1.5">
-          <label className="text-xs text-white/40">Link</label>
+          <label className="text-xs text-white/40">{isArabic ? "الرابط" : "Link"}</label>
           <input
             value={url}
             onChange={e => setUrl(e.target.value)}
@@ -542,7 +545,7 @@ function EditLinkForm({ link, saving, onSubmit, onCancel, onDelete }: { link: Li
 
         {/* Visible Toggle */}
         <div className="flex items-center justify-between">
-          <span className="text-sm">Visible</span>
+          <span className="text-sm">{isArabic ? "ظاهر" : "Visible"}</span>
           <button
             onClick={() => setVisible(v => !v)}
             className={`relative w-10 h-6 rounded-full transition-colors ${visible ? "bg-[#03A9F4]" : "bg-white/10"}`}
@@ -554,7 +557,7 @@ function EditLinkForm({ link, saving, onSubmit, onCancel, onDelete }: { link: Li
         {/* Direct Link Toggle */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm">Direct Link</span>
+            <span className="text-sm">{isArabic ? "رابط مباشر" : "Direct Link"}</span>
             <button
               onClick={() => setDirectLink(v => !v)}
               className={`relative w-10 h-6 rounded-full transition-colors ${directLink ? "bg-[#03A9F4]" : "bg-white/10"}`}
@@ -594,6 +597,7 @@ function ImageUploadModal({ title, current, onSave, onClose }: {
   onSave: (url: string | null) => void;
   onClose: () => void;
 }) {
+  const { isArabic } = useLanguage();
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(current);
   const [uploading, setUploading] = useState(false);
@@ -644,7 +648,7 @@ function ImageUploadModal({ title, current, onSave, onClose }: {
         {/* Header */}
         <div className="text-center mb-5">
           <h3 className="font-bold text-base">{title}</h3>
-          <p className="text-xs text-white/40 mt-0.5">Choose a photo</p>
+          <p className="text-xs text-white/40 mt-0.5">{isArabic ? "اختر صورة" : "Choose a photo"}</p>
         </div>
         <button onClick={onClose} className="absolute top-4 right-4 w-7 h-7 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all">
           <i className="ri-close-line text-sm" />
@@ -661,7 +665,7 @@ function ImageUploadModal({ title, current, onSave, onClose }: {
             ? <img src={preview} alt="" className="w-full h-full object-cover" />
             : <div className="text-center">
               <i className="ri-image-add-line text-4xl text-white/20 block mb-2" />
-              <p className="text-xs text-white/30">Click or drag to upload</p>
+              <p className="text-xs text-white/30">{isArabic ? "اضغط أو اسحب الصورة للرفع" : "Click or drag to upload"}</p>
             </div>
           }
           {preview && (
@@ -677,17 +681,17 @@ function ImageUploadModal({ title, current, onSave, onClose }: {
         <div className="flex gap-2">
           <button onClick={handleSave} disabled={uploading}
             className="flex-1 py-2.5 rounded-xl bg-white text-black text-sm font-bold hover:bg-white/90 disabled:opacity-50 transition-all">
-            {uploading ? <span className="flex items-center justify-center gap-2"><i className="ri-loader-4-line animate-spin" />Uploading...</span> : "Save"}
+            {uploading ? <span className="flex items-center justify-center gap-2"><i className="ri-loader-4-line animate-spin" />{isArabic ? "جار الرفع..." : "Uploading..."}</span> : (isArabic ? "حفظ" : "Save")}
           </button>
           {preview && (
             <button onClick={() => setPreview(null)}
               className="px-4 py-2.5 rounded-xl bg-red-500/15 text-red-400 text-sm font-semibold hover:bg-red-500/25 transition-all">
-              Delete
+              {isArabic ? "حذف" : "Delete"}
             </button>
           )}
           <button onClick={() => fileRef.current?.click()}
             className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/60 text-sm font-semibold hover:bg-white/10 transition-all whitespace-nowrap">
-            Choose
+            {isArabic ? "اختيار" : "Choose"}
           </button>
         </div>
       </div>
@@ -1429,15 +1433,15 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
         {/* Recent Scans */}
         <div className="overflow-hidden rounded-[30px] border border-white/10 bg-[#111] shadow-2xl shadow-black/20">
           <div className="border-b border-white/10 px-5 py-4">
-            <h3 className="text-lg font-bold">Recent scans</h3>
-            <p className="mt-1 text-sm text-white/40">Fresh taps from this profile.</p>
+            <h3 className="text-lg font-bold">{isArabic ? "آخر الزيارات" : "Recent scans"}</h3>
+            <p className="mt-1 text-sm text-white/40">{isArabic ? "أحدث التفاعلات على هذا الملف." : "Fresh taps from this profile."}</p>
           </div>
           <div className="max-h-[360px] overflow-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/5">
-                  <th className="px-4 py-3 text-left font-semibold text-white/45">Scan</th>
-                  <th className="px-4 py-3 text-right font-semibold text-white/45">Status</th>
+                  <th className="px-4 py-3 text-left font-semibold text-white/45">{isArabic ? "الزيارة" : "Scan"}</th>
+                  <th className="px-4 py-3 text-right font-semibold text-white/45">{isArabic ? "الحالة" : "Status"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1446,15 +1450,15 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
                     <tr key={i}><td colSpan={2} className="px-4 py-2.5"><div className="h-4 bg-white/5 rounded animate-pulse" /></td></tr>
                   ))
                 ) : !data || data.recentScans.length === 0 ? (
-                  <tr><td colSpan={2} className="px-4 py-8 text-center text-white/25">No scans yet</td></tr>
+                  <tr><td colSpan={2} className="px-4 py-8 text-center text-white/25">{isArabic ? "لا توجد زيارات بعد" : "No scans yet"}</td></tr>
                 ) : (
                   data.recentScans.map((s, i) => (
                     <tr key={i} className="border-b border-white/10 last:border-0">
                       <td className="px-4 py-4 text-white/80">
                         <span className="block font-medium text-white">{new Date(s.date).toLocaleString(undefined, { month: "numeric", day: "numeric", hour: "numeric", minute: "2-digit" })}</span>
-                        <span className="mt-1 block text-xs text-white/35">{[s.country, s.browser, s.os].filter(Boolean).join(" / ") || "Unknown source"}</span>
+                        <span className="mt-1 block text-xs text-white/35">{[s.country, s.browser, s.os].filter(Boolean).join(" / ") || (isArabic ? "مصدر غير معروف" : "Unknown source")}</span>
                       </td>
-                      <td className="px-4 py-2.5 text-right"><span className="rounded-full bg-[#03A9F4]/15 px-2.5 py-1 text-[11px] font-bold text-[#03A9F4]">New</span></td>
+                      <td className="px-4 py-2.5 text-right"><span className="rounded-full bg-[#03A9F4]/15 px-2.5 py-1 text-[11px] font-bold text-[#03A9F4]">{isArabic ? "جديد" : "New"}</span></td>
                     </tr>
                   ))
                 )}
@@ -1466,8 +1470,8 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
         {/* Link Click Details */}
         <div className="overflow-hidden rounded-[30px] border border-white/10 bg-[#111] shadow-2xl shadow-black/20">
           <div className="border-b border-white/10 px-5 py-4">
-            <h3 className="text-lg font-bold">Link performance</h3>
-            <p className="mt-1 text-sm text-white/40">Ranked by total clicks.</p>
+            <h3 className="text-lg font-bold">{isArabic ? "أداء الروابط" : "Link performance"}</h3>
+            <p className="mt-1 text-sm text-white/40">{isArabic ? "مرتبة حسب إجمالي الضغطات." : "Ranked by total clicks."}</p>
           </div>
           <div className="p-5">
             <table className="w-full table-fixed text-sm">
@@ -1477,8 +1481,8 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
               </colgroup>
               <thead>
                 <tr className="border-b border-white/5">
-                  <th className="pb-4 text-left font-semibold text-white/45">Link</th>
-                  <th className="pb-4 text-right font-semibold text-white/45">Clicks</th>
+                  <th className="pb-4 text-left font-semibold text-white/45">{isArabic ? "الرابط" : "Link"}</th>
+                  <th className="pb-4 text-right font-semibold text-white/45">{isArabic ? "الضغطات" : "Clicks"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1487,7 +1491,7 @@ function AnalyticsTab({ profile, token, uid }: { profile: ProfileData; token: st
                     <tr key={i}><td colSpan={2} className="px-4 py-2.5"><div className="h-4 bg-white/5 rounded animate-pulse" /></td></tr>
                   ))
                 ) : !data || data.linkClickDetails.length === 0 ? (
-                  <tr><td colSpan={2} className="py-10 text-center text-white/25">No link clicks yet</td></tr>
+                  <tr><td colSpan={2} className="py-10 text-center text-white/25">{isArabic ? "لا توجد ضغطات على الروابط بعد" : "No link clicks yet"}</td></tr>
                 ) : (
                   data.linkClickDetails.map((l, i) => {
                     const meta = getLinkMeta({ title: l.title, type: l.type });
@@ -1825,9 +1829,9 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
 
   async function deleteProfile() {
     if (deleting) return;
-    const ok = window.confirm("Delete your account permanently? Your login, profile, links, messages, analytics, notifications, and related order records will be removed. You can register again with the same email after deletion.");
+    const ok = window.confirm(isArabic ? "هل تريد حذف حسابك نهائيًا؟ سيتم حذف تسجيل الدخول والملف والروابط والرسائل والتحليلات والإشعارات والطلبات المرتبطة، ويمكنك التسجيل بنفس البريد بعد الحذف." : "Delete your account permanently? Your login, profile, links, messages, analytics, notifications, and related order records will be removed. You can register again with the same email after deletion.");
     if (!ok) return;
-    const typed = window.prompt('Type DELETE to confirm permanent account deletion.');
+    const typed = window.prompt(isArabic ? "اكتب DELETE لتأكيد حذف الحساب نهائيًا." : "Type DELETE to confirm permanent account deletion.");
     if (typed !== "DELETE") return;
     setDeleting(true);
     try {
@@ -1836,12 +1840,12 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
         headers: { Authorization: `Bearer ${token}`, "x-user-id": uid },
       });
       const json = await readApiJson(res);
-      if (!res.ok) throw new Error(json.error?.message ?? "Delete failed");
+      if (!res.ok) throw new Error(json.error?.message ?? (isArabic ? "فشل الحذف" : "Delete failed"));
       await createClient().auth.signOut();
       onDeleted(profile.id);
       router.push("/signup");
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Delete failed");
+      alert(e instanceof Error ? e.message : (isArabic ? "فشل الحذف" : "Delete failed"));
     } finally {
       setDeleting(false);
     }
@@ -1853,7 +1857,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
     try {
       await onPatch({ displayName: securityName.trim() || profile.displayName, bio: securityBio.trim() || null });
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed to save profile");
+      alert(e instanceof Error ? e.message : (isArabic ? "فشل حفظ الملف" : "Failed to save profile"));
     } finally {
       setSavingSecurity(false);
     }
@@ -1867,9 +1871,9 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
         redirectTo: `${window.location.origin}/auth/callback?redirect=/dashboard`,
       });
       if (error) throw error;
-      alert("Password reset email sent. Check your inbox.");
+      alert(isArabic ? "تم إرسال رسالة إعادة تعيين كلمة المرور. راجع بريدك." : "Password reset email sent. Check your inbox.");
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Failed to send password reset email");
+      alert(e instanceof Error ? e.message : (isArabic ? "فشل إرسال رسالة إعادة تعيين كلمة المرور" : "Failed to send password reset email"));
     } finally {
       setChangingPassword(false);
     }
@@ -1881,15 +1885,15 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
     const subject = supportForm.subject.trim() || "Support request";
     const messageText = supportForm.message.trim();
     if (!messageText) {
-      alert("Please write your message");
+      alert(isArabic ? "اكتب رسالتك أولًا" : "Please write your message");
       return;
     }
     const message = [
-      "LinkUp support request",
-      `Name: ${name}`,
-      `Email: ${contactEmail}`,
-      `Profile: /${profile.publicId}`,
-      `Subject: ${subject}`,
+      isArabic ? "طلب دعم LinkUp" : "LinkUp support request",
+      `${isArabic ? "الاسم" : "Name"}: ${name}`,
+      `${isArabic ? "البريد" : "Email"}: ${contactEmail}`,
+      `${isArabic ? "الملف" : "Profile"}: /${profile.publicId}`,
+      `${isArabic ? "الموضوع" : "Subject"}: ${subject}`,
       "",
       messageText,
     ].join("\n");
@@ -1989,29 +1993,29 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
           </div>
 
           <div className="px-4 pb-2">
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Product</p>
+            <p className={`text-[11px] font-bold text-white/35 ${isArabic ? "" : "uppercase tracking-[0.12em]"}`}>{isArabic ? "المنتج" : "Product"}</p>
           </div>
-          <DetailRow label="Product type" value="LinkUp Tag" />
-          <DetailRow label="Tag ID" value={profile.publicId} mono />
-          <DetailRow label="Status" value={profile.isSuspended ? "Suspended" : profile.isActive ? "Active" : "Inactive"} />
-          <DetailRow label="Public profile" value={`/${profile.publicId}`} mono />
+          <DetailRow label={isArabic ? "نوع المنتج" : "Product type"} value="LinkUp Tag" />
+          <DetailRow label={isArabic ? "كود الميدالية" : "Tag ID"} value={profile.publicId} mono />
+          <DetailRow label={isArabic ? "الحالة" : "Status"} value={profile.isSuspended ? (isArabic ? "موقوف" : "Suspended") : profile.isActive ? (isArabic ? "نشط" : "Active") : (isArabic ? "غير نشط" : "Inactive")} />
+          <DetailRow label={isArabic ? "الملف العام" : "Public profile"} value={`/${profile.publicId}`} mono />
 
           <div className="px-4 pb-2 pt-5">
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Customer</p>
+            <p className={`text-[11px] font-bold text-white/35 ${isArabic ? "" : "uppercase tracking-[0.12em]"}`}>{isArabic ? "العميل" : "Customer"}</p>
           </div>
-          <DetailRow label="Name" value={profile.displayName} />
-          <DetailRow label="Email" value={email || "Not available"} />
-          <DetailRow label="Bio" value={profile.bio || "No bio yet"} />
+          <DetailRow label={isArabic ? "الاسم" : "Name"} value={profile.displayName} />
+          <DetailRow label={isArabic ? "البريد الإلكتروني" : "Email"} value={email || (isArabic ? "غير متاح" : "Not available")} />
+          <DetailRow label={isArabic ? "النبذة" : "Bio"} value={profile.bio || (isArabic ? "لا توجد نبذة بعد" : "No bio yet")} />
 
           <div className="px-4 pb-2 pt-5">
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Profile Links</p>
+            <p className={`text-[11px] font-bold text-white/35 ${isArabic ? "" : "uppercase tracking-[0.12em]"}`}>{isArabic ? "روابط الملف" : "Profile Links"}</p>
           </div>
-          <DetailRow label="Total links" value={`${profile.links.length}`} />
-          <DetailRow label="Active links" value={`${activeLinks}`} />
-          <DetailRow label="Disabled links" value={`${hiddenLinks}`} />
+          <DetailRow label={isArabic ? "إجمالي الروابط" : "Total links"} value={`${profile.links.length}`} />
+          <DetailRow label={isArabic ? "الروابط النشطة" : "Active links"} value={`${activeLinks}`} />
+          <DetailRow label={isArabic ? "الروابط المعطلة" : "Disabled links"} value={`${hiddenLinks}`} />
           <div className="p-4">
             <button type="button" onClick={copyProfileLink} className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#03A9F4] px-4 py-3 text-sm font-bold text-white">
-              <i className="ri-file-copy-line" /> Copy profile link
+              <i className="ri-file-copy-line" /> {isArabic ? "نسخ رابط الملف" : "Copy profile link"}
             </button>
           </div>
         </div>
@@ -2023,8 +2027,8 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
     const designDays = daysLeft(profile.primeDesignUntil);
     const verifiedDays = daysLeft(profile.verifiedUntil);
     const plans = [
-      { id: "design" as GoldServiceId, name: "Prime Design", service: GOLD_SERVICES.find(item => item.id === "design")!, active: designActive, days: designDays, icon: "ri-palette-line", features: ["Premium themes", "Grid links layout", "Hero profile layout", "Cover styling"] },
-      { id: "verification" as GoldServiceId, name: "Verified Badge", service: GOLD_SERVICES.find(item => item.id === "verification")!, active: verifiedActive, days: verifiedDays, icon: "ri-verified-badge-line", features: ["Verified mark", "Manual review", "Trusted profile signal"] },
+      { id: "design" as GoldServiceId, name: isArabic ? "تصميم Prime" : "Prime Design", service: GOLD_SERVICES.find(item => item.id === "design")!, active: designActive, days: designDays, icon: "ri-palette-line", features: isArabic ? ["ثيمات مميزة", "عرض الروابط كشبكة", "تخطيط Hero للملف", "تنسيق صورة الغلاف"] : ["Premium themes", "Grid links layout", "Hero profile layout", "Cover styling"] },
+      { id: "verification" as GoldServiceId, name: isArabic ? "شارة التوثيق" : "Verified Badge", service: GOLD_SERVICES.find(item => item.id === "verification")!, active: verifiedActive, days: verifiedDays, icon: "ri-verified-badge-line", features: isArabic ? ["علامة التوثيق", "مراجعة يدوية", "ثقة أعلى للملف"] : ["Verified mark", "Manual review", "Trusted profile signal"] },
     ];
     return (
       <div className="mx-auto w-full max-w-5xl pb-4">
@@ -2032,18 +2036,18 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
           <BackHeader title={isArabic ? "الاشتراك" : "Subscription"} subtitle={isArabic ? "الخدمات الحالية وخدمات Prime المتاحة" : "Current access and available Prime services"} />
           <div className="p-4">
             <div className="rounded-2xl border border-[#03A9F4]/25 bg-[#03A9F4]/10 p-4">
-              <p className="text-sm font-bold text-white">Subscription Status</p>
-              <p className="mt-1 text-xs text-white/45">Details of your current active services.</p>
+              <p className="text-sm font-bold text-white">{isArabic ? "حالة الاشتراك" : "Subscription Status"}</p>
+              <p className="mt-1 text-xs text-white/45">{isArabic ? "تفاصيل الخدمات المفعلة حاليًا." : "Details of your current active services."}</p>
               <div className="mt-4 grid gap-3">
-                <div className="flex items-center justify-between"><span className="text-sm text-white/45">Current plan</span><span className="text-sm font-bold text-white">{designActive || verifiedActive ? "Prime" : "Free"}</span></div>
-                <div className="flex items-center justify-between"><span className="text-sm text-white/45">Status</span><span className={`rounded-full px-3 py-1 text-xs font-bold ${designActive || verifiedActive ? "bg-green-500/15 text-green-400" : "bg-white/10 text-white/50"}`}>{designActive || verifiedActive ? "Active" : "Inactive"}</span></div>
-                <div className="flex items-center justify-between"><span className="text-sm text-white/45">Active services</span><span className="text-sm font-bold text-white">{[designActive && "Design", verifiedActive && "Verified"].filter(Boolean).join(" + ") || "None"}</span></div>
+                <div className="flex items-center justify-between"><span className="text-sm text-white/45">{isArabic ? "الخطة الحالية" : "Current plan"}</span><span className="text-sm font-bold text-white">{designActive || verifiedActive ? "Prime" : (isArabic ? "مجاني" : "Free")}</span></div>
+                <div className="flex items-center justify-between"><span className="text-sm text-white/45">{isArabic ? "الحالة" : "Status"}</span><span className={`rounded-full px-3 py-1 text-xs font-bold ${designActive || verifiedActive ? "bg-green-500/15 text-green-400" : "bg-white/10 text-white/50"}`}>{designActive || verifiedActive ? (isArabic ? "نشط" : "Active") : (isArabic ? "غير نشط" : "Inactive")}</span></div>
+                <div className="flex items-center justify-between"><span className="text-sm text-white/45">{isArabic ? "الخدمات النشطة" : "Active services"}</span><span className="text-sm font-bold text-white">{[designActive && (isArabic ? "التصميم" : "Design"), verifiedActive && (isArabic ? "التوثيق" : "Verified")].filter(Boolean).join(" + ") || (isArabic ? "لا يوجد" : "None")}</span></div>
               </div>
             </div>
           </div>
 
           <div className="px-4 pb-2">
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/35">Available Services</p>
+            <p className={`text-[11px] font-bold text-white/35 ${isArabic ? "" : "uppercase tracking-[0.12em]"}`}>{isArabic ? "الخدمات المتاحة" : "Available Services"}</p>
           </div>
           <div className="grid gap-3 p-4 pt-0 lg:grid-cols-2">
             {plans.map(plan => (
@@ -2053,9 +2057,9 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate text-sm font-bold text-white">{plan.name}</p>
-                      <span className="rounded-full bg-[#03A9F4] px-2.5 py-1 text-xs font-bold text-white">From {plan.service.plans[0].price} EGP</span>
+                      <span className="rounded-full bg-[#03A9F4] px-2.5 py-1 text-xs font-bold text-white">{isArabic ? `من ${plan.service.plans[0].price} جنيه` : `From ${plan.service.plans[0].price} EGP`}</span>
                     </div>
-                    <p className="mt-1 text-xs text-white/45">{plan.active ? `Active${plan.days !== null ? ` - ${plan.days} days left` : ""}` : "Available to activate"}</p>
+                    <p className="mt-1 text-xs text-white/45">{plan.active ? (isArabic ? `نشط${plan.days !== null ? ` - متبقي ${plan.days} يوم` : ""}` : `Active${plan.days !== null ? ` - ${plan.days} days left` : ""}`) : (isArabic ? "متاح للتفعيل" : "Available to activate")}</p>
                     <div className="mt-3 grid grid-cols-2 gap-2">
                       {plan.service.plans.map(option => (
                         <button
@@ -2065,16 +2069,16 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
                           onClick={() => onRequestGold({ service: plan.id, cycle: option.cycle })}
                           className={`rounded-xl border px-3 py-2 text-left transition ${plan.active ? "cursor-default border-white/10 bg-white/[0.03] opacity-60" : "border-[#03A9F4]/20 bg-[#03A9F4]/8 hover:border-[#03A9F4]/45"}`}
                         >
-                          <span className="block text-xs font-bold text-white">{option.label}</span>
-                          <span className="mt-0.5 block text-[11px] text-white/45">{option.duration}</span>
-                          <span className="mt-1 block text-xs font-black text-[#03A9F4]">{option.price} EGP</span>
+                          <span className="block text-xs font-bold text-white">{isArabic ? (option.cycle === "monthly" ? "شهري" : "سنوي") : option.label}</span>
+                          <span className="mt-0.5 block text-[11px] text-white/45">{isArabic ? (option.cycle === "monthly" ? "شهر واحد" : "12 شهر") : option.duration}</span>
+                          <span className="mt-1 block text-xs font-black text-[#03A9F4]">{option.price} {isArabic ? "جنيه" : "EGP"}</span>
                         </button>
                       ))}
                     </div>
                     <div className="mt-3 grid gap-1.5">
                       {plan.features.map(feature => <p key={feature} className="flex items-center gap-2 text-xs text-white/55"><i className="ri-check-line text-[#03A9F4]" />{feature}</p>)}
                     </div>
-                    {!plan.active && <button type="button" onClick={() => onRequestGold({ service: plan.id })} className="mt-3 w-full rounded-xl border border-[#03A9F4]/25 bg-[#03A9F4]/10 px-3 py-2 text-xs font-bold text-[#03A9F4]">Request activation</button>}
+                    {!plan.active && <button type="button" onClick={() => onRequestGold({ service: plan.id })} className="mt-3 w-full rounded-xl border border-[#03A9F4]/25 bg-[#03A9F4]/10 px-3 py-2 text-xs font-bold text-[#03A9F4]">{isArabic ? "طلب التفعيل" : "Request activation"}</button>}
                   </div>
                 </div>
               </div>
@@ -2095,8 +2099,8 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-base font-bold text-white">Personal Information</p>
-                  <p className="mt-1 text-xs leading-relaxed text-white/45">Update the public information visitors see on your NFC profile.</p>
+                  <p className="text-base font-bold text-white">{isArabic ? "المعلومات الشخصية" : "Personal Information"}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-white/45">{isArabic ? "حدّث البيانات التي تظهر للزوار في ملف NFC الخاص بك." : "Update the public information visitors see on your NFC profile."}</p>
                 </div>
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#03A9F4]/12 text-[#03A9F4]">
                   <i className="ri-user-settings-line text-xl" />
@@ -2105,25 +2109,25 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
 
               <div className="mt-5 space-y-4">
                 <div>
-                  <FieldLabel>Username</FieldLabel>
+                  <FieldLabel>{isArabic ? "اسم المستخدم" : "Username"}</FieldLabel>
                   <input value={profile.publicId} readOnly className={`${fieldClass} font-mono text-[#03A9F4]/85`} />
                 </div>
                 <div>
-                  <FieldLabel>Email</FieldLabel>
+                  <FieldLabel>{isArabic ? "البريد الإلكتروني" : "Email"}</FieldLabel>
                   <input value={email} readOnly className={`${fieldClass} text-white/55`} />
                 </div>
                 <div>
-                  <FieldLabel>Full Name</FieldLabel>
-                  <input value={securityName} onChange={e => setSecurityName(e.target.value)} placeholder="Full Name" className={fieldClass} />
+                  <FieldLabel>{isArabic ? "الاسم الكامل" : "Full Name"}</FieldLabel>
+                  <input value={securityName} onChange={e => setSecurityName(e.target.value)} placeholder={isArabic ? "الاسم الكامل" : "Full Name"} className={fieldClass} />
                 </div>
                 <div>
-                  <FieldLabel>Bio</FieldLabel>
-                  <textarea value={securityBio} onChange={e => setSecurityBio(e.target.value)} maxLength={500} rows={4} placeholder="About you" className={`${fieldClass} resize-none`} />
+                  <FieldLabel>{isArabic ? "النبذة" : "Bio"}</FieldLabel>
+                  <textarea value={securityBio} onChange={e => setSecurityBio(e.target.value)} maxLength={500} rows={4} placeholder={isArabic ? "نبذة عنك" : "About you"} className={`${fieldClass} resize-none`} />
                   <p className="mt-1 text-right text-[11px] text-white/30">{securityBio.length}/500</p>
                 </div>
                 <button type="button" onClick={saveSecurityProfile} disabled={savingSecurity} className="ml-auto flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-black disabled:opacity-60">
                   <i className={savingSecurity ? "ri-loader-4-line animate-spin" : "ri-save-3-line"} />
-                  {savingSecurity ? "Saving..." : "Save Changes"}
+                  {savingSecurity ? (isArabic ? "جار الحفظ..." : "Saving...") : (isArabic ? "حفظ التغييرات" : "Save Changes")}
                 </button>
               </div>
             </div>
@@ -2134,11 +2138,11 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
                     <i className="ri-verified-badge-line text-xl" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold text-white">Verification</p>
-                    <p className="mt-1 text-xs leading-relaxed text-white/45">{verifiedActive ? "Your profile has the verified badge enabled." : "Request manual review to show the verified badge on your public profile."}</p>
+                    <p className="text-sm font-bold text-white">{isArabic ? "التوثيق" : "Verification"}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-white/45">{verifiedActive ? (isArabic ? "شارة التوثيق مفعلة على ملفك." : "Your profile has the verified badge enabled.") : (isArabic ? "اطلب مراجعة يدوية لإظهار شارة التوثيق في ملفك العام." : "Request manual review to show the verified badge on your public profile.")}</p>
                     {!verifiedActive && (
                       <button type="button" onClick={() => onRequestGold({ service: "verification" })} className="mt-3 rounded-xl border border-[#03A9F4]/30 bg-[#03A9F4]/10 px-3 py-2 text-xs font-bold text-[#03A9F4]">
-                        Request Verification
+                        {isArabic ? "طلب التوثيق" : "Request Verification"}
                       </button>
                     )}
                   </div>
@@ -2149,11 +2153,11 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
                 <div className="flex items-start gap-3">
                   <i className="ri-delete-bin-line mt-0.5 text-2xl text-red-400" />
                   <div>
-                    <p className="text-base font-bold text-red-400">Delete Account</p>
-                    <p className="mt-2 text-sm leading-relaxed text-white/45">Permanently delete your login, database account, profiles, links, messages, analytics, notifications, and related order records. You can register again with the same email after deletion.</p>
+                    <p className="text-base font-bold text-red-400">{isArabic ? "حذف الحساب" : "Delete Account"}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-white/45">{isArabic ? "احذف تسجيل الدخول وحساب قاعدة البيانات والملفات والروابط والرسائل والتحليلات والإشعارات والطلبات المرتبطة نهائيًا. يمكنك التسجيل بنفس البريد بعد الحذف." : "Permanently delete your login, database account, profiles, links, messages, analytics, notifications, and related order records. You can register again with the same email after deletion."}</p>
                     <button type="button" onClick={deleteProfile} disabled={deleting} className="mt-4 flex min-h-[42px] items-center justify-center gap-2 rounded-xl bg-red-600 px-4 text-sm font-bold text-white disabled:opacity-60">
                       <i className={deleting ? "ri-loader-4-line animate-spin" : "ri-delete-bin-line"} />
-                      {deleting ? "Deleting..." : "Delete My Profile"}
+                      {deleting ? (isArabic ? "جار الحذف..." : "Deleting...") : (isArabic ? "حذف حسابي" : "Delete My Profile")}
                     </button>
                   </div>
                 </div>
@@ -2162,20 +2166,20 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-base font-bold text-white">Security</p>
-                    <p className="mt-1 text-xs leading-relaxed text-white/45">Send a secure password reset link to your account email.</p>
+                    <p className="text-base font-bold text-white">{isArabic ? "الأمان" : "Security"}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-white/45">{isArabic ? "أرسل رابطًا آمنًا لإعادة تعيين كلمة المرور إلى بريد حسابك." : "Send a secure password reset link to your account email."}</p>
                   </div>
                   <i className="ri-shield-check-line text-2xl text-white/75" />
                 </div>
 
                 <div className="mt-5 space-y-4">
                   <div>
-                    <FieldLabel>Account Email</FieldLabel>
+                    <FieldLabel>{isArabic ? "بريد الحساب" : "Account Email"}</FieldLabel>
                     <input value={email} readOnly className={`${fieldClass} text-white/55`} />
                   </div>
                   <button type="button" onClick={changePassword} disabled={changingPassword} className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-bold text-black disabled:opacity-60">
                     <i className={changingPassword ? "ri-loader-4-line animate-spin" : "ri-mail-send-line"} />
-                    {changingPassword ? "Sending..." : "Send Password Reset Email"}
+                    {changingPassword ? (isArabic ? "جار الإرسال..." : "Sending...") : (isArabic ? "إرسال رابط إعادة تعيين كلمة المرور" : "Send Password Reset Email")}
                   </button>
                 </div>
               </div>
@@ -2188,20 +2192,20 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
 
   if (panel === "support") {
     const supportItems = [
-      { icon: "ri-map-pin-line", title: "Address", lines: ["Ismailia City", "Ismailia Government, Egypt"] },
-      { icon: "ri-phone-line", title: "Phone", lines: ["+20 121 163 2456"] },
-      { icon: "ri-mail-line", title: "Email", lines: ["contact@nfc-id.app"] },
+      { icon: "ri-map-pin-line", title: isArabic ? "العنوان" : "Address", lines: isArabic ? ["مدينة الإسماعيلية", "محافظة الإسماعيلية، مصر"] : ["Ismailia City", "Ismailia Government, Egypt"] },
+      { icon: "ri-phone-line", title: isArabic ? "الهاتف" : "Phone", lines: ["+20 121 163 2456"] },
+      { icon: "ri-mail-line", title: isArabic ? "البريد الإلكتروني" : "Email", lines: ["contact@nfc-id.app"] },
     ];
 
     return (
       <div className="mx-auto w-full max-w-5xl pb-4">
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#151515]">
-          <BackHeader title="Contact & Support" subtitle="Talk to LinkUp support" />
+          <BackHeader title={isArabic ? "التواصل والدعم" : "Contact & Support"} subtitle={isArabic ? "تواصل مع دعم LinkUp" : "Talk to LinkUp support"} />
 
           <div className="grid gap-4 p-4 lg:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)] lg:items-start">
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-              <p className="text-base font-bold text-white">Contact Information</p>
-              <p className="mt-1 text-xs text-white/45">We are here to answer your questions.</p>
+              <p className="text-base font-bold text-white">{isArabic ? "معلومات التواصل" : "Contact Information"}</p>
+              <p className="mt-1 text-xs text-white/45">{isArabic ? "نحن هنا للإجابة على أسئلتك." : "We are here to answer your questions."}</p>
               <div className="mt-5 space-y-4">
                 {supportItems.map(item => (
                   <div key={item.title} className="flex gap-3">
@@ -2217,43 +2221,43 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
               </div>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-              <p className="text-base font-bold text-white">Business Hours</p>
+              <p className="text-base font-bold text-white">{isArabic ? "ساعات العمل" : "Business Hours"}</p>
               <div className="mt-4 space-y-3 text-sm">
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-white/45">Saturday - Thursday</span>
+                  <span className="text-white/45">{isArabic ? "السبت - الخميس" : "Saturday - Thursday"}</span>
                   <span className="font-semibold text-white">10:00 AM - 10:00 PM</span>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-white/45">Friday</span>
-                  <span className="font-semibold text-white/45">Closed</span>
+                  <span className="text-white/45">{isArabic ? "الجمعة" : "Friday"}</span>
+                  <span className="font-semibold text-white/45">{isArabic ? "مغلق" : "Closed"}</span>
                 </div>
               </div>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-              <p className="text-base font-bold text-white">Send Us a Message</p>
-              <p className="mt-1 text-xs leading-relaxed text-white/45">Fill out the form below and we will get back to you as soon as possible.</p>
+              <p className="text-base font-bold text-white">{isArabic ? "أرسل لنا رسالة" : "Send Us a Message"}</p>
+              <p className="mt-1 text-xs leading-relaxed text-white/45">{isArabic ? "املأ النموذج وسنرد عليك في أقرب وقت." : "Fill out the form below and we will get back to you as soon as possible."}</p>
 
               <div className="mt-5 space-y-4">
                 <div>
-                  <FieldLabel>Name</FieldLabel>
-                  <input value={supportForm.name} onChange={e => setSupportForm(prev => ({ ...prev, name: e.target.value }))} placeholder="Full Name" className={fieldClass} />
+                  <FieldLabel>{isArabic ? "الاسم" : "Name"}</FieldLabel>
+                  <input value={supportForm.name} onChange={e => setSupportForm(prev => ({ ...prev, name: e.target.value }))} placeholder={isArabic ? "الاسم الكامل" : "Full Name"} className={fieldClass} />
                 </div>
                 <div>
-                  <FieldLabel>Email</FieldLabel>
-                  <input type="email" value={supportForm.email} onChange={e => setSupportForm(prev => ({ ...prev, email: e.target.value }))} placeholder="Your Email" className={fieldClass} />
+                  <FieldLabel>{isArabic ? "البريد الإلكتروني" : "Email"}</FieldLabel>
+                  <input type="email" value={supportForm.email} onChange={e => setSupportForm(prev => ({ ...prev, email: e.target.value }))} placeholder={isArabic ? "بريدك الإلكتروني" : "Your Email"} className={fieldClass} />
                 </div>
                 <div>
-                  <FieldLabel>Subject</FieldLabel>
-                  <input value={supportForm.subject} onChange={e => setSupportForm(prev => ({ ...prev, subject: e.target.value }))} placeholder="Subject of your message" className={fieldClass} />
+                  <FieldLabel>{isArabic ? "الموضوع" : "Subject"}</FieldLabel>
+                  <input value={supportForm.subject} onChange={e => setSupportForm(prev => ({ ...prev, subject: e.target.value }))} placeholder={isArabic ? "موضوع رسالتك" : "Subject of your message"} className={fieldClass} />
                 </div>
                 <div>
-                  <FieldLabel>Message</FieldLabel>
-                  <textarea value={supportForm.message} onChange={e => setSupportForm(prev => ({ ...prev, message: e.target.value }))} rows={5} placeholder="Type your message here" className={`${fieldClass} resize-none`} />
+                  <FieldLabel>{isArabic ? "الرسالة" : "Message"}</FieldLabel>
+                  <textarea value={supportForm.message} onChange={e => setSupportForm(prev => ({ ...prev, message: e.target.value }))} rows={5} placeholder={isArabic ? "اكتب رسالتك هنا" : "Type your message here"} className={`${fieldClass} resize-none`} />
                 </div>
                 <button type="button" onClick={sendSupportMessage} className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 text-sm font-bold text-black">
                   <i className="ri-whatsapp-line text-lg" />
-                  Send Message
+                  {isArabic ? "إرسال الرسالة" : "Send Message"}
                 </button>
               </div>
             </div>
@@ -2314,6 +2318,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
 }
 
 function GoldUpgradeModal({ profile, email, initialRequest, onClose }: { profile: ProfileData | null; email: string; initialRequest?: GoldRequest; onClose: () => void }) {
+  const { isArabic } = useLanguage();
   const [serviceId, setServiceId] = useState<GoldServiceId>(initialRequest?.service ?? "design");
   const [billingCycle, setBillingCycle] = useState<GoldBillingCycle>(initialRequest?.cycle ?? "monthly");
   const [name, setName] = useState(profile?.displayName ?? "");
@@ -2326,18 +2331,18 @@ function GoldUpgradeModal({ profile, email, initialRequest, onClose }: { profile
 
   function submit() {
     const message = [
-      "Gold service request",
-      `Service: ${service.name}`,
-      `Plan: ${selectedPlan.label} (${selectedPlan.duration})`,
-      `Price: ${selectedPlan.price} EGP`,
-      `Name: ${name}`,
-      `Email: ${customerEmail}`,
-      `Phone: ${phone}`,
-      `Payment method: Vodafone Cash ${paymentNumber}`,
-      `Profile: ${profile ? `/profile/${profile.publicId}` : "Not selected"}`,
-      `Payment screenshot: ${receiptName || "Customer will attach it in WhatsApp"}`,
+      isArabic ? "طلب خدمة Prime" : "Gold service request",
+      `${isArabic ? "الخدمة" : "Service"}: ${service.name}`,
+      `${isArabic ? "الخطة" : "Plan"}: ${isArabic ? (selectedPlan.cycle === "monthly" ? "شهري" : "سنوي") : selectedPlan.label} (${isArabic ? (selectedPlan.cycle === "monthly" ? "شهر واحد" : "12 شهر") : selectedPlan.duration})`,
+      `${isArabic ? "السعر" : "Price"}: ${selectedPlan.price} ${isArabic ? "جنيه" : "EGP"}`,
+      `${isArabic ? "الاسم" : "Name"}: ${name}`,
+      `${isArabic ? "البريد" : "Email"}: ${customerEmail}`,
+      `${isArabic ? "الهاتف" : "Phone"}: ${phone}`,
+      `${isArabic ? "طريقة الدفع" : "Payment method"}: Vodafone Cash ${paymentNumber}`,
+      `${isArabic ? "الملف" : "Profile"}: ${profile ? `/profile/${profile.publicId}` : (isArabic ? "غير محدد" : "Not selected")}`,
+      `${isArabic ? "سكرين الدفع" : "Payment screenshot"}: ${receiptName || (isArabic ? "سيتم إرفاقها في واتساب" : "Customer will attach it in WhatsApp")}`,
       "",
-      "Please review the payment screenshot and activate the service.",
+      isArabic ? "يرجى مراجعة سكرين الدفع وتفعيل الخدمة." : "Please review the payment screenshot and activate the service.",
     ].join("\n");
     window.open(`https://wa.me/${COMPANY_WHATSAPP}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
     onClose();
@@ -2353,9 +2358,9 @@ function GoldUpgradeModal({ profile, email, initialRequest, onClose }: { profile
         </button>
         <div className="mb-4 flex items-start justify-between gap-4 pr-10">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-[#03A9F4]">Prime Services</p>
-            <h2 className="mt-1 text-lg font-bold">Request Prime Access</h2>
-            <p className="mt-1 text-xs leading-relaxed text-white/45">Choose the service, pay with Vodafone Cash, then send the request on WhatsApp.</p>
+            <p className={`text-xs font-bold text-[#03A9F4] ${isArabic ? "" : "uppercase tracking-widest"}`}>{isArabic ? "خدمات Prime" : "Prime Services"}</p>
+            <h2 className="mt-1 text-lg font-bold">{isArabic ? "طلب تفعيل Prime" : "Request Prime Access"}</h2>
+            <p className="mt-1 text-xs leading-relaxed text-white/45">{isArabic ? "اختر الخدمة، ادفع عبر Vodafone Cash، ثم أرسل الطلب على واتساب." : "Choose the service, pay with Vodafone Cash, then send the request on WhatsApp."}</p>
           </div>
         </div>
 
@@ -2372,7 +2377,7 @@ function GoldUpgradeModal({ profile, email, initialRequest, onClose }: { profile
             >
               <div className="mb-2 flex items-center justify-between">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#03A9F4]/10 text-[#03A9F4]"><i className={item.icon} /></span>
-                <span className="rounded-full bg-[#03A9F4] px-2.5 py-1 text-xs font-bold text-white">From {item.plans[0].price} EGP</span>
+                <span className="rounded-full bg-[#03A9F4] px-2.5 py-1 text-xs font-bold text-white">{isArabic ? `من ${item.plans[0].price} جنيه` : `From ${item.plans[0].price} EGP`}</span>
               </div>
               <p className="text-sm font-bold">{item.name}</p>
               <p className="mt-1 text-xs leading-relaxed text-white/40">{item.description}</p>
@@ -2381,7 +2386,7 @@ function GoldUpgradeModal({ profile, email, initialRequest, onClose }: { profile
         </div>
 
         <div className="mb-4">
-          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-white/35">Choose Duration</p>
+          <p className={`mb-2 text-xs font-bold text-white/35 ${isArabic ? "" : "uppercase tracking-widest"}`}>{isArabic ? "اختر المدة" : "Choose Duration"}</p>
           <div className="grid grid-cols-2 gap-2">
             {service.plans.map(plan => (
               <button
@@ -2395,9 +2400,9 @@ function GoldUpgradeModal({ profile, email, initialRequest, onClose }: { profile
                     {plan.badge}
                   </span>
                 )}
-                <span className="block text-sm font-black text-white">{plan.label}</span>
-                <span className="mt-1 block text-xs text-white/45">{plan.duration}</span>
-                <span className="mt-3 block text-lg font-black text-[#03A9F4]">{plan.price} EGP</span>
+                <span className="block text-sm font-black text-white">{isArabic ? (plan.cycle === "monthly" ? "شهري" : "سنوي") : plan.label}</span>
+                <span className="mt-1 block text-xs text-white/45">{isArabic ? (plan.cycle === "monthly" ? "شهر واحد" : "12 شهر") : plan.duration}</span>
+                <span className="mt-3 block text-lg font-black text-[#03A9F4]">{plan.price} {isArabic ? "جنيه" : "EGP"}</span>
               </button>
             ))}
           </div>
@@ -2416,15 +2421,15 @@ function GoldUpgradeModal({ profile, email, initialRequest, onClose }: { profile
         </div>
 
         <div className="grid gap-3">
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="Full name" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-[#03A9F4]/60" />
-          <input value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} placeholder="Email" type="email" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-[#03A9F4]/60" />
-          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Phone number" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-[#03A9F4]/60" />
+          <input value={name} onChange={e => setName(e.target.value)} placeholder={isArabic ? "الاسم الكامل" : "Full name"} className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-[#03A9F4]/60" />
+          <input value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} placeholder={isArabic ? "البريد الإلكتروني" : "Email"} type="email" className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-[#03A9F4]/60" />
+          <input value={phone} onChange={e => setPhone(e.target.value)} placeholder={isArabic ? "رقم الهاتف" : "Phone number"} className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none focus:border-[#03A9F4]/60" />
           <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-dashed border-white/15 bg-white/[0.03] px-4 py-2.5 text-sm text-white/55 hover:border-[#03A9F4]/45">
-            <span className="truncate">{receiptName || "Upload payment screenshot"}</span>
+            <span className="truncate">{receiptName || (isArabic ? "رفع سكرين الدفع" : "Upload payment screenshot")}</span>
             <i className="ri-upload-cloud-2-line text-lg text-[#03A9F4]" />
             <input type="file" accept="image/*" className="hidden" onChange={e => setReceiptName(e.target.files?.[0]?.name ?? "")} />
           </label>
-          <p className="text-xs leading-relaxed text-white/35">The screenshot file cannot be attached automatically through WhatsApp web links, so attach it in the WhatsApp chat after it opens.</p>
+          <p className="text-xs leading-relaxed text-white/35">{isArabic ? "لا يمكن إرفاق السكرين تلقائيًا من رابط واتساب، لذلك أرفقه داخل المحادثة بعد فتحها." : "The screenshot file cannot be attached automatically through WhatsApp web links, so attach it in the WhatsApp chat after it opens."}</p>
         </div>
 
         <button
@@ -2434,7 +2439,7 @@ function GoldUpgradeModal({ profile, email, initialRequest, onClose }: { profile
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#03A9F4] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#139fe0] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <i className="ri-whatsapp-line text-lg" />
-          Send Request on WhatsApp
+          {isArabic ? "إرسال الطلب على واتساب" : "Send Request on WhatsApp"}
         </button>
       </div>
     </div>
@@ -2507,6 +2512,7 @@ function MessageInboxSheet({
   onDeleteMessage: (messageId: string) => void;
   onDeleteAll: () => void;
 }) {
+  const { isArabic } = useLanguage();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -2527,14 +2533,14 @@ function MessageInboxSheet({
       <section
         className={`flex max-h-[84svh] w-full flex-col overflow-hidden rounded-t-[22px] border border-white/10 bg-[#111] text-white shadow-2xl transition-transform duration-200 md:max-h-[720px] md:max-w-[440px] md:rounded-[24px] ${visible ? "translate-y-0" : "translate-y-full md:translate-y-4"}`}
         onClick={event => event.stopPropagation()}
-        aria-label="Profile messages"
+        aria-label={isArabic ? "رسائل الملف" : "Profile messages"}
       >
         <div className="mx-auto mt-3 h-1.5 w-20 rounded-full bg-white/10" />
         <header className="flex items-start justify-between gap-3 border-b border-white/10 px-4 pb-3 pt-4 sm:px-5 sm:pb-4 sm:pt-5">
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-[#03A9F4]">Inbox</p>
-            <h2 className="mt-1 truncate text-lg font-bold sm:text-xl">Profile messages</h2>
-            <p className="mt-1 text-xs text-white/45">{inbox.unreadCount} unread message{inbox.unreadCount === 1 ? "" : "s"}</p>
+            <p className="text-xs font-semibold text-[#03A9F4]">{isArabic ? "صندوق الرسائل" : "Inbox"}</p>
+            <h2 className="mt-1 truncate text-lg font-bold sm:text-xl">{isArabic ? "رسائل الملف" : "Profile messages"}</h2>
+            <p className="mt-1 text-xs text-white/45">{isArabic ? `${inbox.unreadCount} رسائل غير مقروءة` : `${inbox.unreadCount} unread message${inbox.unreadCount === 1 ? "" : "s"}`}</p>
           </div>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <button
@@ -2543,7 +2549,7 @@ function MessageInboxSheet({
               disabled={inbox.unreadCount === 0 || loading}
               className="h-9 rounded-full border border-white/10 px-2.5 text-[11px] font-semibold text-white/65 transition hover:bg-white/5 hover:text-white disabled:opacity-35 sm:px-3 sm:text-xs"
             >
-              Read
+              {isArabic ? "قراءة" : "Read"}
             </button>
             <button
               type="button"
@@ -2551,9 +2557,9 @@ function MessageInboxSheet({
               disabled={inbox.messages.length === 0 || loading}
               className="h-9 rounded-full border border-red-400/20 px-2.5 text-[11px] font-semibold text-red-200/70 transition hover:bg-red-500/10 hover:text-red-100 disabled:opacity-35 sm:px-3 sm:text-xs"
             >
-              Clear
+              {isArabic ? "مسح" : "Clear"}
             </button>
-            <button onClick={closeSheet} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/55 hover:text-white" aria-label="Close messages">
+            <button onClick={closeSheet} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-white/55 hover:text-white" aria-label={isArabic ? "إغلاق الرسائل" : "Close messages"}>
               <i className="ri-close-line text-lg" />
             </button>
           </div>
@@ -2563,13 +2569,13 @@ function MessageInboxSheet({
           {loading ? (
             <div className="py-12 text-center">
               <div className="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-[#03A9F4] border-t-transparent" />
-              <p className="mt-3 text-sm text-white/45">Loading messages...</p>
+              <p className="mt-3 text-sm text-white/45">{isArabic ? "جار تحميل الرسائل..." : "Loading messages..."}</p>
             </div>
           ) : inbox.messages.length === 0 ? (
             <div className="py-14 text-center">
               <i className="ri-chat-3-line text-5xl text-white/10" />
-              <p className="mt-3 text-sm font-semibold text-white/70">No messages yet</p>
-              <p className="mt-1 text-xs text-white/40">Messages from your public profile will appear here.</p>
+              <p className="mt-3 text-sm font-semibold text-white/70">{isArabic ? "لا توجد رسائل بعد" : "No messages yet"}</p>
+              <p className="mt-1 text-xs text-white/40">{isArabic ? "رسائل ملفك العام ستظهر هنا." : "Messages from your public profile will appear here."}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -2733,16 +2739,16 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
             {/* Links layout */}
             <div className="bg-[#141414] border border-white/8 rounded-2xl p-4 space-y-3">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold">Links Layout</span>
+                <span className="text-sm font-semibold">{isArabic ? "تخطيط الروابط" : "Links Layout"}</span>
               </div>
               <div className="flex gap-2">
                 <button onClick={() => applyLayout("list", profileLayout)}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-xs font-semibold transition-all ${linksLayout === "list" ? "bg-white text-black border-white" : "border-white/10 text-white/40 hover:border-white/20 hover:text-white/70"}`}>
-                  <i className="ri-list-check" /> List
+                  <i className="ri-list-check" /> {isArabic ? "قائمة" : "List"}
                 </button>
                 <button onClick={() => applyLayout("grid", profileLayout)}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-xs font-semibold transition-all ${linksLayout === "grid" ? "bg-white text-black border-white" : "border-white/10 text-white/40 hover:border-white/20 hover:text-white/70"}`}>
-                  <i className="ri-grid-fill" /> Grid {!isPrime && <span className="rounded bg-[#03A9F4]/15 px-1 text-[9px] text-[#03A9F4]">Prime</span>}
+                  <i className="ri-grid-fill" /> {isArabic ? "شبكة" : "Grid"} {!isPrime && <span className="rounded bg-[#03A9F4]/15 px-1 text-[9px] text-[#03A9F4]">Prime</span>}
                 </button>
               </div>
             </div>
@@ -2755,7 +2761,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
               <div className="flex gap-2">
                 <button onClick={() => applyLayout(linksLayout, "classic")}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-xs font-semibold transition-all ${profileLayout === "classic" ? "bg-white/15 text-white border-white/40" : "border-white/10 text-white/40 hover:border-white/20 hover:text-white/70"}`}>
-                  <i className="ri-user-line" /> Classic
+                  <i className="ri-user-line" /> {isArabic ? "كلاسيك" : "Classic"}
                 </button>
                 <button onClick={() => applyLayout(linksLayout, "hero")}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-xs font-semibold transition-all ${profileLayout === "hero" ? "bg-white/15 text-white border-white/40" : "border-white/10 text-white/40 hover:border-white/20 hover:text-white/70"}`}>
@@ -2963,7 +2969,7 @@ export default function DashboardPage() {
     if (pushBusy) return;
     const supportError = getPushSupportError();
     if (supportError) {
-      showAppNotification("Notifications unavailable", supportError);
+      showAppNotification(isArabic ? "الإشعارات غير متاحة" : "Notifications unavailable", supportError);
       return;
     }
     setPushEnabled(true);
@@ -2971,10 +2977,10 @@ export default function DashboardPage() {
     try {
       const { data: { session } } = await createClient().auth.getSession();
       await subscribeDeviceToPush({ session, endpoint: "/api/v1/push-subscriptions" });
-      showAppNotification("Notifications enabled", "Profile alerts are active on this device.");
+      showAppNotification(isArabic ? "تم تفعيل الإشعارات" : "Notifications enabled", isArabic ? "تنبيهات الملف مفعلة على هذا الجهاز." : "Profile alerts are active on this device.");
     } catch (error) {
       setPushEnabled(false);
-      showAppNotification("Notifications failed", error instanceof Error ? error.message : "Could not enable notifications.");
+      showAppNotification(isArabic ? "فشل تفعيل الإشعارات" : "Notifications failed", error instanceof Error ? error.message : (isArabic ? "تعذر تفعيل الإشعارات." : "Could not enable notifications."));
     } finally {
       setPushBusy(false);
     }
@@ -2987,10 +2993,10 @@ export default function DashboardPage() {
     try {
       const { data: { session } } = await createClient().auth.getSession();
       await unsubscribeDeviceFromPush({ session, endpoint: "/api/v1/push-subscriptions" });
-      showAppNotification("Notifications muted", "This device will stop receiving profile alerts.");
+      showAppNotification(isArabic ? "تم كتم الإشعارات" : "Notifications muted", isArabic ? "لن يستقبل هذا الجهاز تنبيهات الملف." : "This device will stop receiving profile alerts.");
     } catch (error) {
       setPushEnabled(true);
-      showAppNotification("Mute failed", error instanceof Error ? error.message : "Could not mute notifications.");
+      showAppNotification(isArabic ? "فشل كتم الإشعارات" : "Mute failed", error instanceof Error ? error.message : (isArabic ? "تعذر كتم الإشعارات." : "Could not mute notifications."));
     } finally {
       setPushBusy(false);
     }
@@ -3019,7 +3025,7 @@ export default function DashboardPage() {
       };
       commitInbox(profileId, inbox);
     } catch (error) {
-      if (!quiet) showToast(error instanceof Error ? error.message : "Failed to load messages", false);
+      if (!quiet) showToast(error instanceof Error ? error.message : (isArabic ? "فشل تحميل الرسائل" : "Failed to load messages"), false);
     } finally {
       if (!quiet) setInboxLoading(false);
     }
@@ -3047,7 +3053,7 @@ export default function DashboardPage() {
       if (!response.ok) throw new Error(json.error?.message ?? "Failed to update messages");
       await loadInbox(profileId, true);
     } catch (error) {
-      showToast(error instanceof Error ? error.message : "Failed to update messages", false);
+      showToast(error instanceof Error ? error.message : (isArabic ? "فشل تحديث الرسائل" : "Failed to update messages"), false);
       await loadInbox(profileId, true);
     }
   }
@@ -3065,7 +3071,7 @@ export default function DashboardPage() {
       await loadInbox(profileId, true);
     } catch (error) {
       commitInbox(profileId, previous);
-      showToast(error instanceof Error ? error.message : "Failed to delete message", false);
+      showToast(error instanceof Error ? error.message : (isArabic ? "فشل حذف الرسالة" : "Failed to delete message"), false);
     }
   }
   async function deleteAllInboxMessages() {
@@ -3080,7 +3086,7 @@ export default function DashboardPage() {
       await loadInbox(profileId, true);
     } catch (error) {
       commitInbox(profileId, previous);
-      showToast(error instanceof Error ? error.message : "Failed to delete messages", false);
+      showToast(error instanceof Error ? error.message : (isArabic ? "فشل حذف الرسائل" : "Failed to delete messages"), false);
     }
   }
   function openInbox() {
@@ -3094,7 +3100,7 @@ export default function DashboardPage() {
       setSelId(current => current === profileId ? (next[0]?.id ?? null) : current);
       return next;
     });
-    showToast("Profile deleted");
+    showToast(isArabic ? "تم حذف الملف" : "Profile deleted");
   }
   function setLinkPending(linkId: string, state: PendingLinks[string] | null) {
     setPendingLinks(prev => {
@@ -3136,10 +3142,10 @@ export default function DashboardPage() {
         }
         setProfiles(full);
       } catch (e) {
-        showToast(e instanceof Error ? e.message : "Failed to load profiles", false);
+        showToast(e instanceof Error ? e.message : (isArabic ? "فشل تحميل الملفات" : "Failed to load profiles"), false);
       } finally { setLoading(false); }
     }).catch(() => router.push("/login"));
-  }, [router]);
+  }, [router, isArabic]);
 
   useEffect(() => {
     if (!profile || !token || !uid) return;
@@ -3193,9 +3199,9 @@ export default function DashboardPage() {
           if (unreadCount > previousUnread) {
             const newCount = unreadCount - previousUnread;
             showAppNotification(
-              newCount === 1 ? "New profile message" : `${newCount} new profile messages`,
-              `${item.displayName || "Your profile"} received a new message.`,
-              "now",
+              newCount === 1 ? (isArabic ? "رسالة جديدة على الملف" : "New profile message") : (isArabic ? `${newCount} رسائل جديدة على الملف` : `${newCount} new profile messages`),
+              isArabic ? `${item.displayName || "ملفك"} استقبل رسالة جديدة.` : `${item.displayName || "Your profile"} received a new message.`,
+              isArabic ? "الآن" : "now",
             );
             const inbox: ProfileInbox = {
               messages: messagesJson.data?.messages ?? [],
@@ -3207,9 +3213,9 @@ export default function DashboardPage() {
           if (totalViews > previousViews) {
             const newViews = totalViews - previousViews;
             showAppNotification(
-              newViews === 1 ? "New profile visit" : `${newViews} new profile visits`,
-              `${item.displayName || "Your profile"} just got fresh audience activity.`,
-              "now",
+              newViews === 1 ? (isArabic ? "زيارة جديدة للملف" : "New profile visit") : (isArabic ? `${newViews} زيارات جديدة للملف` : `${newViews} new profile visits`),
+              isArabic ? `${item.displayName || "ملفك"} حصل على نشاط جديد.` : `${item.displayName || "Your profile"} just got fresh audience activity.`,
+              isArabic ? "الآن" : "now",
             );
           }
         } catch {
@@ -3241,12 +3247,12 @@ export default function DashboardPage() {
       if (!r.ok) throw new Error(j.error?.message ?? "Failed");
       if (patchSeq !== patchSeqRef.current) return;
       setProfiles(prev => prev.map(p => p.id === profileId ? { ...j.data, links: j.data.links ?? p.links ?? [] } : p));
-      if (!optimisticMessage) showToast("Saved");
+      if (!optimisticMessage) showToast(isArabic ? "تم الحفظ" : "Saved");
     }
     catch (e: unknown) {
       if (patchSeq !== patchSeqRef.current) return;
       setProfiles(prev => prev.map(p => p.id === profileId ? previousProfile : p));
-      showToast(e instanceof Error ? e.message : "Error", false);
+      showToast(e instanceof Error ? e.message : (isArabic ? "حدث خطأ" : "Error"), false);
     } finally {
       if (patchSeq === patchSeqRef.current) setSaving(false);
     }
@@ -3271,7 +3277,7 @@ export default function DashboardPage() {
       } catch (e: unknown) {
         if (patchSeq !== patchSeqRef.current) return;
         setProfiles(prev => prev.map(p => p.id === profileId ? previousProfile : p));
-        showToast(e instanceof Error ? e.message : "Error", false);
+        showToast(e instanceof Error ? e.message : (isArabic ? "حدث خطأ" : "Error"), false);
       } finally {
         if (patchSeq === patchSeqRef.current) setSaving(false);
       }
@@ -3306,10 +3312,10 @@ export default function DashboardPage() {
       const j = await readApiJson(r);
       if (!r.ok) throw new Error(j.error?.message ?? "Failed");
       setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.map(l => l.id === tempId ? j.data : l) } : p));
-      showToast("Link added");
+      showToast(isArabic ? "تمت إضافة الرابط" : "Link added");
     } catch (e: unknown) {
       setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.filter(l => l.id !== tempId) } : p));
-      showToast(e instanceof Error ? e.message : "Error", false);
+      showToast(e instanceof Error ? e.message : (isArabic ? "حدث خطأ" : "Error"), false);
     } finally {
       setLinkPending(tempId, null);
     }
@@ -3328,11 +3334,11 @@ export default function DashboardPage() {
       if (!r.ok) throw new Error(j.error?.message ?? "Failed");
       if (!toggleOnly) {
         setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.map(l => l.id === linkId ? j.data : l) } : p));
-        showToast("Saved");
+        showToast(isArabic ? "تم الحفظ" : "Saved");
       }
     } catch (e: unknown) {
       if (previous) setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: p.links.map(l => l.id === linkId ? previous : l) } : p));
-      showToast(e instanceof Error ? e.message : "Error", false);
+      showToast(e instanceof Error ? e.message : (isArabic ? "حدث خطأ" : "Error"), false);
     } finally {
       if (!toggleOnly) setLinkPending(linkId, null);
     }
@@ -3346,12 +3352,12 @@ export default function DashboardPage() {
     try {
       const r = await fetch("/api/v1/profiles/" + profileId + "/links/" + linkId, { method: "DELETE", headers: hdrs() });
       if (!r.ok) throw new Error("Failed");
-      showToast("Deleted");
+      showToast(isArabic ? "تم الحذف" : "Deleted");
     } catch {
       if (deleted) {
         setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, links: [...p.links, deleted].sort((a, b) => a.displayOrder - b.displayOrder) } : p));
       }
-      showToast("Error", false);
+      showToast(isArabic ? "حدث خطأ" : "Error", false);
     } finally {
       setLinkPending(linkId, null);
     }

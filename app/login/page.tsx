@@ -9,7 +9,7 @@ import { isOwnerEmail } from "@/lib/config/ownerAccess";
 import { useLanguage } from "@/components/LanguageProvider";
 
 function LoginContent() {
-  const { isArabic, toggleLanguage } = useLanguage();
+  const { isArabic } = useLanguage();
   const [showPass, setShowPass] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -112,10 +112,6 @@ function LoginContent() {
               <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={58} height={58} className="h-14 w-14 object-contain transition-all group-hover:drop-shadow-[0_0_14px_rgba(3,169,244,0.7)]" priority />
             </Link>
           </div>
-          <button type="button" onClick={toggleLanguage} className="mx-auto mb-4 flex h-9 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 text-xs font-bold text-white/70 hover:border-[#03A9F4]/35">
-            <i className="ri-translate-2" />
-            {isArabic ? "English" : "العربية"}
-          </button>
           <div className="rounded-2xl border border-[#03A9F4]/18 bg-[#0d2539] p-7 shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-8">
             <div className="mb-8">
               <h2 className="mb-1 text-3xl font-bold text-white">{isArabic ? "التحقق بخطوتين" : "Two-Factor Auth"}</h2>
@@ -148,10 +144,6 @@ function LoginContent() {
             <Image src="/img/linkup-nav-mark.png" alt="LinkUp" width={62} height={62} className="h-16 w-16 object-contain transition-all group-hover:drop-shadow-[0_0_16px_rgba(3,169,244,0.75)]" priority />
           </Link>
         </div>
-        <button type="button" onClick={toggleLanguage} className="mx-auto mb-4 flex h-9 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 text-xs font-bold text-white/70 hover:border-[#03A9F4]/35">
-          <i className="ri-translate-2" />
-          {isArabic ? "English" : "العربية"}
-        </button>
         <div className="rounded-2xl border border-[#03A9F4]/18 bg-[#0d2539] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)] sm:p-8">
           <div className="mb-8">
             <h2 className="mb-2 text-3xl font-bold leading-tight text-white sm:text-4xl">{isArabic ? "مرحبًا بعودتك" : "Welcome back"}</h2>
