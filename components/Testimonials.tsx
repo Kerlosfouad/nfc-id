@@ -29,7 +29,7 @@ export default function Testimonials() {
     : storeLinks;
 
   return (
-    <section id="download" className={`relative overflow-hidden py-24 sm:py-32 lg:py-40 ${isArabic ? "font-[Cairo]" : ""}`}>
+    <section id="download" dir={isArabic ? "rtl" : "ltr"} className={`relative overflow-hidden py-24 sm:py-32 lg:py-40 ${isArabic ? "font-[Cairo]" : ""}`}>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(3,169,244,0.26),transparent_32%),radial-gradient(circle_at_18%_78%,rgba(0,229,255,0.15),transparent_30%),radial-gradient(circle_at_88%_58%,rgba(37,99,235,0.16),transparent_26%),linear-gradient(180deg,#07131b_0%,#071017_42%,#050607_100%)]" />
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#03A9F4]/55 to-transparent" />
       <div className="absolute left-1/2 top-10 h-72 w-72 -translate-x-1/2 rounded-full bg-[#03A9F4]/18 blur-[90px]" />

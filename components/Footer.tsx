@@ -36,7 +36,7 @@ export default function Footer() {
     : productLinks;
 
   return (
-    <footer className={`relative bg-[#0b0a0a] border-t border-[#111] pt-16 pb-8 overflow-hidden ${isArabic ? "font-[Cairo]" : ""}`}>
+    <footer dir={isArabic ? "rtl" : "ltr"} className={`relative bg-[#0b0a0a] border-t border-[#111] pt-16 pb-8 overflow-hidden ${isArabic ? "font-[Cairo]" : ""}`}>
       {/* Top glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-px bg-gradient-to-r from-transparent via-[#03A9F4]/30 to-transparent" />
 

@@ -111,7 +111,7 @@ export default function ProductSection() {
   }
 
   return (
-    <section id="PRODUCT" className={`relative overflow-hidden px-4 py-20 sm:py-28 ${isArabic ? "font-[Cairo]" : ""}`}>
+    <section id="PRODUCT" dir={isArabic ? "rtl" : "ltr"} className={`relative overflow-hidden px-4 py-20 sm:py-28 ${isArabic ? "font-[Cairo]" : ""}`}>
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#03A9F4]/35 to-transparent" />
       <div className="pointer-events-none absolute inset-0 hero-grid opacity-25" />
       <div className="pointer-events-none absolute -left-32 top-24 h-[420px] w-[420px] rounded-full bg-[#03A9F4]/10 blur-[110px]" />

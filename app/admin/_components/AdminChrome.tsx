@@ -8,17 +8,19 @@ import { createClient } from "@/lib/supabase/client";
 import { clearAdminSessionHeaders } from "@/lib/adminSessionClient";
 import { AppNotificationToast, type AppNotification } from "@/components/AppNotificationToast";
 import { getPushSupportError, subscribeDeviceToPush, unsubscribeDeviceFromPush } from "@/lib/pushClient";
+import { useLanguage } from "@/components/LanguageProvider";
 
 const navItems = [
-  { href: "/admin", icon: "ri-dashboard-line", label: "Overview" },
-  { href: "/admin/customers", icon: "ri-user-smile-line", label: "Customers" },
-  { href: "/admin/products", icon: "ri-shopping-bag-3-line", label: "Products" },
-  { href: "/admin/orders", icon: "ri-archive-stack-line", label: "Orders" },
-  { href: "/admin/tags", icon: "ri-qr-scan-2-line", label: "NFC" },
-  { href: "/admin/moderation", icon: "ri-shield-check-line", label: "Moderation" },
+  { href: "/admin", icon: "ri-dashboard-line", label: "Overview", arLabel: "نظرة عامة" },
+  { href: "/admin/customers", icon: "ri-user-smile-line", label: "Customers", arLabel: "العملاء" },
+  { href: "/admin/products", icon: "ri-shopping-bag-3-line", label: "Products", arLabel: "المنتجات" },
+  { href: "/admin/orders", icon: "ri-archive-stack-line", label: "Orders", arLabel: "الطلبات" },
+  { href: "/admin/tags", icon: "ri-qr-scan-2-line", label: "NFC", arLabel: "NFC" },
+  { href: "/admin/moderation", icon: "ri-shield-check-line", label: "Moderation", arLabel: "المراجعة" },
 ];
 
 export function AdminChrome({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+  const { isArabic, toggleLanguage } = useLanguage();
   const pathname = usePathname();
   const router = useRouter();
   const [orderCount, setOrderCount] = useState(0);
@@ -180,8 +182,19 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
         className: "border-white/10 bg-white/[0.03] text-white/35 hover:border-[#03A9F4]/30 hover:text-white/65",
       };
 
+  const titleMap: Record<string, string> = {
+    "Owner Dashboard": "لوحة المالك",
+    Customers: "العملاء",
+    Products: "المنتجات",
+    Orders: "الطلبات",
+    NFC: "NFC",
+    Moderation: "المراجعة",
+    "Geo Map": "الخريطة",
+  };
+  const displayTitle = isArabic ? (titleMap[title] ?? title) : title;
+
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#0b0a0a] text-white" style={{ fontFamily: "Inter, sans-serif" }}>
+    <div dir="ltr" className="min-h-screen overflow-x-hidden bg-[#0b0a0a] text-white" style={{ fontFamily: isArabic ? "Cairo, Inter, sans-serif" : "Inter, sans-serif" }}>
       <AppNotificationToast items={notifications} />
       <div className="fixed inset-0 pointer-events-none hero-grid opacity-50" />
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[220px] border-r border-white/5 bg-[#0f0f0f] lg:flex lg:flex-col">
@@ -210,7 +223,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
                 }`}
               >
                 <i className={`${item.icon} text-lg`} />
-                {item.label}
+                {isArabic ? item.arLabel : item.label}
                 {showOrderBadge && (
                   <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-[#03A9F4] px-1.5 text-[10px] font-bold text-white">
                     {orderCount}
@@ -222,7 +235,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
         </nav>
 
         <div className="m-3 rounded-xl border border-[#03A9F4]/20 bg-[#03A9F4]/5 p-3">
-          <p className="text-xs uppercase tracking-widest text-white/35">Medal scan link</p>
+          <p className={`text-xs text-white/35 ${isArabic ? "" : "uppercase tracking-widest"}`}>{isArabic ? "رابط مسح الميدالية" : "Medal scan link"}</p>
           <p className="mt-2 truncate font-mono text-xs text-[#03A9F4]">/{"{code}"}</p>
         </div>
       </aside>
@@ -231,10 +244,18 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
         <header className="sticky top-0 z-20 border-b border-white/5 bg-[#0b0a0a]/90 px-4 py-4 backdrop-blur-xl sm:px-6">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <h1 className="truncate text-lg font-black uppercase leading-tight tracking-wide text-white sm:text-xl">{title}</h1>
+              <h1 className={`truncate text-lg font-black leading-tight text-white sm:text-xl ${isArabic ? "" : "uppercase tracking-wide"}`}>{displayTitle}</h1>
               <p className="sr-only">{subtitle}</p>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleLanguage}
+                aria-label={isArabic ? "Switch to English" : "ترجمة لوحة التحكم إلى العربية"}
+                className="flex h-10 min-w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] px-3 text-xs font-bold text-white/70 transition-all hover:border-[#03A9F4]/40 hover:text-[#03A9F4]"
+              >
+                {isArabic ? "EN" : "عربي"}
+              </button>
               <button
                 type="button"
                 onClick={togglePushNotifications}
@@ -282,7 +303,7 @@ export function AdminChrome({ title, subtitle, children }: { title: string; subt
                   </span>
                 )}
               </span>
-              <span className="max-w-full truncate px-1">{item.label}</span>
+              <span className="max-w-full truncate px-1">{isArabic ? item.arLabel : item.label}</span>
             </Link>
           );
         })}

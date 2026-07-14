@@ -35,7 +35,7 @@ export default function AboutSection() {
     : ["Tap", "Scan", "Share", "Update", "Measure", "Tap", "Scan", "Share"];
 
   return (
-    <section id="about" className={`relative overflow-hidden px-4 py-20 scroll-mt-28 sm:py-28 ${isArabic ? "font-[Cairo]" : ""}`}>
+    <section id="about" dir={isArabic ? "rtl" : "ltr"} className={`relative overflow-hidden px-4 py-20 scroll-mt-28 sm:py-28 ${isArabic ? "font-[Cairo]" : ""}`}>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_24%,rgba(3,169,244,0.12),transparent_24rem),radial-gradient(circle_at_78%_46%,rgba(3,169,244,0.08),transparent_28rem)]" />
       <div className="container relative z-10 mx-auto">
         <div className="grid-flow-dense grid gap-4 lg:grid-cols-12">

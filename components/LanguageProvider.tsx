@@ -23,7 +23,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     document.documentElement.lang = language;
-    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+    document.documentElement.dir = "ltr";
     document.documentElement.dataset.language = language;
     localStorage.setItem("linkup-language", language);
   }, [language]);

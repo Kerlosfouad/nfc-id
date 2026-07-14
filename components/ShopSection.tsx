@@ -176,7 +176,7 @@ export default function ShopSection() {
   }
 
   return (
-    <section id="SHOP" className={`relative overflow-hidden px-4 py-20 scroll-mt-24 sm:py-24 ${isArabic ? "font-[Cairo]" : ""}`}>
+    <section id="SHOP" dir={isArabic ? "rtl" : "ltr"} className={`relative overflow-hidden px-4 py-20 scroll-mt-24 sm:py-24 ${isArabic ? "font-[Cairo]" : ""}`}>
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#03A9F4]/30 to-transparent" />
       <div className="pointer-events-none absolute left-1/2 top-24 h-[260px] w-[520px] -translate-x-1/2 rounded-full bg-[#03A9F4]/8 blur-3xl" />
 

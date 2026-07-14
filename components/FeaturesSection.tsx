@@ -64,7 +64,7 @@ function EditProfilePhone() {
 export default function FeaturesSection() {
   const { isArabic } = useLanguage();
   return (
-    <section className={`px-4 py-24 sm:py-32 ${isArabic ? "font-[Cairo]" : ""}`}>
+    <section dir={isArabic ? "rtl" : "ltr"} className={`px-4 py-24 sm:py-32 ${isArabic ? "font-[Cairo]" : ""}`}>
       <div className="mx-auto w-full max-w-[1680px]">
         <div className="grid min-h-[820px] grid-cols-1 gap-0 overflow-hidden rounded-[1.7rem] lg:grid-cols-12 lg:grid-rows-[430px_390px]">
           <div className="relative border border-white/14 bg-black px-7 py-10 sm:px-12 lg:col-span-5">

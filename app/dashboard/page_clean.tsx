@@ -11,6 +11,7 @@ import AnimatedCounter from "@/components/AnimatedCounter";
 import { AppNotificationToast, type AppNotification } from "@/components/AppNotificationToast";
 import type { Link as PublicLink, Profile as PublicProfile, ProfileTheme as PublicProfileTheme } from "@/lib/domain/types";
 import { getPushSupportError, subscribeDeviceToPush, unsubscribeDeviceFromPush } from "@/lib/pushClient";
+import { useLanguage } from "@/components/LanguageProvider";
 
 interface LinkItem { id: string; type: string; title: string; url: string; displayOrder: number; activeFrom: string | null; activeTo: string | null; thumbnailUrl: string | null; isActive?: boolean; }
 interface ProfileTheme { style: string; primaryColor: string; fontFamily: string; linksLayout?: "list" | "grid"; profileLayout?: "classic" | "hero"; coverUrl?: string | null; }
@@ -2835,6 +2836,7 @@ function SystemToast({ toasts }: { toasts: ToastItem[] }) {
 }
 
 export default function DashboardPage() {
+  const { isArabic, toggleLanguage } = useLanguage();
   const router = useRouter();
   const [token, setToken] = useState("");
   const [uid, setUid] = useState("");
@@ -3362,16 +3364,16 @@ export default function DashboardPage() {
   }
   function copyLink() { if (!profile) return; navigator.clipboard.writeText(window.location.origin + "/profile/" + profile.publicId); setCopied(true); setTimeout(() => setCopied(false), 2000); }
 
-  const NAV: { id: Tab; icon: string; label: string }[] = [
-    { id: "home", icon: "ri-home-5-line", label: "Home" }, { id: "analytics", icon: "ri-bar-chart-2-line", label: "Audience" },
-    { id: "share", icon: "ri-share-line", label: "Share" }, { id: "design", icon: "ri-palette-line", label: "Design" },
-    { id: "settings", icon: "ri-settings-3-line", label: "Settings" },
+  const NAV: { id: Tab; icon: string; label: string; arLabel: string }[] = [
+    { id: "home", icon: "ri-home-5-line", label: "Home", arLabel: "الرئيسية" }, { id: "analytics", icon: "ri-bar-chart-2-line", label: "Audience", arLabel: "الجمهور" },
+    { id: "share", icon: "ri-share-line", label: "Share", arLabel: "المشاركة" }, { id: "design", icon: "ri-palette-line", label: "Design", arLabel: "التصميم" },
+    { id: "settings", icon: "ri-settings-3-line", label: "Settings", arLabel: "الإعدادات" },
   ];
 
   if (loading) return (<div className="bg-[#111] min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#03A9F4] border-t-transparent rounded-full animate-spin" /></div>);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#111] text-white" style={{ fontFamily: "Inter, sans-serif" }}>
+    <div dir="ltr" className="flex h-screen overflow-hidden bg-[#111] text-white" style={{ fontFamily: isArabic ? "Cairo, Inter, sans-serif" : "Inter, sans-serif" }}>
       <AppNotificationToast items={notifications} />
       {toasts.length > 0 && <SystemToast toasts={toasts} />}
 
@@ -3400,16 +3402,23 @@ export default function DashboardPage() {
               onClick={() => { if (n.id === "share") void preloadQrCodeStyling(); setTab(n.id); setSidebarOpen(false); }}
               className={"w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all " + (tab === n.id ? "bg-white/10 text-white font-medium" : "text-white/60 hover:text-white hover:bg-white/5")}
             >
-              <i className={n.icon + " text-base"} />{n.label}
+              <i className={n.icon + " text-base"} />{isArabic ? n.arLabel : n.label}
             </button>
           ))}
           <button onClick={() => setGoldRequest({ service: "design" })} className="mt-3 w-full rounded-xl border border-[#03A9F4]/20 bg-[#03A9F4]/10 px-3 py-3 text-left text-sm font-semibold text-[#03A9F4] hover:bg-[#03A9F4]/15">
-            <span className="flex items-center gap-2"><i className="ri-vip-crown-fill" />Try Pro For Free</span>
-            <span className="mt-1 block text-[10px] font-normal text-white/45">Prime services and payment review</span>
+            <span className="flex items-center gap-2"><i className="ri-vip-crown-fill" />{isArabic ? "جرّب Pro مجانًا" : "Try Pro For Free"}</span>
+            <span className="mt-1 block text-[10px] font-normal text-white/45">{isArabic ? "خدمات برايم ومراجعة الدفع" : "Prime services and payment review"}</span>
+          </button>
+          <button
+            type="button"
+            onClick={toggleLanguage}
+            className="mt-2 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-left text-sm font-semibold text-white/70 hover:border-[#03A9F4]/30 hover:text-white"
+          >
+            <span className="flex items-center gap-2"><i className="ri-translate-2" />{isArabic ? "English" : "العربية"}</span>
           </button>
         </nav>
         <div className="px-2 pb-2 border-t border-white/5 pt-3">
-          <p className="text-[10px] text-white/30 uppercase tracking-wider px-3 mb-1.5">Your Profiles</p>
+          <p className={`text-[10px] text-white/30 px-3 mb-1.5 ${isArabic ? "" : "uppercase tracking-wider"}`}>{isArabic ? "ملفاتك" : "Your Profiles"}</p>
           {profiles.map(p => (
             <button key={p.id} type="button" onClick={() => setSelId(p.id)} className={"w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs transition-all " + ((selId ?? profiles[0]?.id) === p.id ? "bg-white/10 text-white" : "text-white/60 hover:text-white hover:bg-white/5")}>
               <div className="w-5 h-5 rounded-full bg-[#03A9F4]/20 flex items-center justify-center text-[10px] font-bold text-[#03A9F4] flex-shrink-0">{p.displayName.charAt(0).toUpperCase()}</div>
@@ -3444,7 +3453,14 @@ export default function DashboardPage() {
             </button>
             <button type="button" onClick={() => setGoldRequest({ service: "design" })} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#03A9F4]/40 px-3 text-xs font-semibold text-[#03A9F4]">
               <i className="ri-sparkling-2-line" />
-              Try Pro
+              {isArabic ? "جرّب Pro" : "Try Pro"}
+            </button>
+            <button
+              type="button"
+              onClick={toggleLanguage}
+              className="inline-flex h-8 items-center rounded-full border border-white/10 px-3 text-xs font-semibold text-white/70"
+            >
+              {isArabic ? "EN" : "عربي"}
             </button>
           </div>
         </div>
@@ -3453,8 +3469,8 @@ export default function DashboardPage() {
           {!profile ? (
             <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
               <i className="ri-nfc-line text-5xl text-white/10" />
-              <p className="text-white/50">No profile yet. Connect your NFC card to create one.</p>
-              <Link href="/connect-nfc" className="px-5 py-2.5 rounded-full bg-[#03A9F4] text-white text-sm font-semibold hover:bg-[#03A9F4]/80">Connect Your NFC Card</Link>
+              <p className="text-white/50">{isArabic ? "لا يوجد ملف بعد. اربط بطاقة NFC لإنشاء ملفك." : "No profile yet. Connect your NFC card to create one."}</p>
+              <Link href="/connect-nfc" className="px-5 py-2.5 rounded-full bg-[#03A9F4] text-white text-sm font-semibold hover:bg-[#03A9F4]/80">{isArabic ? "اربط بطاقة NFC" : "Connect Your NFC Card"}</Link>
             </div>
           ) : (
             <div className={"h-full " + (tab === "design" ? "overflow-y-auto px-3 sm:px-6 py-4 sm:py-6 pb-24 md:pb-6" : "overflow-y-auto")}>
@@ -3463,10 +3479,10 @@ export default function DashboardPage() {
                   <div className="hidden items-center justify-between bg-[#03A9F4]/10 border border-[#03A9F4]/20 rounded-xl px-3 sm:px-4 py-2.5 mb-3 sm:mb-5 md:flex">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse flex-shrink-0" />
-                      <span className="text-white/50 text-xs hidden sm:inline">You are live</span>
+                      <span className="text-white/50 text-xs hidden sm:inline">{isArabic ? "ملفك مباشر" : "You are live"}</span>
                       <span className="text-[#03A9F4] text-xs font-mono truncate">/profile/{profile.publicId}</span>
                     </div>
-                    <button onClick={copyLink} className="text-xs text-white/40 hover:text-white flex items-center gap-1 flex-shrink-0 ml-2"><i className={copied ? "ri-check-line text-green-400" : "ri-file-copy-line"} />{copied ? "Copied!" : "Copy"}</button>
+                    <button onClick={copyLink} className="text-xs text-white/40 hover:text-white flex items-center gap-1 flex-shrink-0 ml-2"><i className={copied ? "ri-check-line text-green-400" : "ri-file-copy-line"} />{copied ? (isArabic ? "تم النسخ!" : "Copied!") : (isArabic ? "نسخ" : "Copy")}</button>
                   </div>
                   {tab === "home" && <HomeTab profile={profile} saving={saving} pendingLinks={pendingLinks} unreadMessages={activeInbox.unreadCount} onOpenInbox={openInbox} onPatch={patchProfile} onAddLink={() => setAddOpen(true)} onEditLink={setEditLink} onDeleteLink={deleteLink} onMove={moveLink} onMoveTo={moveLinkTo} onPreview={() => setPreviewOpen(true)} editOpen={editOpen} setEditOpen={setEditOpen} addOpen={addOpen} setAddOpen={setAddOpen} editLink={editLink} setEditLink={setEditLink} onUpdateLink={updateLink} onAddLinkSubmit={addLink} />}
                   {tab === "analytics" && <AnalyticsTab profile={profile} token={token} uid={uid} />}
@@ -3545,7 +3561,7 @@ export default function DashboardPage() {
           {NAV.map(n => (
             <button key={n.id} type="button" onClick={() => { if (n.id === "share") void preloadQrCodeStyling(); setTab(n.id); }} className={"flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[10px] transition-all " + (tab === n.id ? "text-[#03A9F4]" : "text-white/55 hover:text-white/75")}>
               <i className={n.icon + " text-lg"} />
-              <span>{n.label}</span>
+              <span>{isArabic ? n.arLabel : n.label}</span>
             </button>
           ))}
         </nav>

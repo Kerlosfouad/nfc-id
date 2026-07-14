@@ -22,7 +22,7 @@ export default function HeroSection() {
     : defaultStats;
 
   return (
-    <section className={`relative flex justify-center items-center overflow-hidden ${isArabic ? "font-[Cairo]" : ""}`} style={{ minHeight: "100svh" }}>
+    <section dir={isArabic ? "rtl" : "ltr"} className={`relative flex justify-center items-center overflow-hidden ${isArabic ? "font-[Cairo]" : ""}`} style={{ minHeight: "100svh" }}>
       <ParticleBackground />
       <div className="absolute inset-0 z-[1] hero-grid opacity-80 pointer-events-none" />
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[620px] h-[620px] rounded-full bg-[#03A9F4]/5 blur-[120px] pointer-events-none z-[1] animate-pulse-slow" />

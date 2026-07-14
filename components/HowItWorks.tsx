@@ -52,7 +52,7 @@ export default function HowItWorks() {
   }, [localizedSteps.length]);
 
   return (
-    <section id="USE" className={`relative overflow-hidden px-4 py-20 sm:py-28 ${isArabic ? "font-[Cairo]" : ""}`}>
+    <section id="USE" dir={isArabic ? "rtl" : "ltr"} className={`relative overflow-hidden px-4 py-20 sm:py-28 ${isArabic ? "font-[Cairo]" : ""}`}>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(3,169,244,0.18),transparent_24rem),linear-gradient(180deg,transparent,rgba(3,169,244,0.04),transparent)]" />
       <div className="pointer-events-none absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#03A9F4]/8 blur-[130px]" />
 

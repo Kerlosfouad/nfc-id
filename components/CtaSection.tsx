@@ -6,7 +6,7 @@ import { useLanguage } from "@/components/LanguageProvider";
 export default function CtaSection() {
   const { isArabic } = useLanguage();
   return (
-    <section className={`py-14 sm:py-24 px-5 sm:px-4 ${isArabic ? "font-[Cairo]" : ""}`}>
+    <section dir={isArabic ? "rtl" : "ltr"} className={`py-14 sm:py-24 px-5 sm:px-4 ${isArabic ? "font-[Cairo]" : ""}`}>
       <div className="container mx-auto">
         <div className="relative bg-gradient-to-br from-[#0f1a2e] to-[#0b0a0a] border border-[#03A9F4]/20 rounded-2xl p-5 sm:p-12 text-center overflow-hidden">
           {/* Glow */}
