@@ -41,7 +41,7 @@ export const VALID_TRANSITIONS: Record<TagState, TagState[]> = {
   SOLD: ['CLAIMED', 'SUSPENDED'],
   CLAIMED: ['ACTIVE', 'SUSPENDED'],
   ACTIVE: ['SUSPENDED'],
-  SUSPENDED: [], // terminal state
+  SUSPENDED: ['ACTIVE'],
 };
 
 // ── Use case ──────────────────────────────────────────────────────────────────
@@ -104,8 +104,8 @@ export async function updateTagState(
     };
   });
 
-  // 4. On SUSPENDED: invalidate cache within 5 seconds (Req 9.3)
-  if (newState === 'SUSPENDED') {
+  // 4. On public availability changes: invalidate cache within 5 seconds (Req 9.3)
+  if (newState === 'SUSPENDED' || result.previousState === 'SUSPENDED') {
     await del(tagCacheKey(publicId));
   }
 

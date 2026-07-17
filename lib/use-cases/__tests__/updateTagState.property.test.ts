@@ -143,7 +143,7 @@ describe('Property 1: Tag state transition validity', () => {
     );
   });
 
-  it('SUSPENDED is a terminal state — no transitions out of it are valid', async () => {
+  it('SUSPENDED can only transition back to ACTIVE', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.constantFrom(...ALL_STATES),
@@ -153,10 +153,15 @@ describe('Property 1: Tag state transition validity', () => {
           const publicId = `pub-suspended-to-${toState}`;
           setupTag(publicId, 'SUSPENDED');
 
-          // No transition out of SUSPENDED is valid
-          await expect(
-            updateTagState({ publicId, newState: toState, adminId: 'admin-id' }),
-          ).rejects.toThrow(InvalidTransitionError);
+          if (toState === 'ACTIVE') {
+            const result = await updateTagState({ publicId, newState: toState, adminId: 'admin-id' });
+            expect(result.previousState).toBe('SUSPENDED');
+            expect(result.newState).toBe('ACTIVE');
+          } else {
+            await expect(
+              updateTagState({ publicId, newState: toState, adminId: 'admin-id' }),
+            ).rejects.toThrow(InvalidTransitionError);
+          }
         },
       ),
       { numRuns: 50 },
@@ -229,7 +234,17 @@ describe('Property 1: Tag state transition validity', () => {
     expect(del).toHaveBeenCalledWith('tag:pub-suspend');
   });
 
-  it('cache is NOT invalidated for non-SUSPENDED transitions', async () => {
+  it('cache is invalidated when reactivating from SUSPENDED', async () => {
+    const { del } = await import('../../services/cacheService');
+
+    setupTag('pub-reactivate', 'SUSPENDED');
+
+    await updateTagState({ publicId: 'pub-reactivate', newState: 'ACTIVE', adminId: 'admin-id' });
+
+    expect(del).toHaveBeenCalledWith('tag:pub-reactivate');
+  });
+
+  it('cache is NOT invalidated for non-public-availability transitions', async () => {
     const { del } = await import('../../services/cacheService');
 
     setupTag('pub-sold', 'MANUFACTURED');

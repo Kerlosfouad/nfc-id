@@ -95,12 +95,12 @@ export default function AdminTagsPage() {
     });
   }, [router]);
 
-  async function updateTagState(publicId: string) {
+  async function updateTagState(tag: TagRow) {
     if (!authToken) return;
-    const newState: TagState = "SUSPENDED";
-    setSaving((s) => ({ ...s, [publicId]: true }));
+    const newState: TagState = tag.state === "SUSPENDED" ? "ACTIVE" : "SUSPENDED";
+    setSaving((s) => ({ ...s, [tag.publicId]: true }));
     try {
-      const res = await fetch(`/api/v1/admin/tags/${publicId}`, {
+      const res = await fetch(`/api/v1/admin/tags/${tag.publicId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -113,12 +113,12 @@ export default function AdminTagsPage() {
         const json = await res.json();
         throw new Error(json.error?.message ?? "Update failed");
       }
-      setTags((prev) => prev.map((tag) => (tag.publicId === publicId ? { ...tag, state: newState } : tag)));
-      showToast(`NFC ${publicId} is now inactive`);
+      setTags((prev) => prev.map((item) => (item.publicId === tag.publicId ? { ...item, state: newState } : item)));
+      showToast(`NFC ${tag.publicId} is now ${newState === "ACTIVE" ? "active" : "inactive"}`);
     } catch (e: unknown) {
       showToast(e instanceof Error ? e.message : "Update failed", "error");
     } finally {
-      setSaving((s) => ({ ...s, [publicId]: false }));
+      setSaving((s) => ({ ...s, [tag.publicId]: false }));
     }
   }
 
@@ -252,11 +252,15 @@ export default function AdminTagsPage() {
                             <i className={copiedId === tag.publicId ? "ri-check-line text-green-300" : "ri-file-copy-line"} />
                           </button>
                           <button
-                            onClick={() => updateTagState(tag.publicId)}
-                            disabled={saving[tag.publicId] || tag.state === "SUSPENDED"}
-                            className="rounded-lg border border-amber-300/20 bg-amber-300/10 px-3 py-2 text-xs font-semibold text-amber-200 transition hover:bg-amber-300/15 disabled:opacity-35"
+                            onClick={() => updateTagState(tag)}
+                            disabled={saving[tag.publicId]}
+                            className={`rounded-lg border px-3 py-2 text-xs font-semibold transition disabled:opacity-35 ${
+                              tag.state === "SUSPENDED"
+                                ? "border-green-300/20 bg-green-400/10 text-green-200 hover:bg-green-400/15"
+                                : "border-amber-300/20 bg-amber-300/10 text-amber-200 hover:bg-amber-300/15"
+                            }`}
                           >
-                            {saving[tag.publicId] ? "Saving..." : "Inactive"}
+                            {saving[tag.publicId] ? "Saving..." : tag.state === "SUSPENDED" ? "Active" : "Inactive"}
                           </button>
                           <button
                             onClick={() => deleteTag(tag.publicId)}

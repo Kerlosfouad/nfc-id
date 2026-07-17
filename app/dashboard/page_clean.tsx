@@ -580,9 +580,9 @@ function EditLinkForm({ link, saving, onSubmit, onCancel, onDelete }: { link: Li
             : <span />
           }
           <div className="flex gap-2">
-            <button onClick={onCancel} className="px-4 py-2 text-sm text-white/40 hover:text-white transition-colors">Cancel</button>
+            <button onClick={onCancel} className="px-4 py-2 text-sm text-white/40 hover:text-white transition-colors">{isArabic ? "إلغاء" : "Cancel"}</button>
             <button onClick={handleSave} disabled={saving} className="px-5 py-2 text-sm font-semibold bg-white text-black rounded-xl hover:bg-white/90 disabled:opacity-50 transition-colors">
-              {saving ? "Saving…" : "Save"}
+              {saving ? (isArabic ? "جاري الحفظ..." : "Saving...") : (isArabic ? "حفظ" : "Save")}
             </button>
           </div>
         </div>
@@ -893,14 +893,14 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
                 <div className="flex items-center gap-2 bg-black/60 rounded-xl px-3 py-1.5">
                   <i className="ri-camera-line text-white text-sm" />
-                  <span className="text-white text-xs font-semibold">Change Cover</span>
+                  <span className="text-white text-xs font-semibold">{isArabic ? "تغيير الغلاف" : "Change Cover"}</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={e => { e.stopPropagation(); setCoverModal(true); }}
                 className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/70 text-white shadow-lg lg:hidden"
-                aria-label="Change cover"
+                aria-label={isArabic ? "تغيير الغلاف" : "Change cover"}
               >
                 <i className="ri-image-add-line text-lg" />
               </button>
@@ -915,7 +915,7 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
                 <button
                   type="button"
                   className="absolute -bottom-1 -left-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/80 text-white shadow-md lg:hidden"
-                  aria-label="Change avatar"
+                  aria-label={isArabic ? "تغيير الصورة الشخصية" : "Change avatar"}
                 >
                   <i className="ri-image-add-line text-base" />
                 </button>
@@ -1044,7 +1044,7 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
                       }}
                       disabled={isPending}
                       className={`relative h-5 w-9 rounded-full transition-all flex-shrink-0 ${isHidden ? "bg-white/10" : "bg-[#03A9F4]"}`}
-                      title={isHidden ? "Enable link" : "Disable link"}
+                      title={isHidden ? (isArabic ? "تفعيل الرابط" : "Enable link") : (isArabic ? "تعطيل الرابط" : "Disable link")}
                     >
                       <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all duration-200 ${isHidden ? "left-0.5" : "left-[18px]"}`} />
                     </button>
@@ -1059,7 +1059,7 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
 
     {avatarModal && (
       <ImageUploadModal
-        title="Profile Photo"
+        title={isArabic ? "الصورة الشخصية" : "Profile Photo"}
         current={profile.avatarUrl}
         onSave={url => { onPatch({ avatarUrl: url }); setAvatarModal(false); }}
         onClose={() => setAvatarModal(false)}
@@ -1067,7 +1067,7 @@ function HomeTab({ profile, saving, pendingLinks, unreadMessages, onOpenInbox, o
     )}
     {coverModal && (
       <ImageUploadModal
-        title="Cover Photo"
+        title={isArabic ? "صورة الغلاف" : "Cover Photo"}
         current={profile.theme?.coverUrl ?? null}
         onSave={url => {
           const theme = profile.theme ?? { style: "dark", primaryColor: "#03A9F4", fontFamily: "Inter" };
@@ -2447,6 +2447,7 @@ function GoldUpgradeModal({ profile, email, initialRequest, onClose }: { profile
 }
 
 function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClose: () => void }) {
+  const { isArabic } = useLanguage();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -2474,10 +2475,10 @@ function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClo
         <div className="relative z-20 shrink-0 px-5 pb-4 pt-8">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold">Preview LinkUp</h2>
-              <p className="mt-1 text-sm text-white/45">See how your profile will look</p>
+              <h2 className="text-2xl font-bold">{isArabic ? "معاينة LinkUp" : "Preview LinkUp"}</h2>
+              <p className="mt-1 text-sm text-white/45">{isArabic ? "شاهد كيف سيظهر ملفك" : "See how your profile will look"}</p>
             </div>
-            <button onClick={closePreview} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/50 hover:text-white" aria-label="Close preview">
+            <button onClick={closePreview} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/50 hover:text-white" aria-label={isArabic ? "إغلاق المعاينة" : "Close preview"}>
               <i className="ri-close-line text-xl" />
             </button>
           </div>
@@ -2489,7 +2490,7 @@ function ProfilePreviewModal({ profile, onClose }: { profile: ProfileData; onClo
         </div>
         <div className="relative z-20 shrink-0 p-5">
           <button onClick={closePreview} className="h-12 w-full rounded-xl border border-white/10 bg-white/[0.03] text-base font-bold text-white hover:bg-white/[0.06]">
-            Continue Editing
+            {isArabic ? "متابعة التعديل" : "Continue Editing"}
           </button>
         </div>
       </div>
@@ -2792,7 +2793,7 @@ function DesignTab({ profile, saving, onSave, onRequestGold }: { profile: Profil
           {saving && (
             <div className="absolute right-5 top-5 z-30 flex items-center gap-2 rounded-full border border-white/10 bg-black/55 px-3 py-2 text-xs font-semibold text-white/70 backdrop-blur">
               <i className="ri-loader-4-line animate-spin" />
-              Saving
+              {isArabic ? "جاري الحفظ" : "Saving"}
             </div>
           )}
           {/* home indicator */}

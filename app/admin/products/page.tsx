@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/components/LanguageProvider";
 import { getAdminSessionHeaders } from "@/lib/adminSessionClient";
 import { AdminChrome } from "../_components/AdminChrome";
 import { AdminInlineLoading, EmptyState, Panel } from "../_components/AdminUi";
@@ -53,7 +54,9 @@ function formatPriceLabel(value: string | null | undefined) {
 
 export default function AdminProductsPage() {
   const router = useRouter();
+  const { isArabic } = useLanguage();
   const fileRef = useRef<HTMLInputElement>(null);
+  const productFormRef = useRef<HTMLDivElement>(null);
   const [checking, setChecking] = useState(true);
   const [authToken, setAuthToken] = useState("");
   const [userId, setUserId] = useState("");
@@ -103,6 +106,14 @@ export default function AdminProductsPage() {
     toastRef.current = setTimeout(() => setToast(null), 3500);
   }
 
+  function text(en: string, ar: string) {
+    return isArabic ? ar : en;
+  }
+
+  function categoryLabel(name: string) {
+    return isArabic && name === "General" ? "عام" : name;
+  }
+
   useEffect(() => {
     getAdminSessionHeaders().then(async (session) => {
       if (!session) {
@@ -135,6 +146,9 @@ export default function AdminProductsPage() {
     setUploadedFileName("");
     setUploadState(product.imageUrl ? "ready" : "idle");
     setError(null);
+    requestAnimationFrame(() => {
+      productFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   function resetForm() {
@@ -158,20 +172,20 @@ export default function AdminProductsPage() {
       await loadData(authToken, userId);
       setDraft((current) => ({ ...current, category: name }));
       setNewCategory("");
-      showToast("Section added");
+      showToast(text("Section added", "تمت إضافة القسم"));
     } else {
-      showToast("Section could not be added", "error");
+      showToast(text("Section could not be added", "تعذر إضافة القسم"), "error");
     }
   }
 
   async function uploadProductImage(file: File) {
     if (!file.type.startsWith("image/")) {
-      setError("Please upload an image file");
+      setError(text("Please upload an image file", "يرجى رفع ملف صورة"));
       setUploadState("error");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setError("Image must be smaller than 5MB");
+      setError(text("Image must be smaller than 5MB", "يجب أن تكون الصورة أقل من 5 ميجابايت"));
       setUploadState("error");
       return;
     }
@@ -189,11 +203,11 @@ export default function AdminProductsPage() {
         body: form,
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Image upload failed");
+      if (!res.ok) throw new Error(json.error ?? text("Image upload failed", "فشل رفع الصورة"));
       setDraft((current) => ({ ...current, imageUrl: json.url }));
       setUploadState("ready");
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Image upload failed";
+      const message = e instanceof Error ? e.message : text("Image upload failed", "فشل رفع الصورة");
       setError(message);
       setUploadState("error");
     } finally {
@@ -224,7 +238,7 @@ export default function AdminProductsPage() {
         body: JSON.stringify(productPayload),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error?.message ?? "Product save failed");
+      if (!res.ok) throw new Error(json.error?.message ?? text("Product save failed", "فشل حفظ المنتج"));
       const savedProduct = json.data as ProductRow;
       setProducts((current) => {
         if (editingId) return current.map((product) => (product.id === savedProduct.id ? savedProduct : product));
@@ -232,9 +246,9 @@ export default function AdminProductsPage() {
       });
       await loadData(authToken, userId);
       resetForm();
-      showToast(editingId ? "Product updated in shop" : "Product added to shop");
+      showToast(editingId ? text("Product updated in shop", "تم تحديث المنتج في المتجر") : text("Product added to shop", "تمت إضافة المنتج للمتجر"));
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Product save failed";
+      const message = e instanceof Error ? e.message : text("Product save failed", "فشل حفظ المنتج");
       setError(message);
       showToast(message, "error");
     } finally {
@@ -243,46 +257,46 @@ export default function AdminProductsPage() {
   }
 
   async function deleteProduct(id: string) {
-    if (!confirm("Delete this product from the shop?")) return;
+    if (!confirm(text("Delete this product from the shop?", "هل تريد حذف هذا المنتج من المتجر؟"))) return;
     const res = await fetch(`/api/v1/admin/products/${id}`, { method: "DELETE", headers: authHeaders() });
     if (!res.ok) {
-      showToast("Product could not be deleted", "error");
+      showToast(text("Product could not be deleted", "تعذر حذف المنتج"), "error");
       return;
     }
     setProducts((current) => current.filter((product) => product.id !== id));
-    showToast("Product deleted");
+    showToast(text("Product deleted", "تم حذف المنتج"));
   }
 
   async function removeCategory(name: string, productCount: number) {
     if (productCount > 0) {
-      showToast("Delete or move products in this section first", "error");
+      showToast(text("Delete or move products in this section first", "احذف أو انقل المنتجات الموجودة في هذا القسم أولًا"), "error");
       return;
     }
-    if (!confirm(`Delete ${name} section?`)) return;
+    if (!confirm(text(`Delete ${name} section?`, `هل تريد حذف قسم ${categoryLabel(name)}؟`))) return;
     const res = await fetch(`/api/v1/admin/product-categories?name=${encodeURIComponent(name)}`, {
       method: "DELETE",
       headers: authHeaders(false),
     });
     const json = await res.json().catch(() => null);
     if (!res.ok) {
-      showToast(json?.error?.message ?? "Section could not be deleted", "error");
+      showToast(json?.error?.message ?? text("Section could not be deleted", "تعذر حذف القسم"), "error");
       return;
     }
     await loadData(authToken, userId);
     if (draft.category === name) setDraft((current) => ({ ...current, category: "General" }));
-    showToast("Section deleted");
+    showToast(text("Section deleted", "تم حذف القسم"));
   }
 
   if (checking) {
     return (
-      <AdminChrome title="Products" subtitle="Manage shop products, categories, stock, and public availability.">
+      <AdminChrome title="Products" subtitle={text("Manage shop products, categories, stock, and public availability.", "إدارة منتجات المتجر والأقسام والمخزون وحالة الظهور.")}>
         <AdminInlineLoading />
       </AdminChrome>
     );
   }
 
   return (
-    <AdminChrome title="Products" subtitle="Add products, create sections, upload images, and control the public shop.">
+    <AdminChrome title="Products" subtitle={text("Add products, create sections, upload images, and control the public shop.", "أضف المنتجات وأنشئ الأقسام وارفع الصور وتحكم في المتجر العام.")}>
       {toast && (
         <div className="fixed left-1/2 top-5 z-[100] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2">
           <div className={`flex items-center gap-3 rounded-full border px-4 py-3 text-sm font-semibold shadow-2xl backdrop-blur-xl ${
@@ -300,53 +314,54 @@ export default function AdminProductsPage() {
         </div>
       )}
       <div className="grid gap-5 xl:grid-cols-[420px_1fr]">
-        <Panel title={editingId ? "Edit Product" : "Upload Product"}>
-          <div className="space-y-3">
+        <div ref={productFormRef} className="scroll-mt-6">
+          <Panel title={editingId ? text("Edit Product", "تعديل المنتج") : text("Upload Product", "رفع منتج")}>
+            <div className="space-y-3">
             <div>
-              <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Product name</label>
-              <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="NFC Medal" className="custom-input" />
+              <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">{text("Product name", "اسم المنتج")}</label>
+              <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder={text("NFC Medal", "ميدالية NFC")} className="custom-input" />
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
               <div>
-                <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Section</label>
+                <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">{text("Section", "القسم")}</label>
                 <select value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })} className="custom-input">
                   {categories.map((category) => (
-                    <option key={category.name} value={category.name}>{category.name}</option>
+                    <option key={category.name} value={category.name}>{categoryLabel(category.name)}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Original price</label>
+                <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">{text("Original price", "السعر الأصلي")}</label>
                 <input value={draft.priceLabel} onChange={(e) => setDraft({ ...draft, priceLabel: e.target.value })} placeholder="EGP 399" className="custom-input" />
               </div>
               <div>
-                <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Sale price</label>
+                <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">{text("Sale price", "سعر العرض")}</label>
                 <input value={draft.salePriceLabel ?? ""} onChange={(e) => setDraft({ ...draft, salePriceLabel: e.target.value || null })} placeholder="EGP 299" className="custom-input" />
               </div>
             </div>
 
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-              <input value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder="Create new section" className="custom-input" />
+              <input value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder={text("Create new section", "إنشاء قسم جديد")} className="custom-input" />
               <button onClick={createCategory} disabled={!newCategory.trim()} className="rounded-xl border border-[#03A9F4]/30 px-4 py-2 text-sm text-[#03A9F4] disabled:opacity-40">
-                Add Section
+                {text("Add Section", "إضافة قسم")}
               </button>
             </div>
 
             <div>
-              <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Description</label>
-              <textarea value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} placeholder="Short product description" rows={3} className="custom-input resize-none" />
+              <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">{text("Description", "الوصف")}</label>
+              <textarea value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} placeholder={text("Short product description", "وصف مختصر للمنتج")} rows={3} className="custom-input resize-none" />
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.07] to-white/[0.025] p-3">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold">Product image</p>
-                  <p className="mt-0.5 text-xs text-white/35">PNG, JPG, or WEBP up to 5MB</p>
+                  <p className="text-sm font-semibold">{text("Product image", "صورة المنتج")}</p>
+                  <p className="mt-0.5 text-xs text-white/35">{text("PNG, JPG, or WEBP up to 5MB", "PNG أو JPG أو WEBP حتى 5 ميجابايت")}</p>
                 </div>
                 {draft.imageUrl && (
                   <span className="rounded-full bg-green-400/10 px-2.5 py-1 text-[11px] font-semibold text-green-300">
-                    Uploaded
+                    {text("Uploaded", "تم الرفع")}
                   </span>
                 )}
               </div>
@@ -369,20 +384,20 @@ export default function AdminProductsPage() {
                 <div className="flex min-w-0 flex-col justify-center">
                   <div className="flex items-center gap-2 text-sm font-semibold text-white">
                     <i className={uploading ? "ri-loader-4-line animate-spin text-[#03A9F4]" : uploadState === "error" ? "ri-error-warning-line text-red-300" : "ri-upload-cloud-2-line text-[#03A9F4]"} />
-                    {uploading ? "Uploading image..." : uploadState === "error" ? "Upload failed" : draft.imageUrl ? "Replace image" : "Upload image"}
+                    {uploading ? text("Uploading image...", "جاري رفع الصورة...") : uploadState === "error" ? text("Upload failed", "فشل الرفع") : draft.imageUrl ? text("Replace image", "استبدال الصورة") : text("Upload image", "رفع صورة")}
                   </div>
-                  <p className={`mt-2 max-w-full truncate text-xs ${uploadState === "error" ? "text-red-300" : "text-white/45"}`} title={error || uploadedFileName || (draft.imageUrl ? "Image uploaded" : "No image uploaded")}>
-                    {uploadState === "error" ? error : uploadedFileName || (draft.imageUrl ? "Image ready for this product" : "Click to choose a product photo")}
+                  <p className={`mt-2 max-w-full truncate text-xs ${uploadState === "error" ? "text-red-300" : "text-white/45"}`} title={error || uploadedFileName || (draft.imageUrl ? text("Image uploaded", "تم رفع الصورة") : text("No image uploaded", "لم يتم رفع صورة"))}>
+                    {uploadState === "error" ? error : uploadedFileName || (draft.imageUrl ? text("Image ready for this product", "الصورة جاهزة لهذا المنتج") : text("Click to choose a product photo", "اضغط لاختيار صورة المنتج"))}
                   </p>
                   <span className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/70 transition group-hover:bg-[#03A9F4] group-hover:text-white">
                     <i className="ri-folder-image-line" />
-                    Browse
+                    {text("Browse", "اختيار")}
                   </span>
                 </div>
               </button>
               <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/*" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) uploadProductImage(file); }} />
               <div className="mt-3">
-                <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Or paste image URL</label>
+                <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">{text("Or paste image URL", "أو الصق رابط الصورة")}</label>
                 <input
                   value={draft.imageUrl}
                   onChange={(e) => {
@@ -398,7 +413,7 @@ export default function AdminProductsPage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">Stock badge</label>
+              <label className="mb-1 block text-xs uppercase tracking-widest text-white/35">{text("Stock badge", "عدد المخزون")}</label>
               <input
                 type="number"
                 min={0}
@@ -407,7 +422,7 @@ export default function AdminProductsPage() {
                   const value = String(Math.max(0, Number(e.target.value)));
                   setDraft({ ...draft, badge: value, stockQuantity: Number(value) });
                 }}
-                placeholder="Product stock count"
+                placeholder={text("Product stock count", "عدد المنتجات المتاحة")}
                 className="custom-input"
               />
             </div>
@@ -416,26 +431,27 @@ export default function AdminProductsPage() {
 
             <div className="flex gap-2">
               <button onClick={saveProduct} disabled={saving || uploading || !draft.name || !draft.description || !draft.priceLabel || !draft.imageUrl} className="boton-elegante boton-tow flex-1">
-                {saving ? "Saving..." : editingId ? "Save Product" : "Add Product"}
+                {saving ? text("Saving...", "جاري الحفظ...") : editingId ? text("Save Product", "حفظ المنتج") : text("Add Product", "إضافة المنتج")}
               </button>
-              {editingId && <button onClick={resetForm} className="rounded-full border border-white/10 px-5 text-sm text-white/60">Cancel</button>}
+              {editingId && <button onClick={resetForm} className="rounded-full border border-white/10 px-5 text-sm text-white/60">{text("Cancel", "إلغاء")}</button>}
             </div>
-          </div>
-        </Panel>
+            </div>
+          </Panel>
+        </div>
 
         <div className="space-y-5">
-          <Panel title="Sections">
+          <Panel title={text("Sections", "الأقسام")}>
             <div className="flex flex-wrap gap-2">
               {categories.map((category) => (
                 <span key={category.name} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 py-1 pl-3 pr-1 text-xs text-white/60">
-                  <span>{category.name} · {category.productCount}</span>
+                  <span>{categoryLabel(category.name)} · {category.productCount}</span>
                   <button
                     type="button"
                     onClick={() => removeCategory(category.name, category.productCount)}
                     disabled={category.name === "General"}
                     className="flex h-6 w-6 items-center justify-center rounded-full text-white/35 transition hover:bg-red-500/15 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-25"
-                    aria-label={`Delete ${category.name} section`}
-                    title={category.productCount > 0 ? "Delete or move products first" : category.name === "General" ? "General cannot be deleted" : "Delete section"}
+                    aria-label={text(`Delete ${category.name} section`, `حذف قسم ${categoryLabel(category.name)}`)}
+                    title={category.productCount > 0 ? text("Delete or move products first", "احذف أو انقل المنتجات أولًا") : category.name === "General" ? text("General cannot be deleted", "لا يمكن حذف القسم العام") : text("Delete section", "حذف القسم")}
                   >
                     <i className="ri-delete-bin-line" />
                   </button>
@@ -444,9 +460,9 @@ export default function AdminProductsPage() {
             </div>
           </Panel>
 
-          <Panel title="Shop Products">
+          <Panel title={text("Shop Products", "منتجات المتجر")}>
             {products.length === 0 ? (
-              <EmptyState icon="ri-shopping-bag-3-line" title="No products yet" body="Add your first product here and it will appear on the public shop page." />
+              <EmptyState icon="ri-shopping-bag-3-line" title={text("No products yet", "لا توجد منتجات بعد")} body={text("Add your first product here and it will appear on the public shop page.", "أضف أول منتج هنا وسيظهر في صفحة المتجر العامة.")} />
             ) : (
               <div className="grid gap-3">
                 {products.map((product) => (
@@ -475,12 +491,12 @@ export default function AdminProductsPage() {
                         ) : (
                           <span className="font-semibold text-[#03A9F4]">{formatPriceLabel(product.priceLabel)}</span>
                         )}
-                        <span className="text-white/25">· {product.category}</span>
+                        <span className="text-white/25">· {categoryLabel(product.category)}</span>
                       </div>
                     </div>
                     <div className="flex gap-2 sm:flex-col">
-                      <button onClick={() => editProduct(product)} className="rounded-lg bg-white/10 px-3 py-2 text-xs hover:bg-white/20">Edit</button>
-                      <button onClick={() => deleteProduct(product.id)} className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300 hover:bg-red-500/20">Delete</button>
+                      <button onClick={() => editProduct(product)} className="rounded-lg bg-white/10 px-3 py-2 text-xs hover:bg-white/20">{text("Edit", "تعديل")}</button>
+                      <button onClick={() => deleteProduct(product.id)} className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300 hover:bg-red-500/20">{text("Delete", "حذف")}</button>
                     </div>
                   </div>
                 ))}
