@@ -2192,7 +2192,7 @@ function SettingsTab({ profile, email, token, uid, onPatch, onRequestGold, onDel
 
   if (panel === "support") {
     const supportItems = [
-      { icon: "ri-map-pin-line", title: isArabic ? "العنوان" : "Address", lines: isArabic ? ["مدينة الإسماعيلية", "محافظة الإسماعيلية، مصر"] : ["Ismailia City", "Ismailia Government, Egypt"] },
+      { icon: "ri-map-pin-line", title: isArabic ? "العنوان" : "Address", lines: isArabic ? ["مدينة كفر الدوار", "محافظة البحيرة، مصر"] : ["Kafr El Dawwar City", "Beheira Governorate, Egypt"] },
       { icon: "ri-phone-line", title: isArabic ? "الهاتف" : "Phone", lines: ["+20 121 163 2456"] },
       { icon: "ri-mail-line", title: isArabic ? "البريد الإلكتروني" : "Email", lines: ["contact@nfc-id.app"] },
     ];
