@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 const ALLOWED_PROVIDERS = new Set(["google"]);
+type PendingCookie = {
+  name: string;
+  value: string;
+  options: Parameters<NextResponse["cookies"]["set"]>[2];
+};
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -20,7 +25,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`);
   }
 
-  const pendingCookies: Parameters<Parameters<typeof createServerClient>[2]["cookies"]["setAll"]>[0] = [];
+  const pendingCookies: PendingCookie[] = [];
   const supabase = createServerClient(supabaseUrl, anonKey, {
     cookies: {
       getAll() {
@@ -58,5 +63,13 @@ export async function GET(request: NextRequest) {
     path: "/",
     maxAge: 15 * 60,
   });
+  if (safeRedirect.startsWith("/connect-nfc?")) {
+    redirectResponse.cookies.set("linkup_nfc_redirect", encodeURIComponent(safeRedirect), {
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 15 * 60,
+    });
+  }
   return redirectResponse;
 }

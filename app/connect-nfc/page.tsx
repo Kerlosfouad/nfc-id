@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { decodeNfcRedirect } from "@/lib/auth/nfcRedirect";
 
 type NfcStatus =
   | "checking-auth"
@@ -69,6 +70,19 @@ const statusCopy: Record<NfcStatus, { title: string; body: string; icon: string 
   },
 };
 
+function readCookie(name: string) {
+  const prefix = `${name}=`;
+  return document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(prefix))
+    ?.slice(prefix.length);
+}
+
+function clearCookie(name: string) {
+  document.cookie = `${name}=; path=/; max-age=0; samesite=lax`;
+}
+
 export default function ConnectNfcPage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -111,9 +125,12 @@ export default function ConnectNfcPage() {
       // 2. If no params in URL, check localStorage BEFORE getSession()
       //    (important: on mobile, OAuth can lose context so we restore via localStorage)
       if (!uidFromRedirect && !publicIdFromRedirect && !sessionFromRedirect) {
-        const savedRedirect = window.localStorage.getItem("linkup_auth_redirect");
-        if (savedRedirect?.startsWith("/connect-nfc?")) {
+        const savedRedirect =
+          decodeNfcRedirect(window.localStorage.getItem("linkup_auth_redirect")) ||
+          decodeNfcRedirect(readCookie("linkup_nfc_redirect"));
+        if (savedRedirect) {
           window.localStorage.removeItem("linkup_auth_redirect");
+          clearCookie("linkup_nfc_redirect");
           // Full reload so the new URL params are read correctly on next mount
           window.location.replace(savedRedirect);
           return;
@@ -127,6 +144,10 @@ export default function ConnectNfcPage() {
       setPrefilledUid(uidFromRedirect);
       setPrefilledPublicId(publicIdFromRedirect);
       setNfcSession(sessionFromRedirect);
+      if (uidFromRedirect || publicIdFromRedirect || sessionFromRedirect) {
+        window.localStorage.removeItem("linkup_auth_redirect");
+        clearCookie("linkup_nfc_redirect");
+      }
 
       if (!data.session) {
         const redirect = `/connect-nfc${window.location.search || ""}`;

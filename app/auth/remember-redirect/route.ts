@@ -14,5 +14,15 @@ export async function POST(request: NextRequest) {
     path: "/",
     maxAge: 15 * 60,
   });
+
+  if (redirect.startsWith("/connect-nfc?")) {
+    response.cookies.set("linkup_nfc_redirect", encodeURIComponent(redirect), {
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 15 * 60,
+    });
+  }
+
   return response;
 }
