@@ -254,8 +254,7 @@ export default function ConnectNfcPage() {
       return;
     }
 
-    setStatus("error");
-    setError("Scan your NFC medal first, then open the setup link stored on it.");
+    await linkCard({});
   }, [linkCard, nfcSession, prefilledPublicId, prefilledUid, token]);
 
   useEffect(() => {

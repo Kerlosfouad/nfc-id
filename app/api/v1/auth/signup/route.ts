@@ -11,16 +11,6 @@ function badRequest(message: string, status = 400) {
   );
 }
 
-function hasMedalContext(value: string | undefined) {
-  if (!value?.startsWith('/connect-nfc')) return false;
-  try {
-    const url = new URL(value, 'https://linkup.local');
-    return Boolean(url.searchParams.get('nfcSession') || url.searchParams.get('publicId') || url.searchParams.get('uid'));
-  } catch {
-    return false;
-  }
-}
-
 async function findAuthUserByEmail(supabase: SupabaseClient, email: string) {
   let page = 1;
   const perPage = 1000;
@@ -58,15 +48,8 @@ export async function POST(request: NextRequest) {
   const email = body.email?.trim().toLowerCase();
   const password = body.password ?? '';
   const fullName = body.fullName?.trim() ?? '';
-  const redirectTo = body.redirectTo?.trim();
-  const nfcSession = body.nfcSession?.trim().replace(/[^a-zA-Z0-9_-]/g, '') ?? '';
-
   if (!email || !email.includes('@')) return badRequest('Enter a valid email.');
   if (password.length < 8) return badRequest('Password must be at least 8 characters.');
-  if (!nfcSession && !hasMedalContext(redirectTo)) {
-    return badRequest('Scan your NFC medal first, then create your account from the medal setup link.');
-  }
-
   const supabase = createClient(supabaseUrl, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });

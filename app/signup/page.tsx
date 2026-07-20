@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { decodeNfcRedirect } from "@/lib/auth/nfcRedirect";
 import { useLanguage } from "@/components/LanguageProvider";
 
 function readableAuthError(message: unknown) {
@@ -113,10 +112,6 @@ function SignupContent() {
 
   async function handleOAuth(provider: "google") {
     setError(null);
-    if (!decodeNfcRedirect(redirectTo)) {
-      setError("Scan your NFC medal first, then create your account from the medal setup link.");
-      return;
-    }
     // Save redirect in both localStorage (client) and server-side cookie (via API)
     // so it survives mobile OAuth browser context switches.
     window.localStorage.setItem("linkup_auth_redirect", redirectTo);

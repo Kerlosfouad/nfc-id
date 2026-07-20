@@ -5,6 +5,7 @@ import {
   InvalidNfcUidError,
   linkPublicTag,
   linkNfcTag,
+  prepareNfcWriteProfile,
   MultipleAvailableNfcTagsError,
   NoAvailableNfcTagError,
   NfcTagLinkedToAnotherUserError,
@@ -48,16 +49,11 @@ export async function POST(request: NextRequest) {
     const publicId = parsed.data.publicId ?? sessionData?.publicId;
     const uid = parsed.data.uid ?? sessionData?.uid;
 
-    if (!publicId && !uid) {
-      return NextResponse.json(
-        { data: null, error: { code: 'NFC_REQUIRED', message: 'Scan a valid NFC medal before completing account setup.' } },
-        { status: 400 },
-      );
-    }
-
     const result = publicId
       ? await linkPublicTag(auth.userId, publicId, uid)
-      : await linkNfcTag(auth.userId, uid!);
+      : uid
+        ? await linkNfcTag(auth.userId, uid)
+        : await prepareNfcWriteProfile(auth.userId);
     return NextResponse.json({ data: result, error: null }, { status: 200 });
   } catch (error) {
     if (error instanceof InvalidNfcUidError) {
