@@ -267,6 +267,7 @@ const PRESET_THEMES = [
   { id: "cosmic-nebula", name: "Cosmic Nebula", desc: "Starfield video with violet, magenta, and gold", colors: ["#07040F", "#2B145F", "#F43FB1", "#FFB347"], premium: false, accent: "#F43FB1", coverUrl: "/assets/themes/cosmic-nebula.mp4" },
   { id: "electric-grid", name: "Electric Grid", desc: "Carbon grid video with electric blue light", colors: ["#030814", "#101827", "#244BFF", "#AFC4FF"], premium: false, accent: "#244BFF", coverUrl: "/assets/themes/electric-grid.mp4" },
   { id: "crimson-grid", name: "Crimson Grid", desc: "Dark tiled video with red neon grid lines", colors: ["#05070B", "#151A22", "#FF1E38", "#FF7A86"], premium: false, accent: "#FF1E38", coverUrl: "/assets/themes/crimson-grid.mp4" },
+  { id: "bougainvillea-coast", name: "Bougainvillea Coast", desc: "Pink blossoms, turquoise water, and a sunlit shore", colors: ["#063B4A", "#19AFC4", "#E73483", "#F6C8CE"], premium: false, accent: "#E73483", coverUrl: "/assets/themes/bougainvillea-coast.jpg" },
 ];
 
 function isVideoUrl(url?: string | null): boolean {

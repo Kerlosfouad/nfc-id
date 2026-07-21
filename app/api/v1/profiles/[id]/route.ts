@@ -39,7 +39,7 @@ const UpdateProfileSchema = z.object({
   avatarUrl: z.string().url().nullable().optional(),
   theme: z
     .object({
-      style: z.enum(['gradient', 'glassmorphism', 'minimal', 'dark', 'purple-haze', 'rose-gold', 'm-motorsport', 'royal-wave', 'black-surf', 'neon-red', 'cosmic-nebula', 'electric-grid', 'crimson-grid']),
+      style: z.enum(['gradient', 'glassmorphism', 'minimal', 'dark', 'purple-haze', 'rose-gold', 'm-motorsport', 'royal-wave', 'black-surf', 'neon-red', 'cosmic-nebula', 'electric-grid', 'crimson-grid', 'bougainvillea-coast']),
       primaryColor: z.string().min(1),
       fontFamily: z.string().min(1),
       linksLayout: z.enum(['list', 'grid']).optional(),
