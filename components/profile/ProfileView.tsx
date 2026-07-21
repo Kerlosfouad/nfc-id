@@ -263,6 +263,10 @@ function isElectricGridTheme(style?: ProfileTheme['style']): boolean {
   return style === 'electric-grid';
 }
 
+function isBougainvilleaCoastTheme(style?: ProfileTheme['style']): boolean {
+  return style === 'bougainvillea-coast';
+}
+
 
 function motorsportSurface() {
   return {
@@ -684,6 +688,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
   const cosmic = cosmicNebulaSurface();
   const isElectric = isElectricGridTheme(profile.theme.style);
   const electric = electricGridSurface();
+  const isBougainvilleaCoast = isBougainvilleaCoastTheme(profile.theme.style);
   const coverUrl = getThemeCoverUrl(profile.theme);
   const isVideoCover = isVideoUrl(coverUrl);
 
@@ -751,7 +756,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
       )}
       {/* Dark overlay for readability when cover image is set */}
       {coverUrl && (
-        <div className={`fixed inset-0 z-0 ${isMotorsport || isRoyal || isNeon || isCosmic || isElectric ? 'bg-black/20' : 'bg-black/40'}`} />
+        <div className={`fixed inset-0 z-0 ${isBougainvilleaCoast ? 'bg-black/15' : isMotorsport || isRoyal || isNeon || isCosmic || isElectric ? 'bg-black/20' : 'bg-black/40'}`} />
       )}
 
       <div className={`relative z-10 flex min-h-screen w-full max-w-[390px] flex-col items-center mx-auto px-7 ${isHero ? 'pt-7' : 'pt-16'} pb-8`}>
