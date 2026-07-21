@@ -268,6 +268,7 @@ const PRESET_THEMES = [
   { id: "electric-grid", name: "Electric Grid", desc: "Carbon grid video with electric blue light", colors: ["#030814", "#101827", "#244BFF", "#AFC4FF"], premium: false, accent: "#244BFF", coverUrl: "/assets/themes/electric-grid.mp4" },
   { id: "crimson-grid", name: "Crimson Grid", desc: "Dark tiled video with red neon grid lines", colors: ["#05070B", "#151A22", "#FF1E38", "#FF7A86"], premium: false, accent: "#FF1E38", coverUrl: "/assets/themes/crimson-grid.mp4" },
   { id: "bougainvillea-coast", name: "Bougainvillea Coast", desc: "Pink blossoms, turquoise water, and a sunlit shore", colors: ["#063B4A", "#19AFC4", "#E73483", "#F6C8CE"], premium: false, accent: "#E73483", coverUrl: "/assets/themes/bougainvillea-coast.jpg" },
+  { id: "sakura-sunset", name: "Sakura Sunset", desc: "Cherry blossoms, warm sunset light, and a quiet boardwalk", colors: ["#311B35", "#8B3F62", "#EE718C", "#F6B85A"], premium: false, accent: "#EE718C", coverUrl: "/assets/themes/sakura-sunset.jpg" },
 ];
 
 function isVideoUrl(url?: string | null): boolean {

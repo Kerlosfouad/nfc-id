@@ -160,6 +160,8 @@ function getThemeVars(theme: ProfileTheme) {
       return { textPrimary: '#ffffff', textSecondary: 'rgba(226,236,255,0.78)', isDark: true, glass: 'rgba(3,8,20,0.60)', glassBorder: 'rgba(64,112,255,0.30)' };
     case 'bougainvillea-coast':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(236,254,255,0.84)', isDark: true, glass: 'rgba(4,45,57,0.62)', glassBorder: 'rgba(246,200,206,0.34)' };
+    case 'sakura-sunset':
+      return { textPrimary: '#ffffff', textSecondary: 'rgba(255,239,242,0.84)', isDark: true, glass: 'rgba(49,27,53,0.64)', glassBorder: 'rgba(246,184,90,0.32)' };
     default:
       return { textPrimary: '#ffffff', textSecondary: 'rgba(255,255,255,0.64)', isDark: true, glass: 'rgba(255,255,255,0.12)', glassBorder: 'rgba(255,255,255,0.14)' };
   }
@@ -178,6 +180,7 @@ const THEME_COVER_URLS: Partial<Record<ProfileTheme['style'], string>> = {
   'electric-grid': '/assets/themes/electric-grid.mp4',
   'crimson-grid': '/assets/themes/crimson-grid.mp4',
   'bougainvillea-coast': '/assets/themes/bougainvillea-coast.jpg',
+  'sakura-sunset': '/assets/themes/sakura-sunset.jpg',
 };
 
 function isVideoUrl(url?: string | null): boolean {
@@ -220,6 +223,13 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
         backgroundPosition: 'center top',
       };
     }
+    if (theme.style === 'sakura-sunset') {
+      return {
+        backgroundImage: `linear-gradient(180deg, rgba(49,27,53,0.28) 0%, rgba(94,41,67,0.20) 32%, rgba(53,29,48,0.54) 70%, rgba(25,15,29,0.90) 100%), linear-gradient(135deg, rgba(238,113,140,0.18) 0%, transparent 42%, rgba(246,184,90,0.14) 76%, transparent 100%), url(${coverUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+      };
+    }
     return {
       backgroundImage: `url(${coverUrl})`,
       backgroundSize: 'cover',
@@ -238,6 +248,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
     case 'cosmic-nebula': return { background: 'radial-gradient(circle at 58% 36%, rgba(244,63,177,0.26), transparent 34%), radial-gradient(circle at 24% 42%, rgba(59,130,246,0.20), transparent 32%), linear-gradient(155deg,#12081f 0%,#07040f 52%,#02030a 100%)' };
     case 'electric-grid': return { background: 'radial-gradient(circle at 64% 30%, rgba(50,83,255,0.30), transparent 34%), linear-gradient(155deg,#0b1020 0%,#050811 50%,#02040a 100%)' };
     case 'bougainvillea-coast': return { background: 'radial-gradient(circle at 18% 18%, rgba(231,52,131,0.28), transparent 34%), radial-gradient(circle at 78% 42%, rgba(25,175,196,0.24), transparent 36%), linear-gradient(155deg,#063b4a 0%,#075f70 48%,#031c24 100%)' };
+    case 'sakura-sunset': return { background: 'radial-gradient(circle at 72% 20%, rgba(246,184,90,0.28), transparent 32%), radial-gradient(circle at 20% 28%, rgba(238,113,140,0.26), transparent 36%), linear-gradient(155deg,#5a2947 0%,#311b35 52%,#190f1d 100%)' };
     case 'dark':      return { background: `radial-gradient(circle at 72% 18%, ${pc}44, transparent 34%), linear-gradient(150deg,#030712,#111827 52%,#020617)` };
     default:          return { background: `radial-gradient(circle at 72% 18%, ${pc}3d, transparent 34%), linear-gradient(150deg,#04111c,#0b2438 52%,#020617)` };
   }
@@ -265,6 +276,10 @@ function isElectricGridTheme(style?: ProfileTheme['style']): boolean {
 
 function isBougainvilleaCoastTheme(style?: ProfileTheme['style']): boolean {
   return style === 'bougainvillea-coast';
+}
+
+function isSakuraSunsetTheme(style?: ProfileTheme['style']): boolean {
+  return style === 'sakura-sunset';
 }
 
 
@@ -689,6 +704,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
   const isElectric = isElectricGridTheme(profile.theme.style);
   const electric = electricGridSurface();
   const isBougainvilleaCoast = isBougainvilleaCoastTheme(profile.theme.style);
+  const isSakuraSunset = isSakuraSunsetTheme(profile.theme.style);
   const coverUrl = getThemeCoverUrl(profile.theme);
   const isVideoCover = isVideoUrl(coverUrl);
 
@@ -756,7 +772,7 @@ export default function ProfileView({ profile, links, showLeadForm = false, disa
       )}
       {/* Dark overlay for readability when cover image is set */}
       {coverUrl && (
-        <div className={`fixed inset-0 z-0 ${isBougainvilleaCoast ? 'bg-black/15' : isMotorsport || isRoyal || isNeon || isCosmic || isElectric ? 'bg-black/20' : 'bg-black/40'}`} />
+        <div className={`fixed inset-0 z-0 ${isBougainvilleaCoast || isSakuraSunset ? 'bg-black/15' : isMotorsport || isRoyal || isNeon || isCosmic || isElectric ? 'bg-black/20' : 'bg-black/40'}`} />
       )}
 
       <div className={`relative z-10 flex min-h-screen w-full max-w-[390px] flex-col items-center mx-auto px-7 ${isHero ? 'pt-7' : 'pt-16'} pb-8`}>
