@@ -7,6 +7,11 @@ const IMAGE_EXTENSIONS: Record<string, string> = {
   'image/png': 'png',
   'image/webp': 'webp',
 };
+const CV_EXTENSIONS: Record<string, string> = {
+  'application/pdf': 'pdf',
+  'application/msword': 'doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+};
 
 export async function POST(request: NextRequest) {
   const userId = request.headers.get('x-user-id');
@@ -49,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const fallbackExt = uploadType === 'product' ? (IMAGE_EXTENSIONS[file.type] ?? 'png') : 'pdf';
+  const fallbackExt = uploadType === 'product' ? (IMAGE_EXTENSIONS[file.type] ?? 'png') : (CV_EXTENSIONS[file.type] ?? 'pdf');
   const ext = file.name.split('.').pop()?.toLowerCase() || fallbackExt;
   const folder = uploadType === 'product' ? 'products' : 'cvs';
   const path = `${folder}/${userId}_${Date.now()}.${ext}`;

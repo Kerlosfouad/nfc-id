@@ -284,7 +284,14 @@ function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { pro
   const cvRef = useRef<HTMLInputElement>(null);
 
   async function handleCvUpload(file: File) {
-    if (!file.type.includes("pdf") && !file.name.endsWith(".pdf")) return;
+    const fileName = file.name.toLowerCase();
+    const allowedCvTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    const allowedCvExtensions = [".pdf", ".doc", ".docx"];
+    if (!allowedCvTypes.includes(file.type) && !allowedCvExtensions.some(ext => fileName.endsWith(ext))) return;
     setCvUploading(true);
     try {
       const supabase = createClient();
@@ -323,14 +330,14 @@ function EditProfilePanel({ profile, saving, onSave, onClose, onAddLink }: { pro
           onClick={() => cvRef.current?.click()}
           disabled={cvUploading}
           className="flex items-center gap-1.5 text-sm text-white/50 hover:text-white border border-white/10 hover:border-white/30 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
-          title={isArabic ? "رفع السيرة الذاتية PDF" : "Upload CV / Resume (PDF)"}
+          title={isArabic ? "رفع السيرة الذاتية PDF أو Word" : "Upload CV / Resume (PDF or Word)"}
         >
           {cvUploading
             ? <><i className="ri-loader-4-line animate-spin text-base" /><span>{isArabic ? "جار الرفع..." : "Uploading..."}</span></>
             : <><i className="ri-file-upload-line text-base" /><span>{isArabic ? "رفع CV" : "Upload CV"}</span></>
           }
         </button>
-        <input ref={cvRef} type="file" accept=".pdf,application/pdf" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleCvUpload(f); }} />
+        <input ref={cvRef} type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleCvUpload(f); }} />
       </div>
     </div>
   );

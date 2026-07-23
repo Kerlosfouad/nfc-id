@@ -129,7 +129,11 @@ const FORCE_WHITE_TEXT: React.CSSProperties = {
 function isCvLink(link: ProfileLink): boolean {
   const title = link.title.toLowerCase();
   const url = link.url.toLowerCase();
-  return title.includes('cv') || title.includes('resume') || url.endsWith('.pdf') || url.includes('.pdf?');
+  return (
+    title.includes('cv') ||
+    title.includes('resume') ||
+    /\.(pdf|doc|docx)(?:$|[?#])/.test(url)
+  );
 }
 
 function isHiddenLink(link: ProfileLink): boolean {
