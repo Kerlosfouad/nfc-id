@@ -269,6 +269,7 @@ const PRESET_THEMES = [
   { id: "aqua-pulse", name: "Aqua Pulse", desc: "Dark liquid motion with cyan and mint light", colors: ["#02080C", "#083041", "#05C8F7", "#9CFBDF"], premium: false, accent: "#05C8F7", coverUrl: "/assets/themes/aqua-pulse.mp4" },
   { id: "crimson-grid", name: "Crimson Grid", desc: "Dark tiled video with red neon grid lines", colors: ["#05070B", "#151A22", "#FF1E38", "#FF7A86"], premium: false, accent: "#FF1E38", coverUrl: "/assets/themes/crimson-grid.mp4" },
   { id: "bougainvillea-coast", name: "Bougainvillea Coast", desc: "Pink blossoms, turquoise water, and a sunlit shore", colors: ["#063B4A", "#19AFC4", "#E73483", "#F6C8CE"], premium: false, accent: "#E73483", coverUrl: "/assets/themes/bougainvillea-coast.jpg" },
+  { id: "butterfly-dawn", name: "Butterfly Dawn", desc: "Pink butterflies, lavender curtains, and a soft sea sunrise", colors: ["#1D1A2D", "#6E6F95", "#E879B9", "#FFD1A7"], premium: false, accent: "#E879B9", coverUrl: "/assets/themes/butterfly-dawn.jpg" },
   { id: "sakura-sunset", name: "Sakura Sunset", desc: "Cherry blossoms, warm sunset light, and a quiet boardwalk", colors: ["#311B35", "#8B3F62", "#EE718C", "#F6B85A"], premium: false, accent: "#EE718C", coverUrl: "/assets/themes/sakura-sunset.jpg" },
 ];
 

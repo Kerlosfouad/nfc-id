@@ -166,6 +166,8 @@ function getThemeVars(theme: ProfileTheme) {
       return { textPrimary: '#ffffff', textSecondary: 'rgba(221,255,248,0.80)', isDark: true, glass: 'rgba(2,24,32,0.62)', glassBorder: 'rgba(5,200,247,0.32)' };
     case 'bougainvillea-coast':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(236,254,255,0.84)', isDark: true, glass: 'rgba(4,45,57,0.62)', glassBorder: 'rgba(246,200,206,0.34)' };
+    case 'butterfly-dawn':
+      return { textPrimary: '#ffffff', textSecondary: 'rgba(255,239,250,0.84)', isDark: true, glass: 'rgba(29,26,45,0.58)', glassBorder: 'rgba(232,121,185,0.34)' };
     case 'sakura-sunset':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(255,239,242,0.84)', isDark: true, glass: 'rgba(49,27,53,0.64)', glassBorder: 'rgba(246,184,90,0.32)' };
     default:
@@ -187,6 +189,7 @@ const THEME_COVER_URLS: Partial<Record<ProfileTheme['style'], string>> = {
   'aqua-pulse': '/assets/themes/aqua-pulse.mp4',
   'crimson-grid': '/assets/themes/crimson-grid.mp4',
   'bougainvillea-coast': '/assets/themes/bougainvillea-coast.jpg',
+  'butterfly-dawn': '/assets/themes/butterfly-dawn.jpg',
   'sakura-sunset': '/assets/themes/sakura-sunset.jpg',
 };
 
@@ -230,6 +233,13 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
         backgroundPosition: 'center top',
       };
     }
+    if (theme.style === 'butterfly-dawn') {
+      return {
+        backgroundImage: `linear-gradient(180deg, rgba(29,26,45,0.30) 0%, rgba(52,47,79,0.22) 36%, rgba(36,28,50,0.58) 72%, rgba(15,12,24,0.92) 100%), linear-gradient(135deg, rgba(232,121,185,0.20) 0%, transparent 38%, rgba(255,209,167,0.18) 70%, transparent 100%), url(${coverUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center top',
+      };
+    }
     if (theme.style === 'sakura-sunset') {
       return {
         backgroundImage: `linear-gradient(180deg, rgba(49,27,53,0.28) 0%, rgba(94,41,67,0.20) 32%, rgba(53,29,48,0.54) 70%, rgba(25,15,29,0.90) 100%), linear-gradient(135deg, rgba(238,113,140,0.18) 0%, transparent 42%, rgba(246,184,90,0.14) 76%, transparent 100%), url(${coverUrl})`,
@@ -256,6 +266,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
     case 'electric-grid': return { background: 'radial-gradient(circle at 64% 30%, rgba(50,83,255,0.30), transparent 34%), linear-gradient(155deg,#0b1020 0%,#050811 50%,#02040a 100%)' };
     case 'aqua-pulse': return { background: 'radial-gradient(circle at 62% 28%, rgba(5,200,247,0.28), transparent 34%), radial-gradient(circle at 24% 38%, rgba(156,251,223,0.18), transparent 32%), linear-gradient(155deg,#083041 0%,#031018 48%,#02080c 100%)' };
     case 'bougainvillea-coast': return { background: 'radial-gradient(circle at 18% 18%, rgba(231,52,131,0.28), transparent 34%), radial-gradient(circle at 78% 42%, rgba(25,175,196,0.24), transparent 36%), linear-gradient(155deg,#063b4a 0%,#075f70 48%,#031c24 100%)' };
+    case 'butterfly-dawn': return { background: 'radial-gradient(circle at 62% 24%, rgba(232,121,185,0.28), transparent 34%), radial-gradient(circle at 24% 36%, rgba(255,209,167,0.18), transparent 34%), linear-gradient(155deg,#6e6f95 0%,#3c3655 48%,#1d1a2d 100%)' };
     case 'sakura-sunset': return { background: 'radial-gradient(circle at 72% 20%, rgba(246,184,90,0.28), transparent 32%), radial-gradient(circle at 20% 28%, rgba(238,113,140,0.26), transparent 36%), linear-gradient(155deg,#5a2947 0%,#311b35 52%,#190f1d 100%)' };
     case 'dark':      return { background: `radial-gradient(circle at 72% 18%, ${pc}44, transparent 34%), linear-gradient(150deg,#030712,#111827 52%,#020617)` };
     default:          return { background: `radial-gradient(circle at 72% 18%, ${pc}3d, transparent 34%), linear-gradient(150deg,#04111c,#0b2438 52%,#020617)` };
