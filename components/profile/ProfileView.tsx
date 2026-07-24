@@ -162,6 +162,8 @@ function getThemeVars(theme: ProfileTheme) {
       return { textPrimary: '#ffffff', textSecondary: 'rgba(238,232,255,0.80)', isDark: true, glass: 'rgba(16,10,36,0.58)', glassBorder: 'rgba(244,63,177,0.28)' };
     case 'electric-grid':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(226,236,255,0.78)', isDark: true, glass: 'rgba(3,8,20,0.60)', glassBorder: 'rgba(64,112,255,0.30)' };
+    case 'aqua-pulse':
+      return { textPrimary: '#ffffff', textSecondary: 'rgba(221,255,248,0.80)', isDark: true, glass: 'rgba(2,24,32,0.62)', glassBorder: 'rgba(5,200,247,0.32)' };
     case 'bougainvillea-coast':
       return { textPrimary: '#ffffff', textSecondary: 'rgba(236,254,255,0.84)', isDark: true, glass: 'rgba(4,45,57,0.62)', glassBorder: 'rgba(246,200,206,0.34)' };
     case 'sakura-sunset':
@@ -182,6 +184,7 @@ const THEME_COVER_URLS: Partial<Record<ProfileTheme['style'], string>> = {
   'neon-red': '/assets/themes/neon-red.mp4',
   'cosmic-nebula': '/assets/themes/cosmic-nebula.mp4',
   'electric-grid': '/assets/themes/electric-grid.mp4',
+  'aqua-pulse': '/assets/themes/aqua-pulse.mp4',
   'crimson-grid': '/assets/themes/crimson-grid.mp4',
   'bougainvillea-coast': '/assets/themes/bougainvillea-coast.jpg',
   'sakura-sunset': '/assets/themes/sakura-sunset.jpg',
@@ -251,6 +254,7 @@ function getBgStyle(theme: ProfileTheme): React.CSSProperties {
     case 'crimson-grid': return { background: 'radial-gradient(circle at 64% 30%, rgba(255,30,56,0.30), transparent 34%), linear-gradient(155deg,#151a22 0%,#07090e 50%,#020304 100%)' };
     case 'cosmic-nebula': return { background: 'radial-gradient(circle at 58% 36%, rgba(244,63,177,0.26), transparent 34%), radial-gradient(circle at 24% 42%, rgba(59,130,246,0.20), transparent 32%), linear-gradient(155deg,#12081f 0%,#07040f 52%,#02030a 100%)' };
     case 'electric-grid': return { background: 'radial-gradient(circle at 64% 30%, rgba(50,83,255,0.30), transparent 34%), linear-gradient(155deg,#0b1020 0%,#050811 50%,#02040a 100%)' };
+    case 'aqua-pulse': return { background: 'radial-gradient(circle at 62% 28%, rgba(5,200,247,0.28), transparent 34%), radial-gradient(circle at 24% 38%, rgba(156,251,223,0.18), transparent 32%), linear-gradient(155deg,#083041 0%,#031018 48%,#02080c 100%)' };
     case 'bougainvillea-coast': return { background: 'radial-gradient(circle at 18% 18%, rgba(231,52,131,0.28), transparent 34%), radial-gradient(circle at 78% 42%, rgba(25,175,196,0.24), transparent 36%), linear-gradient(155deg,#063b4a 0%,#075f70 48%,#031c24 100%)' };
     case 'sakura-sunset': return { background: 'radial-gradient(circle at 72% 20%, rgba(246,184,90,0.28), transparent 32%), radial-gradient(circle at 20% 28%, rgba(238,113,140,0.26), transparent 36%), linear-gradient(155deg,#5a2947 0%,#311b35 52%,#190f1d 100%)' };
     case 'dark':      return { background: `radial-gradient(circle at 72% 18%, ${pc}44, transparent 34%), linear-gradient(150deg,#030712,#111827 52%,#020617)` };
